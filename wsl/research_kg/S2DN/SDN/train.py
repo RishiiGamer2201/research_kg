@@ -8,6 +8,7 @@ import numpy as np
 from subgraph_extraction.datasets import SubgraphDataset, generate_subgraph_datasets
 from utils.initialization_utils import initialize_experiment, initialize_model
 from utils.graph_utils import collate_dgl, move_batch_to_device_dgl
+from utils.rule_miner import default_rule_cache_path, ensure_rule_cache
 
 from model.dgl.graph_classifier import GraphClassifier as dgl_model
 
@@ -45,6 +46,11 @@ def main(params):
     params.num_rels = train.num_rels
     params.aug_num_rels = train.aug_num_rels
     params.inp_dim = train.n_feat_dim
+    train.relation2id = {rel: idx for idx, rel in train.id2relation.items()}
+
+    if params.use_rule_trust:
+        params.rule_cache = ensure_rule_cache(params, train.relation2id)
+        logging.info(f"RuleTrust cache: {params.rule_cache}")
 
     # Log the max label value to save it in the model. This will be used to cap the labels generated on test set.
     params.max_label_value = train.max_n_label
@@ -177,6 +183,17 @@ if __name__ == '__main__':
         parser.add_argument("--feature_denoise", type=bool, default=True, 
                             help="epsilonNN, KNN, prob")
 
+        # RuleTrust-S2DN params
+        parser.add_argument('--use-rule-trust', dest='use_rule_trust', action='store_true',
+                            help='Inject length-2 rule confidence as a Structure Refining prior')
+        parser.add_argument('--rule-weight', type=float, default=1.0,
+                            help='Weight applied to centered rule prior before graph refinement')
+        parser.add_argument('--rule-conf-threshold', type=float, default=0.1,
+                            help='Minimum confidence for mined and loaded RuleTrust rules')
+        parser.add_argument('--rule-min-support', type=int, default=2,
+                            help='Minimum support for mined RuleTrust rules')
+        parser.add_argument('--rule-cache', type=str, default='',
+                            help='RuleTrust JSON cache path. Defaults to data/{dataset}/ruletrust_rules.json')
 
         params = parser.parse_args()
         params.lr = 0.01
@@ -190,6 +207,8 @@ if __name__ == '__main__':
             'train': os.path.join(params.main_dir, 'data/{}/{}.txt'.format(params.dataset, params.train_file)),
             'valid': os.path.join(params.main_dir, 'data/{}/{}.txt'.format(params.dataset, params.valid_file))
         }
+        if params.use_rule_trust and not params.rule_cache:
+            params.rule_cache = default_rule_cache_path(params.main_dir, params.dataset)
 
         if not params.disable_cuda and torch.cuda.is_available():
             params.device = torch.device('cuda:%d' % params.gpu)

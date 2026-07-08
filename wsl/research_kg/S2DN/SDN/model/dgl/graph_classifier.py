@@ -5,6 +5,7 @@ from scipy.sparse import csr_matrix
 import torch.nn as nn
 import torch
 import dgl
+from utils.rule_features import build_rule_prior, load_rule_index
 """
 File based off of dgl tutorial on RGCN
 Source: https://github.com/dmlc/dgl/tree/master/examples/pytorch/rgcn
@@ -23,6 +24,9 @@ class GraphClassifier(nn.Module):
 
         self.gsl = GraphLearner(params)
         self.g_learn = GCN(self.params.emb_dim, self.params.emb_dim)
+        self.rule_index = {}
+        if getattr(self.params, 'use_rule_trust', False):
+            self.rule_index = load_rule_index(self.params.rule_cache, self.params.rule_conf_threshold)
 
         if self.params.add_ht_emb:
             self.fc_layer = nn.Linear(3 * self.params.num_gcn_layers * self.params.emb_dim + self.params.rel_emb_dim + self.params.emb_dim, 1)
@@ -31,11 +35,14 @@ class GraphClassifier(nn.Module):
             self.fc_layer = nn.Linear(self.params.num_gcn_layers * self.params.emb_dim + self.params.rel_emb_dim + self.params.emb_dim, 1)
             # self.fc_layer = nn.Linear(self.params.num_gcn_layers * self.params.emb_dim + self.params.rel_emb_dim, 1)
 
-    def batch_graph_learner(self, batch_g):
+    def batch_graph_learner(self, batch_g, rel_labels):
         graphs = []
-        for graph in dgl.unbatch(batch_g):
-            
-            node_features, learned_adj = self.gsl(graph.ndata['h'])
+        for graph, rel_label in zip(dgl.unbatch(batch_g), rel_labels.detach().cpu().tolist()):
+            rule_prior = None
+            if getattr(self.params, 'use_rule_trust', False):
+                rule_prior = build_rule_prior(graph, rel_label, self.rule_index)
+
+            node_features, learned_adj = self.gsl(graph.ndata['h'], rule_prior=rule_prior)
             csr_adj = csr_matrix(learned_adj.detach().cpu().numpy())
             learned_g = dgl.add_self_loop(dgl.from_scipy(csr_adj, eweight_name='e_w'))
             learned_g.ndata['h'] = node_features.detach().cpu()
@@ -52,7 +59,7 @@ class GraphClassifier(nn.Module):
         g_out = mean_nodes(g, 'repr')
         # dgl.save_graphs(f'graphs/fb237/graph_original.bin',g)
         ### structure learning
-        learned_g = self.batch_graph_learner(g)
+        learned_g = self.batch_graph_learner(g, rel_labels)
         learned_g.ndata['id'] = g.ndata['id']
         # dgl.save_graphs(f'graphs/fb237/graph_learned.bin',learned_g)
         # import ipdb;ipdb.set_trace();

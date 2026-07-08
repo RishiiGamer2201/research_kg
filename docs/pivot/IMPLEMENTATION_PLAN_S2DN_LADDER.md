@@ -65,6 +65,8 @@ not report `Hits@5` in this table.
 | 2026-07-08 | S2DN validation patch | Fixed tuple-output validation crash |
 | 2026-07-08 | S2DN ranking patch | Ranking now completes on saved checkpoints |
 | 2026-07-08 | Result collection | WN18RR CSV collector added and v1-v4 average computed |
+| 2026-07-08 | RuleTrust-S2DN scaffold | Implemented rule miner, rule prior builder, CLI flags, and Structure Refining prior injection |
+| 2026-07-08 | RuleTrust smoke test | WN18RR_v1 one-epoch GPU smoke run completed; 10 length-2 rules mined at support >= 2 and confidence >= 0.1 |
 
 Engineering evidence and inference:
 
@@ -84,7 +86,7 @@ Engineering evidence and inference:
 |---|---|---:|---|
 | Can we reproduce S2DN on English inductive KGC? | Yes. WN18RR v1-v4 completed with average Hits@10 `80.57` against paper `81.23`. | High | Start RuleTrust-S2DN on top of the reproduced baseline. |
 | Is the GPU setup usable? | Yes; v1-v4 completed in the GPU env. S2DN remains subgraph-heavy and not fully GPU-saturated. | High | Reuse the same env for RuleTrust-S2DN ablations. |
-| Are we ready to implement RuleTrust-S2DN? | Yes. The English WN18RR S2DN baseline is reproduced closely enough to become the comparison point. | High | Implement rule mining and rule-prior injection into Structure Refining. |
+| Are we ready to implement RuleTrust-S2DN? | The scaffold is implemented and smoke-tested. | High | Run full WN18RR_v1 RuleTrust training and compare against `sdn_wn_v1_gpu`. |
 | Is multilingual/self-healing next? | No. It remains downstream after English reproduction and one principled S2DN improvement. | High | RuleTrust-S2DN result on WN18RR and preferably FB15k-237. |
 
 ---
@@ -326,20 +328,38 @@ Before building, a short scoping check so the contribution is defensibly novel:
 
 New components:
 
-- [ ] `rule_miner.py`: mine length-2 Horn-style relation rules from training triples, form
+- [x] `rule_miner.py`: mine length-2 Horn-style relation rules from training triples, form
       `(x, r1, z) + (z, r2, y) -> (x, r, y)`. Keep rules above support and confidence thresholds.
-      Consider AnyBURL (arxiv.org/abs/2004.04412) rather than writing a miner from scratch.
-- [ ] `rule_features.py`: for each edge in an enclosing subgraph, compute the max rule confidence
-      supporting that edge relation.
-- [ ] CLI flags: `--use-rule-trust`, `--rule-weight`, `--rule-conf-threshold`, `--rule-cache`.
-- [ ] Edge reliability combination:
-      `final_edge_logit = neural_edge_logit + rule_weight * (rule_prior - 0.5)`.
+- [x] `rule_features.py`: for each enclosing subgraph, compute a dense max-confidence rule prior
+      supporting the current candidate relation through local length-2 typed paths.
+- [x] CLI flags: `--use-rule-trust`, `--rule-weight`, `--rule-conf-threshold`,
+      `--rule-min-support`, `--rule-cache`.
+- [x] Edge reliability combination:
+      `final_graphlearner_logit = neural_graphlearner_logit + rule_weight * (rule_prior - 0.5)`.
+
+Implementation note: the original S2DN Structure Refining module learns a dense node-node
+adjacency from node embeddings, not a direct per-original-edge reliability score. RuleTrust
+therefore injects the symbolic prior into the dense GraphLearner logits before the existing
+probabilistic/KNN graph construction step. With `--use-rule-trust` absent, this code path is
+disabled and baseline behavior is preserved.
+
+Status 2026-07-08: RuleTrust scaffold compiled and completed a one-epoch WN18RR_v1 GPU smoke run:
+
+```bash
+python train.py -d WN18RR_v1 -e smoke_ruletrust_wn_v1 --gpu 0 --num_epochs 1 \
+  --eval_every 1 --num_workers 4 --use-rule-trust --rule-weight 0.5 \
+  --rule-conf-threshold 0.1 --rule-min-support 2
+```
+
+Smoke result: training reached `Device: cuda:0`, mined cache
+`data/WN18RR_v1/ruletrust_rules.json`, found 10 rules, and completed epoch 1 with training AUC
+`0.8491`.
 - [ ] Deterministic, cached rule files so runs are reproducible.
 
 Ablations:
 
 - [ ] S2DN reproduced baseline.
-- [ ] RuleTrust-S2DN (full).
+- [ ] RuleTrust-S2DN (full WN18RR_v1).
 - [ ] RuleTrust-S2DN with `rule_weight=0` (must match baseline behavior).
 - [ ] RuleTrust-S2DN with low-confidence rules removed.
 - [ ] Optional: Semantic Smoothing only, Structure Refining only.

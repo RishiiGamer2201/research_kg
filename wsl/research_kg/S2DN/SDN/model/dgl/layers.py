@@ -168,6 +168,8 @@ class GraphLearner(nn.Module):
         self.metric_type = params.metric_type
         self.graph_type = params.graph_type
         self.feature_denoise = params.feature_denoise
+        self.use_rule_trust = getattr(params, 'use_rule_trust', False)
+        self.rule_weight = getattr(params, 'rule_weight', 1.0)
         # self.device = device
         self.top_k = params.top_k
 
@@ -183,16 +185,16 @@ class GraphLearner(nn.Module):
             for module in self.linear_sims:
                 module.reset_parameters()
         
-    def forward(self, node_features):
+    def forward(self, node_features, rule_prior=None):
         if self.feature_denoise:
             masked_features = self.mask_feature(node_features)
-            learned_adj = self.learn_adj(masked_features)
+            learned_adj = self.learn_adj(masked_features, rule_prior=rule_prior)
             return masked_features, learned_adj
         else:
-            learned_adj = self.learn_adj(node_features)
+            learned_adj = self.learn_adj(node_features, rule_prior=rule_prior)
             return node_features, learned_adj
     
-    def learn_adj(self, context, ctx_mask=None):
+    def learn_adj(self, context, ctx_mask=None, rule_prior=None):
         if self.metric_type == 'attention':
             attention = 0
             for _ in range(len(self.linear_sims)):
@@ -250,6 +252,10 @@ class GraphLearner(nn.Module):
 
             attention /= self.num_pers
             markoff_value = -INF
+
+        if self.use_rule_trust and rule_prior is not None:
+            prior = rule_prior.to(device=attention.device, dtype=attention.dtype)
+            attention = attention + self.rule_weight * (prior - 0.5)
         
         if self.graph_type == 'epsilonNN':
             assert self.epsilon is not None
