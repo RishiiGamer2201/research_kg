@@ -1,0 +1,96 @@
+[21:33:59 INFO] Loading checkpoint: /home/admin_wsl/research_kg/DBP5L/checkpoints/bgem3_lora_dbp5l_20260626_0344/best_model.pt
+[21:34:03 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[21:34:03 WARNING] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[21:34:03 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+[21:34:03 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+[21:34:04 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s][21:34:04 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/commits/main "HTTP/1.1 200 OK"
+[21:34:04 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/discussions?p=0 "HTTP/1.1 200 OK"
+[21:34:05 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/commits/refs%2Fpr%2F130 "HTTP/1.1 200 OK"
+Loading weights:   1%|▏         | 5/391 [00:00<01:15,  5.10it/s][21:34:05 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/refs%2Fpr%2F130/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+Loading weights:  71%|███████   | 277/391 [00:01<00:00, 349.33it/s][21:34:05 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/refs%2Fpr%2F130/model.safetensors "HTTP/1.1 302 Found"
+Loading weights: 100%|██████████| 391/391 [00:01<00:00, 305.89it/s]
+[21:34:06 INFO] Loaded epoch 10 | valid acc@1 at save: 15.28%
+[21:34:07 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+[21:34:07 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[21:34:07 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+[21:34:07 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/tokenizer_config.json "HTTP/1.1 200 OK"
+[21:34:07 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+[21:34:08 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+[21:34:09 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+[21:34:09 INFO] Loading KG neighbor-based entity descriptions...
+[21:34:09 INFO]   Loaded 56589 descriptions
+[21:34:10 INFO] Loaded 960 relation names
+[21:34:10 INFO] Loading test triples...
+[21:34:10 INFO]   54473 test triples
+[21:34:10 INFO] Building filter map...
+[21:34:10 INFO] Encoding 56589 entities (batch 256)...
+[21:34:19 INFO]   Encoded 2560/56589 entities
+[21:34:24 INFO]   Encoded 5120/56589 entities
+[21:34:28 INFO]   Encoded 7680/56589 entities
+[21:34:33 INFO]   Encoded 10240/56589 entities
+[21:34:37 INFO]   Encoded 12800/56589 entities
+[21:34:42 INFO]   Encoded 15360/56589 entities
+[21:34:46 INFO]   Encoded 17920/56589 entities
+[21:34:51 INFO]   Encoded 20480/56589 entities
+[21:34:55 INFO]   Encoded 23040/56589 entities
+[21:35:00 INFO]   Encoded 25600/56589 entities
+[21:35:05 INFO]   Encoded 28160/56589 entities
+[21:35:09 INFO]   Encoded 30720/56589 entities
+[21:35:14 INFO]   Encoded 33280/56589 entities
+[21:35:18 INFO]   Encoded 35840/56589 entities
+[21:35:23 INFO]   Encoded 38400/56589 entities
+[21:35:28 INFO]   Encoded 40960/56589 entities
+[21:35:32 INFO]   Encoded 43520/56589 entities
+[21:35:37 INFO]   Encoded 46080/56589 entities
+[21:35:41 INFO]   Encoded 48640/56589 entities
+[21:35:46 INFO]   Encoded 51200/56589 entities
+[21:35:50 INFO]   Encoded 53760/56589 entities
+[21:35:55 INFO]   Encoded 56320/56589 entities
+[21:35:57 INFO] Entity embeddings: torch.Size([56589, 1024]) | dtype: torch.float32
+[21:35:57 INFO] Per-language candidate counts: {'en': 13996, 'fr': 13176, 'es': 12381, 'ja': 11805, 'el': 5231}
+[21:35:57 INFO] Evaluating 54473 test triples...
+[21:36:53 INFO]   Evaluated 2560/54473 | running MRR: 0.0036
+[21:37:47 INFO]   Evaluated 5120/54473 | running MRR: 0.0031
+[21:38:39 INFO]   Evaluated 7680/54473 | running MRR: 0.0030
+[21:39:38 INFO]   Evaluated 10240/54473 | running MRR: 0.0029
+[21:40:29 INFO]   Evaluated 12800/54473 | running MRR: 0.0029
+[21:41:24 INFO]   Evaluated 15360/54473 | running MRR: 0.0028
+[21:42:16 INFO]   Evaluated 17920/54473 | running MRR: 0.0029
+[21:43:06 INFO]   Evaluated 20480/54473 | running MRR: 0.0028
+[21:43:55 INFO]   Evaluated 23040/54473 | running MRR: 0.0027
+[21:44:47 INFO]   Evaluated 25600/54473 | running MRR: 0.0026
+[21:45:41 INFO]   Evaluated 28160/54473 | running MRR: 0.0026
+[21:46:34 INFO]   Evaluated 30720/54473 | running MRR: 0.0025
+[21:47:26 INFO]   Evaluated 33280/54473 | running MRR: 0.0024
+[21:48:18 INFO]   Evaluated 35840/54473 | running MRR: 0.0023
+[21:49:15 INFO]   Evaluated 38400/54473 | running MRR: 0.0022
+[21:50:11 INFO]   Evaluated 40960/54473 | running MRR: 0.0022
+[21:51:05 INFO]   Evaluated 43520/54473 | running MRR: 0.0022
+[21:51:57 INFO]   Evaluated 46080/54473 | running MRR: 0.0021
+[21:52:52 INFO]   Evaluated 48640/54473 | running MRR: 0.0020
+[21:53:46 INFO]   Evaluated 51200/54473 | running MRR: 0.0019
+[21:54:38 INFO]   Evaluated 53760/54473 | running MRR: 0.0019
+[21:54:53 INFO] Results saved to: /home/admin_wsl/research_kg/DBP5L/checkpoints/bgem3_lora_dbp5l_20260626_0344/eval_results.json
+
+======================================================================
+CHECKPOINT: bgem3_lora_dbp5l_20260626_0344
+======================================================================
+
+[CROSS-LINGUAL EVAL] Rank against all 56K entities:
+  OVERALL: MRR=0.19% H@1=0.04% H@3=0.10% H@10=0.29%  (n=54473)
+  EN : MRR=0.29% H@1=0.07% H@3=0.18% H@10=0.46%  (n=18409)
+  FR : MRR=0.18% H@1=0.03% H@3=0.08% H@10=0.24%  (n=11154)
+  ES : MRR=0.16% H@1=0.02% H@3=0.08% H@10=0.27%  (n=15094)
+  JA : MRR=0.03% H@1=0.01% H@3=0.01% H@10=0.03%  (n=7237)
+  EL : MRR=0.10% H@1=0.04% H@3=0.04% H@10=0.12%  (n=2579)
+
+[WITHIN-LANGUAGE EVAL] Rank against same-language entities only (standard ML-KGC):
+  OVERALL: MRR=0.41% H@1=0.08% H@3=0.23% H@10=0.62%  (n=54473)
+  EN  (13,996 cands): MRR=0.62% H@1=0.15% H@3=0.37% H@10=0.99%  (n=18409)
+  FR  (13,176 cands): MRR=0.40% H@1=0.08% H@3=0.19% H@10=0.56%  (n=11154)
+  ES  (12,381 cands): MRR=0.38% H@1=0.05% H@3=0.23% H@10=0.56%  (n=15094)
+  JA  (11,805 cands): MRR=0.04% H@1=0.01% H@3=0.03% H@10=0.03%  (n=7237)
+  EL  (5,231 cands): MRR=0.12% H@1=0.04% H@3=0.04% H@10=0.16%  (n=2579)

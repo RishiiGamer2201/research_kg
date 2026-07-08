@@ -1,0 +1,10 @@
+torch=2.11.0+cu128
+torch_cuda=12.8
+torch_cuda_available=True
+torch_device=NVIDIA GeForce RTX 5070 Ti
+torch_capability=(12, 0)
+torch_cuda_tensor_mean=0.005310913547873497
+dgl=2.4.0+cu121
+dgl_cuda_graph=Graph(num_nodes=3, num_edges=2,
+      ndata_schemes={}
+      edata_schemes={})

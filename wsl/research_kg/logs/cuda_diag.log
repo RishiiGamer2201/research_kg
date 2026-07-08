@@ -1,0 +1,35 @@
+=== nvidia-smi ===
+Fri Jun 26 03:00:00 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 610.43.02              KMD Version: 610.62        CUDA UMD Version: 13.3     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 5070 Ti     On  |   00000000:02:00.0 Off |                  N/A |
+|  0%   40C    P8             10W /  300W |     445MiB /  16303MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+=== CUDA backward test ===
+PyTorch: 2.11.0+cu128
+CUDA available: True
+GPU: NVIDIA GeForce RTX 5070 Ti
+
+Test 1: Simple backward...
+  OK — grad sum: 6.8031
+Test 2: Linear layer backward...
+  OK — grad norm: 197.5009
+Test 3: AMP autocast backward...
+  OK — loss: 79.7560
+
+All CUDA tests PASSED

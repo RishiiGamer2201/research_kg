@@ -1,0 +1,16 @@
+[19:36:32 INFO] Device: cuda
+[19:36:32 INFO] Loading checkpoint: /bgem3_lora_dbp5l_/best_model.pt
+Traceback (most recent call last):
+  File "/home/admin_wsl/research_kg/eval_dbp5l.py", line 448, in <module>
+    evaluate(checkpoint, per_language=args.per_language,
+  File "/home/admin_wsl/research_kg/eval_dbp5l.py", line 211, in evaluate
+    model, model_name, lora_rank, ckpt_max_length = load_checkpoint(checkpoint_path)
+  File "/home/admin_wsl/research_kg/eval_dbp5l.py", line 105, in load_checkpoint
+    ckpt = torch.load(checkpoint_path, map_location='cpu')
+  File "/home/admin_wsl/research_kg/RAA-KGC/SimKGC/venv/lib/python3.10/site-packages/torch/serialization.py", line 1530, in load
+    with _open_file_like(f, "rb") as opened_file:
+  File "/home/admin_wsl/research_kg/RAA-KGC/SimKGC/venv/lib/python3.10/site-packages/torch/serialization.py", line 795, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/home/admin_wsl/research_kg/RAA-KGC/SimKGC/venv/lib/python3.10/site-packages/torch/serialization.py", line 776, in __init__
+    super().__init__(open(name, mode))  # noqa: SIM115
+FileNotFoundError: [Errno 2] No such file or directory: '/bgem3_lora_dbp5l_/best_model.pt'

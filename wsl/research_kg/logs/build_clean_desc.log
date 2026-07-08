@@ -1,0 +1,14 @@
+entities to re-source: 2359
+  200/2359 | recovered 98 | names 102 | 94s
+  400/2359 | recovered 203 | names 197 | 186s
+  600/2359 | recovered 307 | names 293 | 277s
+  800/2359 | recovered 397 | names 403 | 365s
+  1000/2359 | recovered 470 | names 530 | 463s
+  1200/2359 | recovered 572 | names 628 | 556s
+  1400/2359 | recovered 662 | names 738 | 649s
+  1600/2359 | recovered 743 | names 857 | 744s
+  1800/2359 | recovered 808 | names 992 | 837s
+  2000/2359 | recovered 885 | names 1115 | 928s
+  2200/2359 | recovered 963 | names 1237 | 1024s
+DONE: recovered native 1070, fell back to name 1289, total 2359
+wrote entity_descriptions_clean.json

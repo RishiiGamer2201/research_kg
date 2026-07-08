@@ -1,0 +1,45 @@
+[03:28:58 INFO] Run: bgem3_dbp5l_20260626_0328
+[03:28:58 INFO] CRR=0 | XL-anchors=0 | n_anchors=0
+[03:28:58 INFO] Loading entities...
+[03:28:58 INFO] Loading anchor index (O(1) relation lookup)...
+[03:28:58 INFO] Loading alignment index...
+[03:28:58 INFO] Loading BGE-M3: BAAI/bge-m3
+[03:28:58 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+[03:28:58 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[03:28:58 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+[03:28:58 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/tokenizer_config.json "HTTP/1.1 200 OK"
+[03:28:59 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+[03:28:59 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+[03:29:01 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+[03:29:01 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[03:29:01 WARNING] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[03:29:01 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+[03:29:01 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights:  87%|████████▋ | 341/391 [00:00<00:00, 3393.78it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 3288.17it/s]
+[03:29:02 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+[03:29:02 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/commits/main "HTTP/1.1 200 OK"
+[03:29:02 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/discussions?p=0 "HTTP/1.1 200 OK"
+[03:29:02 INFO] Parameters: 567.8M | Device: cuda
+[03:29:02 INFO] GPU: NVIDIA GeForce RTX 5070 Ti | VRAM free: 14.6 GB
+[03:29:02 INFO] Pre-tokenizing training set (one-time, ~2-5 min)...
+[03:29:02 INFO]   Building texts for 118256 examples...
+[03:29:02 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/commits/refs%2Fpr%2F130 "HTTP/1.1 200 OK"
+[03:29:03 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/refs%2Fpr%2F130/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+[03:29:03 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/refs%2Fpr%2F130/model.safetensors "HTTP/1.1 302 Found"
+[03:29:16 INFO]   Tokenizing queries...
+[03:29:16 INFO]     Loading from cache: /home/admin_wsl/research_kg/DBP5L/token_cache/train_ml96_na0_xl0_q_ids.pt
+[03:29:16 INFO]   Tokenizing tails...
+[03:29:16 INFO]     Loading from cache: /home/admin_wsl/research_kg/DBP5L/token_cache/train_ml96_na0_xl0_t_ids.pt
+[03:29:16 INFO]   Pre-tokenization complete. 117951 / 118256 have anchors.
+[03:29:16 INFO] Pre-tokenizing validation set...
+[03:29:16 INFO]   Building texts for 13137 examples...
+[03:29:18 INFO]   Tokenizing queries...
+[03:29:18 INFO]     Loading from cache: /home/admin_wsl/research_kg/DBP5L/token_cache/valid_ml96_q_ids.pt
+[03:29:18 INFO]   Tokenizing tails...
+[03:29:18 INFO]     Loading from cache: /home/admin_wsl/research_kg/DBP5L/token_cache/valid_ml96_t_ids.pt
+[03:29:18 INFO]   Pre-tokenization complete. 13100 / 13137 have anchors.
+[03:29:18 INFO] Training: 118256 examples | 4620 opt steps | 5 epochs
+[03:29:18 INFO] Batch=64 | GradAccum=2 | Effective batch=128
+[03:40:39 INFO] Ep 1/5 step 50/1848 | loss 4.1284 | acc@1 10.9% acc@3 18.2% | 0.07 steps/s | ETA 34.8h

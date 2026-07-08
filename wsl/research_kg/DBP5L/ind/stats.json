@@ -1,0 +1,57 @@
+{
+  "en": {
+    "total_entities": 13132,
+    "train_entities": 10506,
+    "test_entities": 2626,
+    "holdout_ratio_actual": 0.2,
+    "total_triples": 80167,
+    "train_triples": 44801,
+    "valid_triples": 4977,
+    "test_eval_triples": 18409,
+    "support_triples": 11980
+  },
+  "fr": {
+    "total_entities": 10074,
+    "train_entities": 8060,
+    "test_entities": 2014,
+    "holdout_ratio_actual": 0.1999,
+    "total_triples": 49015,
+    "train_triples": 25968,
+    "valid_triples": 2885,
+    "test_eval_triples": 11154,
+    "support_triples": 9008
+  },
+  "es": {
+    "total_entities": 10108,
+    "train_entities": 8087,
+    "test_entities": 2021,
+    "holdout_ratio_actual": 0.1999,
+    "total_triples": 54066,
+    "train_triples": 26902,
+    "valid_triples": 2989,
+    "test_eval_triples": 15094,
+    "support_triples": 9081
+  },
+  "ja": {
+    "total_entities": 7473,
+    "train_entities": 5979,
+    "test_entities": 1494,
+    "holdout_ratio_actual": 0.1999,
+    "total_triples": 28774,
+    "train_triples": 13531,
+    "valid_triples": 1503,
+    "test_eval_triples": 7237,
+    "support_triples": 6503
+  },
+  "el": {
+    "total_entities": 4020,
+    "train_entities": 3216,
+    "test_entities": 804,
+    "holdout_ratio_actual": 0.2,
+    "total_triples": 13839,
+    "train_triples": 7054,
+    "valid_triples": 783,
+    "test_eval_triples": 2579,
+    "support_triples": 3423
+  }
+}

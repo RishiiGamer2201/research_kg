@@ -1,0 +1,249 @@
+[14:24:12 INFO] Loading WN18RR data from /home/admin_wsl/research_kg/RAA-KGC/SimKGC/data/WN18RR
+[14:24:12 INFO]   40943 entities with descriptions
+[14:24:12 INFO]   11 relations
+[14:24:13 INFO]   Train: 86835 | Valid: 3034
+[14:24:13 INFO] Loading BGE-M3 + LoRA...
+[14:24:13 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[14:24:13 WARNING] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[14:24:13 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+[14:24:13 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+[14:24:13 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[14:24:14 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s][14:24:14 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+Loading weights: 100%|██████████| 391/391 [00:00<00:00, 4008.57it/s]
+[14:24:14 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/commits/main "HTTP/1.1 200 OK"
+[14:24:15 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/discussions?p=0 "HTTP/1.1 200 OK"
+[14:24:15 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+[14:24:15 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json "HTTP/1.1 200 OK"
+[14:24:15 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/commits/refs%2Fpr%2F130 "HTTP/1.1 200 OK"
+[14:24:15 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+[14:24:15 INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/tokenizer_config.json "HTTP/1.1 200 OK"
+[14:24:15 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+[14:24:15 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/refs%2Fpr%2F130/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+[14:24:15 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+[14:24:15 INFO] HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/refs%2Fpr%2F130/model.safetensors "HTTP/1.1 302 Found"
+[14:24:17 INFO] HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+[14:24:17 INFO] Pre-tokenizing...
+[14:24:17 INFO]   Cache hit: train_ml64_v1_q_ids.pt
+[14:24:17 INFO]   Cache hit: train_ml64_v1_t_ids.pt
+[14:24:17 INFO]   Cache hit: valid_ml64_v1_q_ids.pt
+[14:24:17 INFO]   Cache hit: valid_ml64_v1_t_ids.pt
+[14:24:17 INFO] Training: 86835 examples | 10170 opt steps | 30 epochs
+trainable params: 786,432 || all params: 568,541,184 || trainable%: 0.1383
+[14:24:37 INFO] Ep 1/30 step 100/1356 | loss 2.4278 | acc@1 59.9% acc@3 77.5% | 5.14 steps/s | ETA 4.1min | VRAM 1.2GB
+[14:24:55 INFO] Ep 1/30 step 200/1356 | loss 2.0079 | acc@1 66.6% acc@3 82.8% | 5.29 steps/s | ETA 3.6min | VRAM 1.2GB
+[14:25:14 INFO] Ep 1/30 step 300/1356 | loss 1.6656 | acc@1 69.4% acc@3 85.2% | 5.35 steps/s | ETA 3.3min | VRAM 1.2GB
+[14:25:32 INFO] Ep 1/30 step 400/1356 | loss 1.4600 | acc@1 71.2% acc@3 86.7% | 5.38 steps/s | ETA 3.0min | VRAM 1.2GB
+[14:25:50 INFO] Ep 1/30 step 500/1356 | loss 1.3202 | acc@1 72.8% acc@3 87.9% | 5.40 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:26:08 INFO] Ep 1/30 step 600/1356 | loss 1.2204 | acc@1 73.9% acc@3 88.7% | 5.41 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:26:27 INFO] Ep 1/30 step 700/1356 | loss 1.1414 | acc@1 74.9% acc@3 89.4% | 5.41 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:26:45 INFO] Ep 1/30 step 800/1356 | loss 1.0786 | acc@1 75.8% acc@3 90.0% | 5.42 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:27:03 INFO] Ep 1/30 step 900/1356 | loss 1.0293 | acc@1 76.5% acc@3 90.4% | 5.43 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:27:22 INFO] Ep 1/30 step 1000/1356 | loss 0.9868 | acc@1 77.1% acc@3 90.8% | 5.43 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:27:40 INFO] Ep 1/30 step 1100/1356 | loss 0.9455 | acc@1 77.8% acc@3 91.2% | 5.43 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:27:58 INFO] Ep 1/30 step 1200/1356 | loss 0.9106 | acc@1 78.4% acc@3 91.5% | 5.44 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:28:16 INFO] Ep 1/30 step 1300/1356 | loss 0.8797 | acc@1 78.9% acc@3 91.8% | 5.44 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:28:31 INFO] === Ep 1/30 | valid acc@1 86.88% acc@3 96.68% | loss 0.4399 | time 4.2min ===
+[14:28:32 INFO]   ✓ New best acc@1=86.88% — saved
+[14:28:50 INFO] Ep 2/30 step 100/1356 | loss 0.4859 | acc@1 86.0% acc@3 96.0% | 5.46 steps/s | ETA 3.8min | VRAM 1.2GB
+[14:29:08 INFO] Ep 2/30 step 200/1356 | loss 0.4791 | acc@1 86.0% acc@3 96.2% | 5.46 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:29:27 INFO] Ep 2/30 step 300/1356 | loss 0.4657 | acc@1 86.2% acc@3 96.4% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:29:45 INFO] Ep 2/30 step 400/1356 | loss 0.4607 | acc@1 86.3% acc@3 96.4% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:30:03 INFO] Ep 2/30 step 500/1356 | loss 0.4552 | acc@1 86.5% acc@3 96.5% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:30:22 INFO] Ep 2/30 step 600/1356 | loss 0.4507 | acc@1 86.6% acc@3 96.5% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:30:40 INFO] Ep 2/30 step 700/1356 | loss 0.4471 | acc@1 86.6% acc@3 96.5% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:30:58 INFO] Ep 2/30 step 800/1356 | loss 0.4438 | acc@1 86.7% acc@3 96.6% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:31:17 INFO] Ep 2/30 step 900/1356 | loss 0.4399 | acc@1 86.8% acc@3 96.6% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:31:35 INFO] Ep 2/30 step 1000/1356 | loss 0.4361 | acc@1 86.9% acc@3 96.6% | 5.46 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:31:53 INFO] Ep 2/30 step 1100/1356 | loss 0.4307 | acc@1 87.1% acc@3 96.7% | 5.46 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:32:12 INFO] Ep 2/30 step 1200/1356 | loss 0.4244 | acc@1 87.3% acc@3 96.8% | 5.46 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:32:30 INFO] Ep 2/30 step 1300/1356 | loss 0.4195 | acc@1 87.4% acc@3 96.9% | 5.46 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:32:44 INFO] === Ep 2/30 | valid acc@1 89.52% acc@3 97.95% | loss 0.3263 | time 4.2min ===
+[14:32:45 INFO]   ✓ New best acc@1=89.52% — saved
+[14:33:04 INFO] Ep 3/30 step 100/1356 | loss 0.3605 | acc@1 88.8% acc@3 97.7% | 5.44 steps/s | ETA 3.9min | VRAM 1.2GB
+[14:33:22 INFO] Ep 3/30 step 200/1356 | loss 0.3530 | acc@1 89.1% acc@3 97.7% | 5.45 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:33:40 INFO] Ep 3/30 step 300/1356 | loss 0.3515 | acc@1 89.1% acc@3 97.7% | 5.46 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:33:58 INFO] Ep 3/30 step 400/1356 | loss 0.3484 | acc@1 89.2% acc@3 97.8% | 5.46 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:34:17 INFO] Ep 3/30 step 500/1356 | loss 0.3470 | acc@1 89.2% acc@3 97.8% | 5.46 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:34:35 INFO] Ep 3/30 step 600/1356 | loss 0.3440 | acc@1 89.3% acc@3 97.9% | 5.46 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:34:54 INFO] Ep 3/30 step 700/1356 | loss 0.3387 | acc@1 89.4% acc@3 97.9% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:35:12 INFO] Ep 3/30 step 800/1356 | loss 0.3357 | acc@1 89.5% acc@3 97.9% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:35:30 INFO] Ep 3/30 step 900/1356 | loss 0.3332 | acc@1 89.6% acc@3 97.9% | 5.46 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:35:48 INFO] Ep 3/30 step 1000/1356 | loss 0.3303 | acc@1 89.6% acc@3 98.0% | 5.46 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:36:07 INFO] Ep 3/30 step 1100/1356 | loss 0.3272 | acc@1 89.8% acc@3 98.0% | 5.46 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:36:25 INFO] Ep 3/30 step 1200/1356 | loss 0.3245 | acc@1 89.8% acc@3 98.0% | 5.46 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:36:43 INFO] Ep 3/30 step 1300/1356 | loss 0.3232 | acc@1 89.9% acc@3 98.0% | 5.46 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:36:58 INFO] === Ep 3/30 | valid acc@1 91.05% acc@3 98.24% | loss 0.2678 | time 4.2min ===
+[14:36:58 INFO]   ✓ New best acc@1=91.05% — saved
+[14:37:17 INFO] Ep 4/30 step 100/1356 | loss 0.2799 | acc@1 91.1% acc@3 98.6% | 5.44 steps/s | ETA 3.8min | VRAM 1.2GB
+[14:37:35 INFO] Ep 4/30 step 200/1356 | loss 0.2874 | acc@1 90.9% acc@3 98.3% | 5.45 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:37:53 INFO] Ep 4/30 step 300/1356 | loss 0.2840 | acc@1 90.9% acc@3 98.4% | 5.46 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:38:12 INFO] Ep 4/30 step 400/1356 | loss 0.2818 | acc@1 91.0% acc@3 98.5% | 5.46 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:38:30 INFO] Ep 4/30 step 500/1356 | loss 0.2785 | acc@1 91.0% acc@3 98.5% | 5.46 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:38:48 INFO] Ep 4/30 step 600/1356 | loss 0.2779 | acc@1 91.0% acc@3 98.5% | 5.46 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:39:07 INFO] Ep 4/30 step 700/1356 | loss 0.2756 | acc@1 91.1% acc@3 98.5% | 5.46 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:39:25 INFO] Ep 4/30 step 800/1356 | loss 0.2769 | acc@1 91.0% acc@3 98.5% | 5.46 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:39:43 INFO] Ep 4/30 step 900/1356 | loss 0.2743 | acc@1 91.1% acc@3 98.5% | 5.46 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:40:02 INFO] Ep 4/30 step 1000/1356 | loss 0.2734 | acc@1 91.2% acc@3 98.5% | 5.46 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:40:20 INFO] Ep 4/30 step 1100/1356 | loss 0.2743 | acc@1 91.2% acc@3 98.5% | 5.46 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:40:38 INFO] Ep 4/30 step 1200/1356 | loss 0.2748 | acc@1 91.1% acc@3 98.5% | 5.46 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:40:57 INFO] Ep 4/30 step 1300/1356 | loss 0.2742 | acc@1 91.2% acc@3 98.5% | 5.46 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:41:11 INFO] === Ep 4/30 | valid acc@1 92.03% acc@3 98.76% | loss 0.2407 | time 4.2min ===
+[14:41:12 INFO]   ✓ New best acc@1=92.03% — saved
+[14:41:30 INFO] Ep 5/30 step 100/1356 | loss 0.2416 | acc@1 92.2% acc@3 99.0% | 5.43 steps/s | ETA 3.9min | VRAM 1.2GB
+[14:41:48 INFO] Ep 5/30 step 200/1356 | loss 0.2495 | acc@1 91.8% acc@3 98.9% | 5.44 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:42:07 INFO] Ep 5/30 step 300/1356 | loss 0.2461 | acc@1 91.9% acc@3 99.0% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:42:25 INFO] Ep 5/30 step 400/1356 | loss 0.2439 | acc@1 92.0% acc@3 98.9% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:42:44 INFO] Ep 5/30 step 500/1356 | loss 0.2435 | acc@1 92.0% acc@3 98.9% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:43:02 INFO] Ep 5/30 step 600/1356 | loss 0.2442 | acc@1 92.0% acc@3 98.9% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:43:20 INFO] Ep 5/30 step 700/1356 | loss 0.2444 | acc@1 91.9% acc@3 98.9% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:43:39 INFO] Ep 5/30 step 800/1356 | loss 0.2442 | acc@1 91.9% acc@3 98.9% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:43:57 INFO] Ep 5/30 step 900/1356 | loss 0.2447 | acc@1 91.9% acc@3 98.9% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:44:15 INFO] Ep 5/30 step 1000/1356 | loss 0.2450 | acc@1 91.9% acc@3 98.9% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:44:34 INFO] Ep 5/30 step 1100/1356 | loss 0.2438 | acc@1 91.9% acc@3 98.9% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:44:52 INFO] Ep 5/30 step 1200/1356 | loss 0.2435 | acc@1 92.0% acc@3 98.9% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:45:10 INFO] Ep 5/30 step 1300/1356 | loss 0.2424 | acc@1 92.0% acc@3 98.9% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:45:25 INFO] === Ep 5/30 | valid acc@1 92.48% acc@3 99.15% | loss 0.2230 | time 4.2min ===
+[14:45:25 INFO]   ✓ New best acc@1=92.48% — saved
+[14:45:44 INFO] Ep 6/30 step 100/1356 | loss 0.2238 | acc@1 92.8% acc@3 99.0% | 5.42 steps/s | ETA 3.9min | VRAM 1.2GB
+[14:46:02 INFO] Ep 6/30 step 200/1356 | loss 0.2242 | acc@1 92.7% acc@3 99.1% | 5.44 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:46:21 INFO] Ep 6/30 step 300/1356 | loss 0.2225 | acc@1 92.6% acc@3 99.1% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:46:39 INFO] Ep 6/30 step 400/1356 | loss 0.2220 | acc@1 92.6% acc@3 99.1% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:46:57 INFO] Ep 6/30 step 500/1356 | loss 0.2217 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:47:15 INFO] Ep 6/30 step 600/1356 | loss 0.2209 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:47:34 INFO] Ep 6/30 step 700/1356 | loss 0.2211 | acc@1 92.7% acc@3 99.1% | 5.46 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:47:52 INFO] Ep 6/30 step 800/1356 | loss 0.2190 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:48:11 INFO] Ep 6/30 step 900/1356 | loss 0.2195 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:48:29 INFO] Ep 6/30 step 1000/1356 | loss 0.2191 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:48:47 INFO] Ep 6/30 step 1100/1356 | loss 0.2190 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:49:05 INFO] Ep 6/30 step 1200/1356 | loss 0.2195 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:49:24 INFO] Ep 6/30 step 1300/1356 | loss 0.2187 | acc@1 92.7% acc@3 99.1% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:49:38 INFO] === Ep 6/30 | valid acc@1 92.68% acc@3 99.28% | loss 0.2006 | time 4.2min ===
+[14:49:39 INFO]   ✓ New best acc@1=92.68% — saved
+[14:49:57 INFO] Ep 7/30 step 100/1356 | loss 0.2039 | acc@1 93.2% acc@3 99.2% | 5.44 steps/s | ETA 3.8min | VRAM 1.2GB
+[14:50:16 INFO] Ep 7/30 step 200/1356 | loss 0.1963 | acc@1 93.4% acc@3 99.3% | 5.45 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:50:34 INFO] Ep 7/30 step 300/1356 | loss 0.1939 | acc@1 93.5% acc@3 99.3% | 5.46 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:50:52 INFO] Ep 7/30 step 400/1356 | loss 0.1984 | acc@1 93.3% acc@3 99.3% | 5.46 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:51:10 INFO] Ep 7/30 step 500/1356 | loss 0.1992 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:51:29 INFO] Ep 7/30 step 600/1356 | loss 0.1976 | acc@1 93.3% acc@3 99.3% | 5.46 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:51:47 INFO] Ep 7/30 step 700/1356 | loss 0.2004 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:52:05 INFO] Ep 7/30 step 800/1356 | loss 0.2011 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:52:24 INFO] Ep 7/30 step 900/1356 | loss 0.2012 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:52:42 INFO] Ep 7/30 step 1000/1356 | loss 0.2019 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:53:00 INFO] Ep 7/30 step 1100/1356 | loss 0.2023 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:53:19 INFO] Ep 7/30 step 1200/1356 | loss 0.2028 | acc@1 93.2% acc@3 99.3% | 5.46 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:53:37 INFO] Ep 7/30 step 1300/1356 | loss 0.2034 | acc@1 93.1% acc@3 99.3% | 5.46 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:53:51 INFO] === Ep 7/30 | valid acc@1 93.44% acc@3 99.25% | loss 0.1928 | time 4.2min ===
+[14:53:52 INFO]   ✓ New best acc@1=93.44% — saved
+[14:54:11 INFO] Ep 8/30 step 100/1356 | loss 0.1876 | acc@1 93.9% acc@3 99.4% | 5.44 steps/s | ETA 3.9min | VRAM 1.2GB
+[14:54:29 INFO] Ep 8/30 step 200/1356 | loss 0.1904 | acc@1 93.7% acc@3 99.4% | 5.45 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:54:47 INFO] Ep 8/30 step 300/1356 | loss 0.1924 | acc@1 93.7% acc@3 99.4% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:55:06 INFO] Ep 8/30 step 400/1356 | loss 0.1946 | acc@1 93.5% acc@3 99.3% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:55:24 INFO] Ep 8/30 step 500/1356 | loss 0.1921 | acc@1 93.6% acc@3 99.3% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:55:42 INFO] Ep 8/30 step 600/1356 | loss 0.1914 | acc@1 93.6% acc@3 99.4% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[14:56:01 INFO] Ep 8/30 step 700/1356 | loss 0.1902 | acc@1 93.6% acc@3 99.4% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[14:56:19 INFO] Ep 8/30 step 800/1356 | loss 0.1901 | acc@1 93.6% acc@3 99.4% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[14:56:37 INFO] Ep 8/30 step 900/1356 | loss 0.1896 | acc@1 93.6% acc@3 99.4% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[14:56:56 INFO] Ep 8/30 step 1000/1356 | loss 0.1884 | acc@1 93.7% acc@3 99.4% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[14:57:14 INFO] Ep 8/30 step 1100/1356 | loss 0.1884 | acc@1 93.7% acc@3 99.4% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[14:57:32 INFO] Ep 8/30 step 1200/1356 | loss 0.1888 | acc@1 93.6% acc@3 99.4% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[14:57:51 INFO] Ep 8/30 step 1300/1356 | loss 0.1885 | acc@1 93.7% acc@3 99.4% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[14:58:05 INFO] === Ep 8/30 | valid acc@1 93.51% acc@3 99.25% | loss 0.1897 | time 4.2min ===
+[14:58:06 INFO]   ✓ New best acc@1=93.51% — saved
+[14:58:24 INFO] Ep 9/30 step 100/1356 | loss 0.1766 | acc@1 93.6% acc@3 99.4% | 5.43 steps/s | ETA 3.9min | VRAM 1.2GB
+[14:58:42 INFO] Ep 9/30 step 200/1356 | loss 0.1777 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 3.5min | VRAM 1.2GB
+[14:59:01 INFO] Ep 9/30 step 300/1356 | loss 0.1794 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[14:59:19 INFO] Ep 9/30 step 400/1356 | loss 0.1782 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[14:59:37 INFO] Ep 9/30 step 500/1356 | loss 0.1806 | acc@1 93.7% acc@3 99.6% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[14:59:56 INFO] Ep 9/30 step 600/1356 | loss 0.1800 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[15:00:14 INFO] Ep 9/30 step 700/1356 | loss 0.1795 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[15:00:33 INFO] Ep 9/30 step 800/1356 | loss 0.1783 | acc@1 93.9% acc@3 99.5% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[15:00:51 INFO] Ep 9/30 step 900/1356 | loss 0.1781 | acc@1 93.9% acc@3 99.5% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[15:01:09 INFO] Ep 9/30 step 1000/1356 | loss 0.1787 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[15:01:28 INFO] Ep 9/30 step 1100/1356 | loss 0.1784 | acc@1 93.8% acc@3 99.5% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[15:01:46 INFO] Ep 9/30 step 1200/1356 | loss 0.1786 | acc@1 93.9% acc@3 99.5% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[15:02:04 INFO] Ep 9/30 step 1300/1356 | loss 0.1777 | acc@1 93.9% acc@3 99.5% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[15:02:19 INFO] === Ep 9/30 | valid acc@1 93.85% acc@3 99.28% | loss 0.1865 | time 4.2min ===
+[15:02:20 INFO]   ✓ New best acc@1=93.85% — saved
+[15:02:38 INFO] Ep 10/30 step 100/1356 | loss 0.1731 | acc@1 94.0% acc@3 99.6% | 5.42 steps/s | ETA 3.9min | VRAM 1.2GB
+[15:02:56 INFO] Ep 10/30 step 200/1356 | loss 0.1693 | acc@1 94.3% acc@3 99.6% | 5.44 steps/s | ETA 3.5min | VRAM 1.2GB
+[15:03:15 INFO] Ep 10/30 step 300/1356 | loss 0.1699 | acc@1 94.3% acc@3 99.6% | 5.44 steps/s | ETA 3.2min | VRAM 1.2GB
+[15:03:33 INFO] Ep 10/30 step 400/1356 | loss 0.1699 | acc@1 94.3% acc@3 99.6% | 5.44 steps/s | ETA 2.9min | VRAM 1.2GB
+[15:03:51 INFO] Ep 10/30 step 500/1356 | loss 0.1686 | acc@1 94.3% acc@3 99.6% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[15:04:10 INFO] Ep 10/30 step 600/1356 | loss 0.1678 | acc@1 94.3% acc@3 99.6% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[15:04:28 INFO] Ep 10/30 step 700/1356 | loss 0.1665 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[15:04:47 INFO] Ep 10/30 step 800/1356 | loss 0.1690 | acc@1 94.3% acc@3 99.6% | 5.44 steps/s | ETA 1.7min | VRAM 1.2GB
+[15:05:05 INFO] Ep 10/30 step 900/1356 | loss 0.1695 | acc@1 94.2% acc@3 99.6% | 5.44 steps/s | ETA 1.4min | VRAM 1.2GB
+[15:05:23 INFO] Ep 10/30 step 1000/1356 | loss 0.1707 | acc@1 94.2% acc@3 99.6% | 5.44 steps/s | ETA 1.1min | VRAM 1.2GB
+[15:05:42 INFO] Ep 10/30 step 1100/1356 | loss 0.1703 | acc@1 94.2% acc@3 99.6% | 5.44 steps/s | ETA 0.8min | VRAM 1.2GB
+[15:06:00 INFO] Ep 10/30 step 1200/1356 | loss 0.1701 | acc@1 94.2% acc@3 99.6% | 5.44 steps/s | ETA 0.5min | VRAM 1.2GB
+[15:06:18 INFO] Ep 10/30 step 1300/1356 | loss 0.1696 | acc@1 94.2% acc@3 99.6% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[15:06:33 INFO] === Ep 10/30 | valid acc@1 93.67% acc@3 99.41% | loss 0.1818 | time 4.2min ===
+[15:06:51 INFO] Ep 11/30 step 100/1356 | loss 0.1555 | acc@1 94.7% acc@3 99.8% | 5.43 steps/s | ETA 3.9min | VRAM 1.2GB
+[15:07:09 INFO] Ep 11/30 step 200/1356 | loss 0.1598 | acc@1 94.5% acc@3 99.7% | 5.44 steps/s | ETA 3.5min | VRAM 1.2GB
+[15:07:28 INFO] Ep 11/30 step 300/1356 | loss 0.1612 | acc@1 94.3% acc@3 99.7% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[15:07:46 INFO] Ep 11/30 step 400/1356 | loss 0.1606 | acc@1 94.5% acc@3 99.6% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[15:08:04 INFO] Ep 11/30 step 500/1356 | loss 0.1600 | acc@1 94.5% acc@3 99.6% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[15:08:23 INFO] Ep 11/30 step 600/1356 | loss 0.1612 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[15:08:41 INFO] Ep 11/30 step 700/1356 | loss 0.1610 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[15:08:59 INFO] Ep 11/30 step 800/1356 | loss 0.1617 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[15:09:18 INFO] Ep 11/30 step 900/1356 | loss 0.1619 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[15:09:36 INFO] Ep 11/30 step 1000/1356 | loss 0.1610 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[15:09:54 INFO] Ep 11/30 step 1100/1356 | loss 0.1611 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[15:10:13 INFO] Ep 11/30 step 1200/1356 | loss 0.1615 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[15:10:31 INFO] Ep 11/30 step 1300/1356 | loss 0.1611 | acc@1 94.4% acc@3 99.6% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[15:10:45 INFO] === Ep 11/30 | valid acc@1 93.77% acc@3 99.35% | loss 0.1731 | time 4.2min ===
+[15:11:04 INFO] Ep 12/30 step 100/1356 | loss 0.1478 | acc@1 94.7% acc@3 99.6% | 5.44 steps/s | ETA 3.8min | VRAM 1.2GB
+[15:11:22 INFO] Ep 12/30 step 200/1356 | loss 0.1458 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 3.5min | VRAM 1.2GB
+[15:11:40 INFO] Ep 12/30 step 300/1356 | loss 0.1476 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 3.2min | VRAM 1.2GB
+[15:11:58 INFO] Ep 12/30 step 400/1356 | loss 0.1479 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[15:12:17 INFO] Ep 12/30 step 500/1356 | loss 0.1491 | acc@1 94.7% acc@3 99.7% | 5.46 steps/s | ETA 2.6min | VRAM 1.2GB
+[15:12:35 INFO] Ep 12/30 step 600/1356 | loss 0.1488 | acc@1 94.8% acc@3 99.7% | 5.46 steps/s | ETA 2.3min | VRAM 1.2GB
+[15:12:53 INFO] Ep 12/30 step 700/1356 | loss 0.1501 | acc@1 94.7% acc@3 99.7% | 5.46 steps/s | ETA 2.0min | VRAM 1.2GB
+[15:13:12 INFO] Ep 12/30 step 800/1356 | loss 0.1495 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[15:13:30 INFO] Ep 12/30 step 900/1356 | loss 0.1493 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[15:13:49 INFO] Ep 12/30 step 1000/1356 | loss 0.1499 | acc@1 94.7% acc@3 99.7% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[15:14:07 INFO] Ep 12/30 step 1100/1356 | loss 0.1491 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[15:14:25 INFO] Ep 12/30 step 1200/1356 | loss 0.1499 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[15:14:44 INFO] Ep 12/30 step 1300/1356 | loss 0.1505 | acc@1 94.8% acc@3 99.7% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[15:14:58 INFO] === Ep 12/30 | valid acc@1 94.09% acc@3 99.48% | loss 0.1721 | time 4.2min ===
+[15:14:59 INFO]   ✓ New best acc@1=94.09% — saved
+[15:15:17 INFO] Ep 13/30 step 100/1356 | loss 0.1471 | acc@1 94.8% acc@3 99.8% | 5.45 steps/s | ETA 3.8min | VRAM 1.2GB
+[15:15:35 INFO] Ep 13/30 step 200/1356 | loss 0.1490 | acc@1 94.6% acc@3 99.8% | 5.46 steps/s | ETA 3.5min | VRAM 1.2GB
+[15:15:54 INFO] Ep 13/30 step 300/1356 | loss 0.1460 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 3.2min | VRAM 1.2GB
+[15:16:12 INFO] Ep 13/30 step 400/1356 | loss 0.1446 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 2.9min | VRAM 1.2GB
+[15:16:30 INFO] Ep 13/30 step 500/1356 | loss 0.1459 | acc@1 94.7% acc@3 99.8% | 5.46 steps/s | ETA 2.6min | VRAM 1.2GB
+[15:16:49 INFO] Ep 13/30 step 600/1356 | loss 0.1445 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 2.3min | VRAM 1.2GB
+[15:17:07 INFO] Ep 13/30 step 700/1356 | loss 0.1450 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 2.0min | VRAM 1.2GB
+[15:17:25 INFO] Ep 13/30 step 800/1356 | loss 0.1442 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 1.7min | VRAM 1.2GB
+[15:17:43 INFO] Ep 13/30 step 900/1356 | loss 0.1444 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 1.4min | VRAM 1.2GB
+[15:18:02 INFO] Ep 13/30 step 1000/1356 | loss 0.1445 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 1.1min | VRAM 1.2GB
+[15:18:20 INFO] Ep 13/30 step 1100/1356 | loss 0.1448 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 0.8min | VRAM 1.2GB
+[15:18:38 INFO] Ep 13/30 step 1200/1356 | loss 0.1460 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 0.5min | VRAM 1.2GB
+[15:18:57 INFO] Ep 13/30 step 1300/1356 | loss 0.1461 | acc@1 94.8% acc@3 99.8% | 5.46 steps/s | ETA 0.2min | VRAM 1.2GB
+[15:19:11 INFO] === Ep 13/30 | valid acc@1 94.40% acc@3 99.48% | loss 0.1669 | time 4.2min ===
+[15:19:12 INFO]   ✓ New best acc@1=94.40% — saved
+[15:19:30 INFO] Ep 14/30 step 100/1356 | loss 0.1316 | acc@1 95.5% acc@3 99.8% | 5.43 steps/s | ETA 3.9min | VRAM 1.2GB
+[15:19:49 INFO] Ep 14/30 step 200/1356 | loss 0.1323 | acc@1 95.4% acc@3 99.8% | 5.44 steps/s | ETA 3.5min | VRAM 1.2GB
+[15:20:07 INFO] Ep 14/30 step 300/1356 | loss 0.1338 | acc@1 95.3% acc@3 99.8% | 5.44 steps/s | ETA 3.2min | VRAM 1.2GB
+[15:20:25 INFO] Ep 14/30 step 400/1356 | loss 0.1376 | acc@1 95.2% acc@3 99.8% | 5.45 steps/s | ETA 2.9min | VRAM 1.2GB
+[15:20:44 INFO] Ep 14/30 step 500/1356 | loss 0.1401 | acc@1 95.1% acc@3 99.7% | 5.45 steps/s | ETA 2.6min | VRAM 1.2GB
+[15:21:02 INFO] Ep 14/30 step 600/1356 | loss 0.1401 | acc@1 95.1% acc@3 99.8% | 5.45 steps/s | ETA 2.3min | VRAM 1.2GB
+[15:21:20 INFO] Ep 14/30 step 700/1356 | loss 0.1408 | acc@1 95.0% acc@3 99.8% | 5.45 steps/s | ETA 2.0min | VRAM 1.2GB
+[15:21:39 INFO] Ep 14/30 step 800/1356 | loss 0.1416 | acc@1 95.0% acc@3 99.8% | 5.45 steps/s | ETA 1.7min | VRAM 1.2GB
+[15:21:57 INFO] Ep 14/30 step 900/1356 | loss 0.1413 | acc@1 95.0% acc@3 99.8% | 5.45 steps/s | ETA 1.4min | VRAM 1.2GB
+[15:22:15 INFO] Ep 14/30 step 1000/1356 | loss 0.1416 | acc@1 95.0% acc@3 99.8% | 5.45 steps/s | ETA 1.1min | VRAM 1.2GB
+[15:22:34 INFO] Ep 14/30 step 1100/1356 | loss 0.1414 | acc@1 95.0% acc@3 99.8% | 5.45 steps/s | ETA 0.8min | VRAM 1.2GB
+[15:22:52 INFO] Ep 14/30 step 1200/1356 | loss 0.1409 | acc@1 95.1% acc@3 99.8% | 5.45 steps/s | ETA 0.5min | VRAM 1.2GB
+[15:23:11 INFO] Ep 14/30 step 1300/1356 | loss 0.1400 | acc@1 95.1% acc@3 99.8% | 5.45 steps/s | ETA 0.2min | VRAM 1.2GB
+[15:23:25 INFO] === Ep 14/30 | valid acc@1 94.55% acc@3 99.45% | loss 0.1641 | time 4.2min ===
+[15:23:26 INFO]   ✓ New best acc@1=94.55% — saved
+[15:23:45 INFO] Ep 15/30 step 100/1356 | loss 0.1191 | acc@1 95.8% acc@3 99.9% | 5.30 steps/s | ETA 3.9min | VRAM 1.2GB
+[15:24:14 INFO] Ep 15/30 step 200/1356 | loss 0.1225 | acc@1 95.6% acc@3 99.9% | 4.14 steps/s | ETA 4.7min | VRAM 1.2GB
+[15:24:49 INFO] Ep 15/30 step 300/1356 | loss 0.1266 | acc@1 95.5% acc@3 99.9% | 3.61 steps/s | ETA 4.9min | VRAM 1.2GB
+[15:25:24 INFO] Ep 15/30 step 400/1356 | loss 0.1298 | acc@1 95.4% acc@3 99.8% | 3.39 steps/s | ETA 4.7min | VRAM 1.2GB
+[15:25:58 INFO] Ep 15/30 step 500/1356 | loss 0.1307 | acc@1 95.3% acc@3 99.8% | 3.28 steps/s | ETA 4.4min | VRAM 1.2GB
+[15:26:33 INFO] Ep 15/30 step 600/1356 | loss 0.1329 | acc@1 95.2% acc@3 99.8% | 3.21 steps/s | ETA 3.9min | VRAM 1.2GB
+[15:27:08 INFO] Ep 15/30 step 700/1356 | loss 0.1336 | acc@1 95.2% acc@3 99.8% | 3.16 steps/s | ETA 3.5min | VRAM 1.2GB

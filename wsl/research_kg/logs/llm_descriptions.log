@@ -1,0 +1,79 @@
+Connected to Ollama at: http://172.17.0.1:11434
+Checking model llama3.2:3b...
+  Model llama3.2:3b found on Windows Ollama
+Using model: llama3.2:3b
+Loading triples for KG context...
+
+Generating LLM descriptions for 1,043 entities:
+  el: 146
+  ja: 897
+  [20/1043] generated=20 failed=0 | 1.6 ent/s | ETA 11 min
+  [40/1043] generated=40 failed=0 | 1.5 ent/s | ETA 11 min
+  [60/1043] generated=60 failed=0 | 1.5 ent/s | ETA 11 min
+  [80/1043] generated=80 failed=0 | 1.5 ent/s | ETA 11 min
+  [100/1043] generated=100 failed=0 | 1.5 ent/s | ETA 11 min
+  -> Checkpoint saved (100 generated so far)
+  [120/1043] generated=120 failed=0 | 1.5 ent/s | ETA 10 min
+  [140/1043] generated=140 failed=0 | 1.5 ent/s | ETA 10 min
+  [160/1043] generated=160 failed=0 | 1.5 ent/s | ETA 10 min
+  [180/1043] generated=180 failed=0 | 1.5 ent/s | ETA 10 min
+  [200/1043] generated=200 failed=0 | 1.5 ent/s | ETA 10 min
+  -> Checkpoint saved (200 generated so far)
+  [220/1043] generated=220 failed=0 | 1.5 ent/s | ETA 9 min
+  [240/1043] generated=239 failed=1 | 1.5 ent/s | ETA 9 min
+  [260/1043] generated=259 failed=1 | 1.5 ent/s | ETA 9 min
+  [280/1043] generated=279 failed=1 | 1.5 ent/s | ETA 9 min
+  [300/1043] generated=299 failed=1 | 1.5 ent/s | ETA 8 min
+  -> Checkpoint saved (299 generated so far)
+  [320/1043] generated=319 failed=1 | 1.5 ent/s | ETA 8 min
+  [340/1043] generated=339 failed=1 | 1.5 ent/s | ETA 8 min
+  [360/1043] generated=359 failed=1 | 1.5 ent/s | ETA 8 min
+  [380/1043] generated=379 failed=1 | 1.5 ent/s | ETA 7 min
+  [400/1043] generated=399 failed=1 | 1.5 ent/s | ETA 7 min
+  -> Checkpoint saved (399 generated so far)
+  [420/1043] generated=419 failed=1 | 1.5 ent/s | ETA 7 min
+  [440/1043] generated=439 failed=1 | 1.5 ent/s | ETA 7 min
+  [460/1043] generated=459 failed=1 | 1.5 ent/s | ETA 7 min
+  [480/1043] generated=479 failed=1 | 1.5 ent/s | ETA 6 min
+  [500/1043] generated=499 failed=1 | 1.5 ent/s | ETA 6 min
+  -> Checkpoint saved (499 generated so far)
+  [520/1043] generated=519 failed=1 | 1.5 ent/s | ETA 6 min
+  [540/1043] generated=539 failed=1 | 1.5 ent/s | ETA 6 min
+  [560/1043] generated=559 failed=1 | 1.5 ent/s | ETA 5 min
+  [580/1043] generated=579 failed=1 | 1.5 ent/s | ETA 5 min
+  [600/1043] generated=599 failed=1 | 1.5 ent/s | ETA 5 min
+  -> Checkpoint saved (599 generated so far)
+  [620/1043] generated=619 failed=1 | 1.5 ent/s | ETA 5 min
+  [640/1043] generated=639 failed=1 | 1.5 ent/s | ETA 5 min
+  [660/1043] generated=659 failed=1 | 1.5 ent/s | ETA 4 min
+  [680/1043] generated=679 failed=1 | 1.5 ent/s | ETA 4 min
+  [700/1043] generated=699 failed=1 | 1.5 ent/s | ETA 4 min
+  -> Checkpoint saved (699 generated so far)
+  [720/1043] generated=719 failed=1 | 1.5 ent/s | ETA 4 min
+  [740/1043] generated=739 failed=1 | 1.5 ent/s | ETA 3 min
+  [760/1043] generated=759 failed=1 | 1.5 ent/s | ETA 3 min
+  [780/1043] generated=779 failed=1 | 1.5 ent/s | ETA 3 min
+  [800/1043] generated=799 failed=1 | 1.5 ent/s | ETA 3 min
+  -> Checkpoint saved (799 generated so far)
+  [820/1043] generated=819 failed=1 | 1.5 ent/s | ETA 3 min
+  [840/1043] generated=839 failed=1 | 1.5 ent/s | ETA 2 min
+  [860/1043] generated=859 failed=1 | 1.5 ent/s | ETA 2 min
+  [880/1043] generated=879 failed=1 | 1.5 ent/s | ETA 2 min
+  [900/1043] generated=899 failed=1 | 1.5 ent/s | ETA 2 min
+  -> Checkpoint saved (899 generated so far)
+  [920/1043] generated=919 failed=1 | 1.5 ent/s | ETA 1 min
+  [940/1043] generated=939 failed=1 | 1.5 ent/s | ETA 1 min
+  [960/1043] generated=959 failed=1 | 1.5 ent/s | ETA 1 min
+  [980/1043] generated=979 failed=1 | 1.5 ent/s | ETA 1 min
+  [1000/1043] generated=999 failed=1 | 1.5 ent/s | ETA 0 min
+  -> Checkpoint saved (999 generated so far)
+  [1020/1043] generated=1019 failed=1 | 1.5 ent/s | ETA 0 min
+  [1040/1043] generated=1039 failed=1 | 1.5 ent/s | ETA 0 min
+
+=== LLM Generation Complete ===
+  Generated: 1,042 descriptions
+  Failed:    1
+  Time: 11.7 min (0.7s per entity)
+
+IMPORTANT: Delete token cache before retraining:
+  rm ~/research_kg/DBP5L/token_cache/*.pt

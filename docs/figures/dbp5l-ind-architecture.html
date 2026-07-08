@@ -1,0 +1,481 @@
+<title>DBP-5L-Ind System Architecture</title>
+<style>
+  :root{
+    --paper:#ffffff; --plane:#f0f3f6; --panel:#f5f7fa; --panel-deep:#eef2f6;
+    --ink:#14202b; --ink-2:#4e5d68; --ink-3:#85939c;
+    --hair:#dfe6ec; --grid:#e9eef3;
+    --blue:#2a78d6; --blue-deep:#104281; --blue-mid:#5598e7; --blue-soft:#cde2fb;
+    --aqua:#1baf7a; --aqua-deep:#0e7a54; --aqua-soft:#d7f2e7;
+    --violet:#4a3aa7; --violet-soft:#e4e0f5;
+    --orange:#eb6834; --orange-deep:#b44a1e; --orange-soft:#fde3d7;
+    --sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+  html{color-scheme:light}
+  body{background:var(--plane);color:var(--ink);font-family:var(--sans);
+       font-size:14px;line-height:1.45;margin:0;padding:28px 16px 56px}
+  .page{max-width:1240px;margin:0 auto;background:var(--paper);
+        border:1px solid var(--hair);border-radius:6px;
+        box-shadow:0 1px 2px rgba(20,32,43,.05),0 8px 28px rgba(20,32,43,.06);
+        padding:34px 38px 30px}
+  /* ---------- header ---------- */
+  .eyebrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .eyebrow .tag{font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
+  .eyebrow .model{font-size:12px;color:var(--ink-2)}
+  .eyebrow .model b{color:var(--blue-deep)}
+  h1{font-size:23px;font-weight:650;letter-spacing:-.01em;margin:6px 0 2px;text-wrap:balance}
+  .subtitle{color:var(--ink-2);font-size:13.5px;margin:0 0 22px;max-width:72ch}
+  .subtitle i{font-family:var(--serif)}
+  /* ---------- panel scaffolding ---------- */
+  .fig{display:flex;flex-direction:column;gap:14px}
+  .row{display:grid;gap:14px}
+  .row.two{grid-template-columns:minmax(430px,46fr) minmax(430px,54fr)}
+  @media(max-width:980px){.row.two{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--hair);border-radius:6px;padding:14px 16px 16px;min-width:0}
+  .panel-h{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+  .panel-h .letter{font-family:var(--serif);font-style:italic;font-weight:700;font-size:15px;color:var(--ink)}
+  .panel-h .name{font-size:12.5px;font-weight:650;letter-spacing:.02em;color:var(--ink)}
+  .panel-h .hint{font-size:11.5px;color:var(--ink-3);margin-left:auto;text-align:right}
+  /* ---------- generic blocks ---------- */
+  .node{background:var(--paper);border:1px solid var(--hair);border-radius:5px;padding:8px 10px}
+  .node .t{font-size:11px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+  .node .d{font-size:12px;color:var(--ink-2);margin-top:3px}
+  .mono{font-family:Consolas,"Courier New",monospace;font-size:11.5px}
+  .math{font-family:var(--serif);font-style:italic}
+  .num{font-variant-numeric:tabular-nums}
+  .arrow-r{flex:0 0 auto;align-self:center;color:var(--ink-3)}
+  .flex{display:flex;gap:10px;align-items:stretch}
+  .col{display:flex;flex-direction:column;gap:8px;min-width:0}
+  /* ---------- (a) benchmark ---------- */
+  .split-visual{display:flex;gap:12px;align-items:stretch;margin-bottom:10px}
+  .entset{flex:1;border:1px solid var(--hair);border-radius:5px;background:var(--paper);padding:9px 10px}
+  .entset .lbl{font-size:11px;font-weight:650;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between}
+  .dots{display:grid;grid-template-columns:repeat(18,1fr);gap:3px;margin-top:8px}
+  .dot{aspect-ratio:1;border-radius:50%;background:var(--blue-mid)}
+  .dot.unseen{background:var(--orange)}
+  .dot.dim{background:var(--blue-soft)}
+  .splitnote{font-size:11px;color:var(--ink-3);margin-top:7px}
+  .stat-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:4px}
+  .stat-table th{font-weight:650;color:var(--ink-3);text-transform:uppercase;font-size:10px;letter-spacing:.07em;
+                 text-align:right;padding:4px 6px;border-bottom:1px solid var(--hair)}
+  .stat-table th:first-child,.stat-table td:first-child{text-align:left}
+  .stat-table td{padding:4px 6px;text-align:right;color:var(--ink-2);border-bottom:1px solid var(--grid)}
+  .stat-table tr:last-child td{border-bottom:none;font-weight:650;color:var(--ink)}
+  .langchip{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--blue);margin-right:6px;vertical-align:baseline}
+  /* ---------- (b) enrichment cascade ---------- */
+  .cascade{display:flex;flex-direction:column;gap:0}
+  .cas{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--grid)}
+  .cas:last-child{border-bottom:none}
+  .cas .step{flex:0 0 22px;height:22px;border-radius:50%;background:var(--paper);border:1.5px solid var(--blue);
+             color:var(--blue-deep);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .cas .what{flex:1;min-width:0}
+  .cas .what b{font-size:12.5px;font-weight:650}
+  .cas .what span{display:block;font-size:11.5px;color:var(--ink-3)}
+  .cas .cov{flex:0 0 auto;text-align:right;font-size:12px;color:var(--ink-2)}
+  .cas .cov b{color:var(--blue-deep)}
+  .dtext{margin-top:10px;background:var(--paper);border:1px solid var(--hair);border-left:3px solid var(--blue);
+         border-radius:4px;padding:8px 10px;font-size:11.5px;color:var(--ink-2)}
+  /* ---------- (c) model core ---------- */
+  .core{display:grid;grid-template-columns:200px 34px minmax(230px,1fr) 34px 220px;gap:0;align-items:stretch}
+  @media(max-width:980px){.core{grid-template-columns:1fr;gap:10px}.core .arr{transform:rotate(90deg);margin:0 auto}}
+  .iobox{border:1px solid var(--hair);border-radius:5px;background:var(--paper);padding:9px 10px;margin-bottom:8px}
+  .iobox:last-child{margin-bottom:0}
+  .iobox .k{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .iobox .v{font-size:12px;margin-top:3px}
+  .encoder{border:1.5px solid var(--blue-deep);border-radius:6px;background:var(--paper);padding:12px 12px 10px;position:relative;display:flex;flex-direction:column}
+  .encoder .badge{position:absolute;top:-9px;left:12px;background:var(--blue-deep);color:#fff;font-size:10px;
+                  font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:3px;text-transform:uppercase}
+  .frozen-note{font-size:11px;color:var(--ink-3);margin-top:2px}
+  .layers{display:flex;flex-direction:column;gap:4px;margin:10px 0 8px}
+  .layer{display:flex;align-items:center;gap:6px}
+  .layer .attn{flex:1;height:16px;border-radius:3px;background:linear-gradient(180deg,#e7eef7,#dbe6f2);
+               border:1px solid #c7d6e6;font-size:9px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;letter-spacing:.06em}
+  .layer .lora{flex:0 0 54px;height:16px;border-radius:3px;background:var(--aqua-soft);border:1.5px solid var(--aqua);
+               font-size:9px;font-weight:700;color:var(--aqua-deep);display:flex;align-items:center;justify-content:center;letter-spacing:.03em}
+  .ellip{font-size:11px;color:var(--ink-3);text-align:center;letter-spacing:.3em;line-height:.6;margin:-1px 0 2px}
+  .pool{border-top:1px dashed var(--hair);padding-top:8px;font-size:11.5px;color:var(--ink-2)}
+  .trainable-line{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:11px}
+  .sw{width:10px;height:10px;border-radius:2px;flex:0 0 auto}
+  .score{border:1px solid var(--hair);border-radius:5px;background:var(--paper);padding:9px 10px}
+  .arr{display:flex;align-items:center;justify-content:center}
+  /* training strip inside (c) */
+  .train-strip{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:980px){.train-strip{grid-template-columns:1fr}}
+  .neg{border:1px solid var(--orange);border-left-width:3px;border-radius:5px;background:var(--paper);padding:10px 12px}
+  .obj{border:1px solid var(--violet);border-left-width:3px;border-radius:5px;background:var(--paper);padding:10px 12px}
+  .neg .h,.obj .h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px}
+  .neg .h{color:var(--orange-deep)} .obj .h{color:var(--violet)}
+  .neg ul{margin:0;padding-left:16px;font-size:12px;color:var(--ink-2)}
+  .neg li{margin:3px 0}
+  .formula{font-family:var(--serif);font-size:15.5px;text-align:center;margin:8px 0 6px;color:var(--ink)}
+  .formula .frac{display:inline-block;vertical-align:middle;text-align:center}
+  .obj .expl{font-size:11.5px;color:var(--ink-3)}
+  .hp-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .hp{font-size:11px;color:var(--ink-2);background:var(--paper);border:1px solid var(--hair);border-radius:99px;padding:3px 10px}
+  .hp b{color:var(--ink)}
+  /* ---------- (d) inference ---------- */
+  .inf-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media(max-width:980px){.inf-grid{grid-template-columns:1fr}}
+  .inf{background:var(--paper);border:1px solid var(--hair);border-radius:5px;padding:10px 12px}
+  .inf .k{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:5px}
+  .inf p{margin:0;font-size:12px;color:var(--ink-2)}
+  /* ---------- (e) results ---------- */
+  .results{display:grid;grid-template-columns:190px 1fr 1fr;gap:16px;align-items:stretch}
+  @media(max-width:980px){.results{grid-template-columns:1fr}}
+  .hero{background:var(--paper);border:1px solid var(--hair);border-radius:5px;padding:14px;display:flex;flex-direction:column;justify-content:center}
+  .hero .big{font-size:44px;font-weight:650;letter-spacing:-.02em;color:var(--blue-deep);line-height:1}
+  .hero .big small{font-size:20px;font-weight:600}
+  .hero .cap{font-size:11.5px;color:var(--ink-3);margin-top:6px}
+  .hero .delta{font-size:12px;color:#006300;font-weight:650;margin-top:8px}
+  .chart{background:var(--paper);border:1px solid var(--hair);border-radius:5px;padding:12px 14px 10px;position:relative}
+  .chart .ct{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .chart .cs{font-size:10.5px;color:var(--ink-3);margin-bottom:10px}
+  .bars{display:flex;align-items:stretch;gap:10px;height:120px;border-bottom:1px solid var(--hair);padding:0 4px}
+  .bar{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0;cursor:default;position:relative}
+  .bar .fill{width:100%;max-width:44px;border-radius:4px 4px 0 0;transition:opacity .12s ease;position:relative}
+  .bar .whisk{position:absolute;left:50%;width:7px;transform:translateX(-50%);
+              border-top:1.5px solid var(--ink-2);border-bottom:1.5px solid var(--ink-2);
+              box-sizing:border-box}
+  .bar .whisk::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1.5px;
+                      transform:translateX(-50%);background:var(--ink-2)}
+  .bar:hover .fill{opacity:.82}
+  .bar .val{font-size:10.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .bar .val.hi{color:var(--blue-deep);font-weight:700}
+  .xlabels{display:flex;gap:10px;padding:5px 4px 0}
+  .xlabels span{flex:1;text-align:center;font-size:10px;color:var(--ink-3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chart .note{font-size:10.5px;color:var(--ink-3);margin-top:8px}
+  .chart .note b{color:var(--orange-deep)}
+  #tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:#fff;font-size:11px;
+       padding:6px 9px;border-radius:4px;max-width:240px;opacity:0;transform:translateY(2px);transition:opacity .1s}
+  #tip b{display:block;font-size:11.5px}
+  /* ---------- (f) self-healing loop ---------- */
+  .heal-flow{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+  .hstep{flex:1;min-width:150px;background:var(--paper);border:1px solid var(--hair);border-radius:5px;padding:9px 10px;position:relative}
+  .hstep .hk{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+  .hstep p{margin:0;font-size:11.5px;color:var(--ink-2)}
+  .hstep.suspect{border-top:3px solid var(--orange)}
+  .hstep.suspect .hk{color:var(--orange-deep)}
+  .hstep.witness{border-top:3px solid var(--blue)}
+  .hstep.witness .hk{color:var(--blue-deep)}
+  .hstep.judge{border-top:3px solid var(--violet)}
+  .hstep.judge .hk{color:var(--violet)}
+  .hstep.repair{border-top:3px solid var(--aqua)}
+  .hstep.repair .hk{color:var(--aqua-deep)}
+  .harr{flex:0 0 auto;align-self:center;color:var(--ink-3)}
+  .exhibits{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+  @media(max-width:980px){.exhibits{grid-template-columns:1fr}}
+  .exhibit{background:var(--orange-soft);border:1px solid var(--orange);border-radius:5px;padding:8px 10px;font-size:11.5px}
+  .exhibit .en{font-weight:650;color:var(--ink)}
+  .exhibit .lie{color:var(--orange-deep)}
+  .exhibit .truth{color:var(--aqua-deep)}
+  .heal-note{margin-top:10px;background:var(--paper);border:1px solid var(--hair);border-left:3px solid var(--aqua);
+             border-radius:4px;padding:8px 10px;font-size:11.5px;color:var(--ink-2)}
+  /* ---------- caption ---------- */
+  .caption{font-family:var(--serif);font-size:13px;color:var(--ink-2);margin-top:20px;border-top:1px solid var(--hair);padding-top:14px}
+  .caption b{font-style:normal;color:var(--ink)}
+  .footline{display:flex;justify-content:space-between;gap:12px;font-size:10.5px;color:var(--ink-3);margin-top:14px;flex-wrap:wrap}
+  @media print{body{background:#fff;padding:0}.page{box-shadow:none;border:none}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="page">
+  <div class="eyebrow">
+    <span class="tag">Research program overview &middot; substrate (a-e) + self-healing loop (f)</span>
+    <span class="model">Substrate model: <b>BGE-M3 + LoRA-16 &middot; CRR + hard negatives &middot; ml = 160</b>: within-language filtered MRR <b>26.51 &plusmn; 0.31</b> (3 seeds)</span>
+  </div>
+  <h1>Self-Healing Multilingual Knowledge Bases, Built on Inductive KGC</h1>
+  <p class="subtitle">Panels (a-e): a text bi-encoder answers <i>(h,&thinsp;r,&thinsp;?)</i> queries over <b>entities never seen in training</b>, in five languages, on a single 16&nbsp;GB GPU. Panel (f), the new headline: knowledge bases are silently polluted by confident AI-generated text, worst in low-resource languages, and <b>the graph's own structure can detect and repair its contaminated descriptions</b>. Evidence in hand: a 70% fabrication rate found in the wild, and a measured +1.95 MRR repair on Japanese.</p>
+
+  <div class="fig">
+
+    <!-- ============ row 1 : (a) benchmark + (b) enrichment ============ -->
+    <div class="row two">
+      <section class="panel">
+        <div class="panel-h"><span class="letter">(a)</span><span class="name">DBP-5L-Ind: entity-disjoint benchmark construction</span><span class="hint">contribution 1</span></div>
+        <div class="split-visual">
+          <div class="entset">
+            <div class="lbl"><span>Train entities &middot; 80%</span><span class="num">35,848</span></div>
+            <div class="dots">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot dim"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <div class="dot"></div><div class="dot dim"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot dim"></div><div class="dot"></div>
+            </div>
+            <div class="splitnote">triples with <i class="math">both</i> ends seen &rarr; <b class="num">118,256</b> train / 10% valid</div>
+          </div>
+          <div class="entset">
+            <div class="lbl"><span style="color:var(--orange-deep)">Unseen entities &middot; 20%</span><span class="num">8,959</span></div>
+            <div class="dots">
+              <div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div><div class="dot unseen"></div>
+            </div>
+            <div class="splitnote">&ge;1 unseen end &rarr; <b class="num">54,473</b> eval triples &middot; &le;5 support edges/entity (<span class="num">39,995</span>, filtered at eval, never trained on)</div>
+          </div>
+        </div>
+        <table class="stat-table">
+          <tr><th>Language</th><th>Entities</th><th>Train triples</th><th>Eval triples</th></tr>
+          <tr><td><span class="langchip"></span>EN English</td><td class="num">13,996</td><td class="num">44,801</td><td class="num">18,409</td></tr>
+          <tr><td><span class="langchip"></span>FR French</td><td class="num">13,176</td><td class="num">25,968</td><td class="num">11,154</td></tr>
+          <tr><td><span class="langchip"></span>ES Spanish</td><td class="num">12,382</td><td class="num">26,902</td><td class="num">15,094</td></tr>
+          <tr><td><span class="langchip"></span>JA Japanese</td><td class="num">11,805</td><td class="num">13,531</td><td class="num">7,237</td></tr>
+          <tr><td><span class="langchip"></span>EL Greek (low-resource)</td><td class="num">5,231</td><td class="num">7,054</td><td class="num">2,579</td></tr>
+          <tr><td>Total &middot; seed 42, protocol released</td><td class="num">56,589</td><td class="num">118,256</td><td class="num">54,473</td></tr>
+        </table>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h"><span class="letter">(b)</span><span class="name">Entity description enrichment</span><span class="hint">every entity gets text <span class="math">d</span>(<span class="math">e</span>)</span></div>
+        <div class="cascade">
+          <div class="cas"><div class="step">1</div>
+            <div class="what"><b>DBpedia URI &rarr; surface name</b><span>base identity, all languages</span></div>
+            <div class="cov"><b class="num">56,589</b> &middot; 100%</div></div>
+          <div class="cas"><div class="step">2</div>
+            <div class="what"><b>KG-neighborhood serialization</b><span class="mono">name | rel&#8321;: n&#8321;, n&#8322; | rel&#8322;: n&#8323; &hellip;</span><span>built from train + valid edges only, no test leakage</span></div>
+            <div class="cov"><b class="num">56,589</b> &middot; 100%</div></div>
+          <div class="cas"><div class="step">3</div>
+            <div class="what"><b>Wikipedia / DBpedia abstracts</b><span>bulk fetch 33,637 + REST-API pass +7,436</span></div>
+            <div class="cov"><b class="num">41,073</b> &middot; 72.6%</div></div>
+          <div class="cas"><div class="step">4</div>
+            <div class="what"><b>LLM back-fill (Llama-3.2-3B)</b><span>only where stages 1-3 gave name-only text; disclosed in datasheet</span></div>
+            <div class="cov"><b class="num">+1,042</b> &middot; &rarr; 74.4% rich</div></div>
+        </div>
+        <div class="dtext">
+          <b>Why it matters:</b> abstracts alone lift MRR 3.1% &rarr; 10.0% (+3.2&times;); reading them at full length (ml 96 &rarr; 160) lifts 13.8% &rarr; 26.7% (+1.9&times;). Text quality &times; context length dominate every architectural choice.
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ row 2 : (c) model + training ============ -->
+    <section class="panel">
+      <div class="panel-h"><span class="letter">(c)</span><span class="name">Shared bi-encoder with LoRA: training with CRR objective and mined hard negatives</span><span class="hint">contribution 2 &middot; fits 16 GB: 1.4 GB VRAM peak</span></div>
+
+      <div class="core">
+        <!-- inputs -->
+        <div class="col">
+          <div class="iobox">
+            <div class="k">Query side</div>
+            <div class="v mono">d(h) [SEP] r<sub>name</sub></div>
+            <div class="v" style="font-size:11px;color:var(--ink-3)">head description + relation name</div>
+          </div>
+          <div class="iobox">
+            <div class="k">Candidate side</div>
+            <div class="v mono">d(t)</div>
+            <div class="v" style="font-size:11px;color:var(--ink-3)">candidate description, any language</div>
+          </div>
+          <div class="iobox" style="border-style:dashed">
+            <div class="k">Tokenize</div>
+            <div class="v" style="font-size:11.5px">max_length = <b>160</b>, the binding constraint for CJK (see JA note, panel e)</div>
+          </div>
+        </div>
+
+        <div class="arr"><svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true"><path d="M0 7h16m0 0-5-5m5 5-5 5" stroke="#85939c" stroke-width="1.6" fill="none"/></svg></div>
+
+        <!-- encoder -->
+        <div class="encoder">
+          <span class="badge">Shared encoder</span>
+          <div style="font-size:13px;font-weight:650;margin-top:4px">BGE-M3 <span style="font-weight:400;color:var(--ink-2)">(XLM-R lineage, 568M)</span></div>
+          <div class="frozen-note">backbone <b>frozen</b>, bf16; one tower encodes queries, candidates &amp; anchors</div>
+          <div class="layers">
+            <div class="layer"><div class="attn">ATTN&nbsp;W<sub>Q</sub>&thinsp;W<sub>V</sub> &middot; FFN</div><div class="lora">+ LoRA r16</div></div>
+            <div class="layer"><div class="attn">ATTN&nbsp;W<sub>Q</sub>&thinsp;W<sub>V</sub> &middot; FFN</div><div class="lora">+ LoRA r16</div></div>
+            <div class="ellip">&middot;&middot;&middot;</div>
+            <div class="layer"><div class="attn">ATTN&nbsp;W<sub>Q</sub>&thinsp;W<sub>V</sub> &middot; FFN</div><div class="lora">+ LoRA r16</div></div>
+          </div>
+          <div class="pool">mean-pool over tokens &rarr; <span class="math">&#8467;</span><sub>2</sub>-normalize &rarr; <span class="math">q</span>, <span class="math">t</span> &isin; &#8477;<sup>1024</sup></div>
+          <div class="trainable-line"><span class="sw" style="background:var(--aqua)"></span><span><b style="color:var(--aqua-deep)">trainable:</b> LoRA A/B on W<sub>Q</sub>, W<sub>V</sub> (~8M, 1.4%) + temperature</span></div>
+          <div class="trainable-line"><span class="sw" style="background:#dbe6f2;border:1px solid #c7d6e6"></span><span><b style="color:var(--ink-2)">frozen:</b> all 568M backbone weights</span></div>
+        </div>
+
+        <div class="arr"><svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true"><path d="M0 7h16m0 0-5-5m5 5-5 5" stroke="#85939c" stroke-width="1.6" fill="none"/></svg></div>
+
+        <!-- scoring -->
+        <div class="col">
+          <div class="score">
+            <div class="k" style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">Scoring</div>
+            <div class="formula" style="font-size:14px;margin:6px 0 4px"><span class="math">s</span>(<span class="math">h,r,t</span>) = cos(<span class="math">q</span>,&thinsp;<span class="math">t</span>)&thinsp;/&thinsp;<span class="math">&tau;&#770;</span></div>
+            <div style="font-size:11px;color:var(--ink-3)"><span class="math">&tau;&#770;</span> = learned temperature</div>
+          </div>
+          <div class="iobox">
+            <div class="k">Logit matrix</div>
+            <div class="v"><span class="math">B</span>&thinsp;&times;&thinsp;(<span class="math">B</span>&thinsp;+&thinsp;<span class="math">K</span>): in-batch block + mined hard-negative block</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- training strip -->
+      <div class="train-strip">
+        <div class="neg">
+          <div class="h">Hard-negative mining (K = 7)</div>
+          <ul>
+            <li><b>Entity cache</b>: all 56,589 entity texts re-encoded after every epoch &ge; 5 (fresh, never stale)</li>
+            <li>GPU top-<span class="math">K</span> retrieval of most-confusable non-gold entities per query; gold tail masked</li>
+            <li>Warm-up epochs 1-4 use in-batch negatives only (<span class="math">B</span>&minus;1 = 31 per query)</li>
+          </ul>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:6px">Ablation: a <i>stale</i> global-negative cache reaches 95% train accuracy yet <b>&minus;5.1 MRR</b>; freshness is the mechanism, not pool size.</div>
+        </div>
+        <div class="obj">
+          <div class="h">CRR objective: differentiable reciprocal rank</div>
+          <div class="formula">
+            &#8466;<sub>CRR</sub> = log&thinsp;(&thinsp;1 + &sum;<sub><span class="math">j&thinsp;&ne;&thinsp;y</span></sub>&thinsp;&sigma;(&thinsp;(<span class="math">s</span><sub><span class="math">j</span></sub> &minus; <span class="math">s</span><sub><span class="math">y</span></sub> &minus; <span class="math">&rho;</span>)&thinsp;/&thinsp;<span class="math">&tau;</span><sub>c</sub>&thinsp;)&thinsp;)
+          </div>
+          <div class="expl">Smooth upper bound on &minus;log&thinsp;RR: each negative <span class="math">j</span> contributes only if it scores within margin <span class="math">&rho;</span> of the gold <span class="math">y</span>. Pressure <span class="math">&rho;</span> = 0.1, temperature <span class="math">&tau;</span><sub>c</sub> = 0.1; exponent clamped to [&minus;80, 80] for stability. First use of CRR beyond English transductive KGC; <b>synergistic with hard negatives</b> (CRR alone &asymp; InfoNCE; CRR + HN is what wins).</div>
+        </div>
+      </div>
+
+      <div class="hp-row">
+        <span class="hp"><b>30</b> epochs (best @ 20)</span>
+        <span class="hp">batch <b>32</b> &times; grad-accum <b>8</b> = eff. 256</span>
+        <span class="hp">lr <b>5e-4</b>, AdamW, 6% warmup</span>
+        <span class="hp">LoRA rank <b>16</b>, &alpha; 32</span>
+        <span class="hp">CRR <span class="math">&rho;</span>=<b>0.1</b></span>
+        <span class="hp">HN <span class="math">K</span>=<b>7</b> from epoch 5</span>
+        <span class="hp">bf16 &middot; grad-clip 1.0</span>
+        <span class="hp">RTX 5070 Ti <b>16 GB</b> &middot; ~7 h</span>
+      </div>
+    </section>
+
+    <!-- ============ row 3 : (d) inference ============ -->
+    <section class="panel">
+      <div class="panel-h"><span class="letter">(d)</span><span class="name">Inductive inference &amp; evaluation protocol</span><span class="hint">unseen entity &rArr; no embedding row; text is the only representation</span></div>
+      <div class="inf-grid">
+        <div class="inf">
+          <div class="k">1 &middot; Encode once, cache</div>
+          <p>All <b class="num">56,589</b> candidate descriptions encoded in a single pass and cached. A brand-new entity enters the index by encoding <span class="math">d</span>(<span class="math">e</span>); no retraining, no alignment seeds.</p>
+        </div>
+        <div class="inf">
+          <div class="k">2 &middot; Rank within language</div>
+          <p>Query <span class="mono">d(h) [SEP] r</span> is scored against the <b>same-language candidate pool</b> (standard mKGC protocol; cross-lingual pool also reported). Tail prediction <i class="math">(h, r, ?)</i>.</p>
+        </div>
+        <div class="inf">
+          <div class="k">3 &middot; Filtered metrics</div>
+          <p>All known true tails removed from the ranking: train &cup; valid &cup; test <b>&cup; support facts</b>. Eval max_length auto-matched to training. MRR, Hits@1/3/10.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ row 4 : (e) results ============ -->
+    <section class="panel">
+      <div class="panel-h"><span class="letter">(e)</span><span class="name">Results: DBP-5L-Ind test (unseen entities, filtered, within-language)</span><span class="hint">single seed shown; 3-seed mean &plusmn; std in progress</span></div>
+      <div class="results">
+        <div class="hero">
+          <div class="big">26.51<small>%</small></div>
+          <div class="cap">MRR &middot; full model, 3-seed mean &plusmn; 0.31<br>H@1 18.35 &middot; H@10 41.76</div>
+          <div class="delta">18.3&times; over zero-shot BGE-M3</div>
+        </div>
+
+        <div class="chart">
+          <div class="ct">Ablation ladder</div>
+          <div class="cs">each step adds one component &middot; MRR %</div>
+          <div class="bars" id="abl"></div>
+          <div class="xlabels" id="abl-x"></div>
+          <div class="note">Enriched text + context length contribute +22.3 of the +25.2 total.</div>
+        </div>
+
+        <div class="chart">
+          <div class="ct">Per-language &middot; full model</div>
+          <div class="cs">MRR % &middot; FR/ES rival transductive SOTA despite unseen entities</div>
+          <div class="bars" id="lang"></div>
+          <div class="xlabels" id="lang-x"></div>
+          <div class="note"><b>JA is truncation-bound, not data-poor:</b> median 119 subword tokens; 31% of its descriptions still exceed ml=160.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ row 5 : (f) self-healing loop ============ -->
+    <section class="panel">
+      <div class="panel-h"><span class="letter">(f)</span><span class="name">The self-healing loop: the graph's structure audits and repairs its own text</span><span class="hint">new headline direction &middot; evidence in hand</span></div>
+      <div class="heal-flow">
+        <div class="hstep suspect">
+          <div class="hk">Suspects: descriptions</div>
+          <p>Entity text, increasingly AI-generated. In our KB: <b>~70% of LLM back-fill fabricated</b>, concentrated in low-resource EL and JA.</p>
+        </div>
+        <div class="harr"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M0 7h12m0 0-4-4m4 4-4 4" stroke="#85939c" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="hstep witness">
+          <div class="hk">Witness: structure</div>
+          <p>The entity's own edges, serialized: "directed Unforgiven; won Academy Award". Independent of the text, reviewed fact by fact.</p>
+        </div>
+        <div class="harr"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M0 7h12m0 0-4-4m4 4-4 4" stroke="#85939c" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="hstep judge">
+          <div class="hk">Consistency check</div>
+          <p>Encode description and structure with BGE-M3, low cosine flags contamination. Zero-shot, style-invariant. <b>ROC-AUC 0.995, F1 0.988</b>; catches 57% of real fabrications with minimal structure.</p>
+        </div>
+        <div class="harr"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M0 7h12m0 0-4-4m4 4-4 4" stroke="#85939c" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="hstep suspect">
+          <div class="hk">Quarantine + re-source</div>
+          <p>Flagged text is removed. Native-language Wikipedia recovered <b>45%</b>; the rest fall back to the plain, verified name.</p>
+        </div>
+        <div class="harr"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M0 7h12m0 0-4-4m4 4-4 4" stroke="#85939c" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="hstep repair">
+          <div class="hk">Measured repair</div>
+          <p>Cleaned KB improves completion: <b>+1.95 MRR on Japanese</b>, +0.25 overall. Next: LLM factual-QA grounding gains, largest for low-resource languages.</p>
+        </div>
+      </div>
+      <div class="exhibits">
+        <div class="exhibit"><span class="en">Κλιντ Ίστγουντ (Clint Eastwood)</span><br><span class="lie">Text: "Greek footballer for PAOK"</span><br><span class="truth">Structure: directed films, won an Academy Award</span></div>
+        <div class="exhibit"><span class="en">Ταϊπέι (Taipei)</span><br><span class="lie">Text: "a traditional Cypriot dessert"</span><br><span class="truth">Structure: capital city, Taiwan</span></div>
+        <div class="exhibit"><span class="en">Ελεάνορ Ρούζβελτ (Eleanor Roosevelt)</span><br><span class="lie">Text: "a Greek actress"</span><br><span class="truth">Structure: US First Lady, UN delegate</span></div>
+      </div>
+      <div class="heal-note"><b>Why this is the headline:</b> stylometric detection of machine text is documented to struggle (WETBench), while nobody audits a KB's own text against its own structure. We found the phenomenon in the wild, can detect it without training, and have already measured the downstream repair. mRAKL constructs KGs, we clean them; KG error detection finds bad edges, we find fabricated text.</div>
+    </section>
+  </div>
+
+  <p class="caption"><b>Figure 1:</b> Overview of the proposed system. <b>(a)</b> DBP-5L-Ind, the first entity-disjoint inductive split of DBP-5L: 20% of entities per language are held out entirely from training; evaluation triples touch at least one unseen entity, with &le;5 support edges per unseen entity reserved for context and filtering. <b>(b)</b> A four-stage enrichment cascade gives every entity a textual description; test-entity descriptions never use held-out edges. <b>(c)</b> A single frozen BGE-M3 tower with rank-16 LoRA adapters encodes queries and candidates; training combines in-batch negatives with per-epoch-refreshed mined hard negatives under the CRR loss, a smooth upper bound on reciprocal rank. <b>(d)</b> At inference, unseen entities are represented purely by their encoded text and ranked against cached same-language candidates with standard filtering. <b>(e)</b> The full model reaches 26.51% MRR (3-seed mean, standard deviation 0.31), an 18.3-fold improvement over zero-shot, with the ablation attributing most of the gain to description quality and usable context length. Whiskers show plus or minus one standard deviation across seeds 42, 123, and 777. The improvement over the pre-enrichment baseline is significant (paired bootstrap and Wilcoxon, both p below 0.001). <b>(f)</b> The new headline direction: entity descriptions (the suspects) are checked against the entity's own graph neighbourhood (the witness) by a zero-shot consistency judge; flagged text is quarantined and re-sourced from verified channels. Found in the wild: about 70% of LLM back-filled descriptions were confident fabrications, concentrated in the low-resource languages; repairing them improved Japanese completion by 1.95 MRR, with LLM grounding evaluation as the planned payoff.</p>
+
+  <div class="footline">
+    <span>Working figure v2.0 &middot; 2026-07-06 &middot; substrate numbers = final corrected eval, 3-seed mean; panel (f) = the fused research direction</span>
+    <span>DBP-5L-Ind &middot; BGE-M3 + LoRA &middot; CRR + HN &middot; self-healing loop &middot; single RTX 5070 Ti 16 GB</span>
+  </div>
+</div>
+
+<div id="tip" role="status"></div>
+
+<script>
+(function(){
+  var abl = [
+    {k:"Zero-shot", v:1.45,  c:"#cde2fb", d:"BGE-M3, no fine-tuning"},
+    {k:"+CRR+HN",   v:13.77, c:"#86b6ef", d:"contrastive recipe, ml=96 (Row3-HN)"},
+    {k:"+rich text·ml128", v:23.80, c:"#5598e7", d:"enriched descriptions + max_length 128 (Run A)"},
+    {k:"+LoRA r16", v:25.15, c:"#2a78d6", d:"adapter rank 8→16 (Run B)"},
+    {k:"+ml160",    v:26.51, e:0.31, c:"#104281", d:"max_length 160, full model (3-seed mean 26.51 ± 0.31)", hi:true}
+  ];
+  var langs = [
+    {k:"FR", v:37.29, e:0.56, d:"3-seed mean · std 0.56 · transductive SOTA 38.4"},
+    {k:"ES", v:36.55, e:0.43, d:"3-seed mean · std 0.43 · exceeds transductive SOTA 36.6", hi:true},
+    {k:"EN", v:17.19, e:0.60, d:"3-seed mean · std 0.60 · EN graph is sparse in DBP-5L"},
+    {k:"EL", v:16.79, e:0.27, d:"3-seed mean · std 0.27 · low-resource: 5,231 entities"},
+    {k:"JA", v:16.15, e:0.89, d:"3-seed mean · std 0.89 (widest) · 31% of descriptions exceed ml=160"}
+  ];
+  function build(rowsId, labsId, data, max){
+    var bars = document.getElementById(rowsId), labs = document.getElementById(labsId);
+    data.forEach(function(d){
+      var b = document.createElement("div"); b.className = "bar";
+      b.setAttribute("data-k", d.k); b.setAttribute("data-v", d.v.toFixed(2)); b.setAttribute("data-d", d.d);
+      var val = document.createElement("div"); val.className = "val" + (d.hi ? " hi" : ""); val.textContent = d.v.toFixed(2);
+      var f = document.createElement("div"); f.className = "fill";
+      // pixel heights: 120px track minus ~18px value label + gap
+      var hpx = Math.max(4, Math.round(d.v / max * 98));
+      f.style.height = hpx + "px";
+      f.style.background = d.c || (d.hi ? "#104281" : "#2a78d6");
+      if (d.e) {
+        // std error whisker, centered on the bar top, scaled to the same axis
+        var whisk = document.createElement("div"); whisk.className = "whisk";
+        whisk.style.height = Math.max(2, Math.round(2 * d.e / max * 98)) + "px";
+        whisk.style.bottom = (hpx - Math.round(d.e / max * 98)) + "px";
+        f.appendChild(whisk);
+      }
+      b.appendChild(val); b.appendChild(f); bars.appendChild(b);
+      var x = document.createElement("span"); x.textContent = d.k; labs.appendChild(x);
+    });
+  }
+  build("abl", "abl-x", abl, 30);
+  build("lang", "lang-x", langs, 40);
+
+  var tip = document.getElementById("tip");
+  document.addEventListener("mousemove", function(e){
+    var bar = e.target.closest ? e.target.closest(".bar") : null;
+    if (bar){
+      tip.innerHTML = "<b>" + bar.getAttribute("data-k") + " | MRR " + bar.getAttribute("data-v") + "%</b>" + bar.getAttribute("data-d");
+      tip.style.opacity = "1";
+      var x = Math.min(e.clientX + 12, window.innerWidth - 260), y = e.clientY + 14;
+      tip.style.left = x + "px"; tip.style.top = y + "px";
+    } else { tip.style.opacity = "0"; }
+  });
+})();
+</script>

@@ -1,0 +1,60 @@
+# Local/editor noise
+.tmp/
+.agents/
+.claude/
+.codex/
+.vscode/
+.idea/
+*.log~
+
+# Python/runtime artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+venv*/
+.venv/
+env/
+ENV/
+
+# Node/runtime artifacts
+node_modules/
+dist/
+build/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Large generated ML artifacts
+checkpoints/
+checkpoint/
+token_cache/
+wandb/
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+*.lmdb
+*.mdb
+subgraphs_*/
+experiments/
+
+# Generated caches inside copied WSL snapshots
+wsl/**/venv/
+wsl/**/venv*/
+wsl/**/__pycache__/
+wsl/**/checkpoints/
+wsl/**/checkpoint/
+wsl/**/token_cache/
+wsl/**/experiments/
+wsl/**/subgraphs_*/
+
+# OS files
+Thumbs.db
+.DS_Store

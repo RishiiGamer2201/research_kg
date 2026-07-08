@@ -1,0 +1,254 @@
+Loading entity descriptions from /home/admin_wsl/research_kg/DBP5L/processed/entity_descriptions.json...
+
+Found 9,535 name-only entities to enrich
+  el: 2,227
+  en: 3,510
+  es: 604
+  fr: 536
+  ja: 2,658
+
+Fetching Wikipedia abstracts...
+  [0.5%] 50/9535 | fetched=49 failed=1
+  [1.0%] 100/9535 | fetched=99 failed=1
+  [1.6%] 150/9535 | fetched=149 failed=1
+  [2.1%] 200/9535 | fetched=199 failed=1
+  -> Saved checkpoint
+  [2.6%] 250/9535 | fetched=248 failed=2
+  [3.1%] 300/9535 | fetched=296 failed=4
+  [3.7%] 350/9535 | fetched=346 failed=4
+  [4.2%] 400/9535 | fetched=396 failed=4
+  -> Saved checkpoint
+  [4.7%] 450/9535 | fetched=446 failed=4
+  [5.2%] 500/9535 | fetched=496 failed=4
+  [5.8%] 550/9535 | fetched=546 failed=4
+  [6.3%] 600/9535 | fetched=595 failed=5
+  -> Saved checkpoint
+  [6.8%] 650/9535 | fetched=645 failed=5
+  [7.3%] 700/9535 | fetched=694 failed=6
+  [7.9%] 750/9535 | fetched=744 failed=6
+  [8.4%] 800/9535 | fetched=793 failed=7
+  -> Saved checkpoint
+  [8.9%] 850/9535 | fetched=843 failed=7
+  [9.4%] 900/9535 | fetched=893 failed=7
+  [10.0%] 950/9535 | fetched=943 failed=7
+  [10.5%] 1000/9535 | fetched=992 failed=8
+  -> Saved checkpoint
+  [11.0%] 1050/9535 | fetched=1042 failed=8
+  [11.5%] 1100/9535 | fetched=1092 failed=8
+  [12.1%] 1150/9535 | fetched=1141 failed=9
+  [12.6%] 1200/9535 | fetched=1185 failed=15
+  -> Saved checkpoint
+  [13.1%] 1250/9535 | fetched=1235 failed=15
+  [13.6%] 1300/9535 | fetched=1285 failed=15
+  [14.2%] 1350/9535 | fetched=1333 failed=17
+  [14.7%] 1400/9535 | fetched=1383 failed=17
+  -> Saved checkpoint
+  [15.2%] 1450/9535 | fetched=1433 failed=17
+  [15.7%] 1500/9535 | fetched=1481 failed=19
+  [16.3%] 1550/9535 | fetched=1531 failed=19
+  [16.8%] 1600/9535 | fetched=1581 failed=19
+  -> Saved checkpoint
+  [17.3%] 1650/9535 | fetched=1631 failed=19
+  [17.8%] 1700/9535 | fetched=1680 failed=20
+  [18.4%] 1750/9535 | fetched=1728 failed=22
+  [18.9%] 1800/9535 | fetched=1778 failed=22
+  -> Saved checkpoint
+  [19.4%] 1850/9535 | fetched=1828 failed=22
+  [19.9%] 1900/9535 | fetched=1878 failed=22
+  [20.5%] 1950/9535 | fetched=1927 failed=23
+  [21.0%] 2000/9535 | fetched=1977 failed=23
+  -> Saved checkpoint
+  [21.5%] 2050/9535 | fetched=2026 failed=24
+  [22.0%] 2100/9535 | fetched=2074 failed=26
+  [22.5%] 2150/9535 | fetched=2122 failed=28
+  [23.1%] 2200/9535 | fetched=2170 failed=30
+  -> Saved checkpoint
+  [23.6%] 2250/9535 | fetched=2220 failed=30
+  [24.1%] 2300/9535 | fetched=2269 failed=31
+  [24.6%] 2350/9535 | fetched=2319 failed=31
+  [25.2%] 2400/9535 | fetched=2367 failed=33
+  -> Saved checkpoint
+  [25.7%] 2450/9535 | fetched=2416 failed=34
+  [26.2%] 2500/9535 | fetched=2466 failed=34
+  [26.7%] 2550/9535 | fetched=2515 failed=35
+  [27.3%] 2600/9535 | fetched=2565 failed=35
+  -> Saved checkpoint
+  [27.8%] 2650/9535 | fetched=2615 failed=35
+  [28.3%] 2700/9535 | fetched=2664 failed=36
+  [28.8%] 2750/9535 | fetched=2714 failed=36
+  [29.4%] 2800/9535 | fetched=2764 failed=36
+  -> Saved checkpoint
+  [29.9%] 2850/9535 | fetched=2814 failed=36
+  [30.4%] 2900/9535 | fetched=2863 failed=37
+  [30.9%] 2950/9535 | fetched=2911 failed=39
+  [31.5%] 3000/9535 | fetched=2959 failed=41
+  -> Saved checkpoint
+  [32.0%] 3050/9535 | fetched=3007 failed=43
+  [32.5%] 3100/9535 | fetched=3056 failed=44
+  [33.0%] 3150/9535 | fetched=3104 failed=46
+  [33.6%] 3200/9535 | fetched=3153 failed=47
+  -> Saved checkpoint
+  [34.1%] 3250/9535 | fetched=3201 failed=49
+  [34.6%] 3300/9535 | fetched=3251 failed=49
+  [35.1%] 3350/9535 | fetched=3299 failed=51
+  [35.7%] 3400/9535 | fetched=3346 failed=54
+  -> Saved checkpoint
+  [36.2%] 3450/9535 | fetched=3396 failed=54
+  [36.7%] 3500/9535 | fetched=3445 failed=55
+  [37.2%] 3550/9535 | fetched=3493 failed=57
+  [37.8%] 3600/9535 | fetched=3541 failed=59
+  -> Saved checkpoint
+  [38.3%] 3650/9535 | fetched=3590 failed=60
+  [38.8%] 3700/9535 | fetched=3638 failed=62
+  [39.3%] 3750/9535 | fetched=3683 failed=67
+  [39.9%] 3800/9535 | fetched=3731 failed=69
+  -> Saved checkpoint
+  [40.4%] 3850/9535 | fetched=3774 failed=76
+  [40.9%] 3900/9535 | fetched=3821 failed=79
+  [41.4%] 3950/9535 | fetched=3867 failed=83
+  [42.0%] 4000/9535 | fetched=3915 failed=85
+  -> Saved checkpoint
+  [42.5%] 4050/9535 | fetched=3960 failed=90
+  [43.0%] 4100/9535 | fetched=3997 failed=103
+  [43.5%] 4150/9535 | fetched=4045 failed=105
+  [44.0%] 4200/9535 | fetched=4090 failed=110
+  -> Saved checkpoint
+  [44.6%] 4250/9535 | fetched=4139 failed=111
+  [45.1%] 4300/9535 | fetched=4167 failed=133
+  [45.6%] 4350/9535 | fetched=4192 failed=158
+  [46.1%] 4400/9535 | fetched=4209 failed=191
+  -> Saved checkpoint
+  [46.7%] 4450/9535 | fetched=4235 failed=215
+  [47.2%] 4500/9535 | fetched=4252 failed=248
+  [47.7%] 4550/9535 | fetched=4272 failed=278
+  [48.2%] 4600/9535 | fetched=4290 failed=310
+  -> Saved checkpoint
+  [48.8%] 4650/9535 | fetched=4302 failed=348
+  [49.3%] 4700/9535 | fetched=4323 failed=377
+  [49.8%] 4750/9535 | fetched=4344 failed=406
+  [50.3%] 4800/9535 | fetched=4365 failed=435
+  -> Saved checkpoint
+  [50.9%] 4850/9535 | fetched=4382 failed=468
+  [51.4%] 4900/9535 | fetched=4407 failed=493
+  [51.9%] 4950/9535 | fetched=4421 failed=529
+  [52.4%] 5000/9535 | fetched=4460 failed=540
+  -> Saved checkpoint
+  [53.0%] 5050/9535 | fetched=4480 failed=570
+  [53.5%] 5100/9535 | fetched=4498 failed=602
+  [54.0%] 5150/9535 | fetched=4516 failed=634
+  [54.5%] 5200/9535 | fetched=4532 failed=668
+  -> Saved checkpoint
+  [55.1%] 5250/9535 | fetched=4548 failed=702
+  [55.6%] 5300/9535 | fetched=4578 failed=722
+  [56.1%] 5350/9535 | fetched=4604 failed=746
+  [56.6%] 5400/9535 | fetched=4616 failed=784
+  -> Saved checkpoint
+  [57.2%] 5450/9535 | fetched=4633 failed=817
+  [57.7%] 5500/9535 | fetched=4652 failed=848
+  [58.2%] 5550/9535 | fetched=4680 failed=870
+  [58.7%] 5600/9535 | fetched=4700 failed=900
+  -> Saved checkpoint
+  [59.3%] 5650/9535 | fetched=4718 failed=932
+  [59.8%] 5700/9535 | fetched=4723 failed=977
+  [60.3%] 5750/9535 | fetched=4731 failed=1019
+  [60.8%] 5800/9535 | fetched=4762 failed=1038
+  -> Saved checkpoint
+  [61.4%] 5850/9535 | fetched=4778 failed=1072
+  [61.9%] 5900/9535 | fetched=4791 failed=1109
+  [62.4%] 5950/9535 | fetched=4813 failed=1137
+  [62.9%] 6000/9535 | fetched=4840 failed=1160
+  -> Saved checkpoint
+  [63.5%] 6050/9535 | fetched=4863 failed=1187
+  [64.0%] 6100/9535 | fetched=4886 failed=1214
+  [64.5%] 6150/9535 | fetched=4912 failed=1238
+  [65.0%] 6200/9535 | fetched=4938 failed=1262
+  -> Saved checkpoint
+  [65.5%] 6250/9535 | fetched=4961 failed=1289
+  [66.1%] 6300/9535 | fetched=4975 failed=1325
+  [66.6%] 6350/9535 | fetched=4997 failed=1353
+  [67.1%] 6400/9535 | fetched=5016 failed=1384
+  -> Saved checkpoint
+  [67.6%] 6450/9535 | fetched=5030 failed=1420
+  [68.2%] 6500/9535 | fetched=5048 failed=1452
+  [68.7%] 6550/9535 | fetched=5068 failed=1482
+  [69.2%] 6600/9535 | fetched=5079 failed=1521
+  -> Saved checkpoint
+  [69.7%] 6650/9535 | fetched=5088 failed=1562
+  [70.3%] 6700/9535 | fetched=5100 failed=1600
+  [70.8%] 6750/9535 | fetched=5121 failed=1629
+  [71.3%] 6800/9535 | fetched=5134 failed=1666
+  -> Saved checkpoint
+  [71.8%] 6850/9535 | fetched=5142 failed=1708
+  [72.4%] 6900/9535 | fetched=5151 failed=1749
+  [72.9%] 6950/9535 | fetched=5166 failed=1784
+  [73.4%] 7000/9535 | fetched=5179 failed=1821
+  -> Saved checkpoint
+  [73.9%] 7050/9535 | fetched=5200 failed=1850
+  [74.5%] 7100/9535 | fetched=5210 failed=1890
+  [75.0%] 7150/9535 | fetched=5233 failed=1917
+  [75.5%] 7200/9535 | fetched=5248 failed=1952
+  -> Saved checkpoint
+  [76.0%] 7250/9535 | fetched=5274 failed=1976
+  [76.6%] 7300/9535 | fetched=5283 failed=2017
+  [77.1%] 7350/9535 | fetched=5325 failed=2025
+  [77.6%] 7400/9535 | fetched=5374 failed=2026
+  -> Saved checkpoint
+  [78.1%] 7450/9535 | fetched=5424 failed=2026
+  [78.7%] 7500/9535 | fetched=5474 failed=2026
+  [79.2%] 7550/9535 | fetched=5520 failed=2030
+  [79.7%] 7600/9535 | fetched=5568 failed=2032
+  -> Saved checkpoint
+  [80.2%] 7650/9535 | fetched=5617 failed=2033
+  [80.8%] 7700/9535 | fetched=5667 failed=2033
+  [81.3%] 7750/9535 | fetched=5716 failed=2034
+  [81.8%] 7800/9535 | fetched=5764 failed=2036
+  -> Saved checkpoint
+  [82.3%] 7850/9535 | fetched=5807 failed=2043
+  [82.9%] 7900/9535 | fetched=5854 failed=2046
+  [83.4%] 7950/9535 | fetched=5902 failed=2048
+  [83.9%] 8000/9535 | fetched=5950 failed=2050
+  -> Saved checkpoint
+  [84.4%] 8050/9535 | fetched=6000 failed=2050
+  [85.0%] 8100/9535 | fetched=6049 failed=2051
+  [85.5%] 8150/9535 | fetched=6095 failed=2055
+  [86.0%] 8200/9535 | fetched=6144 failed=2056
+  -> Saved checkpoint
+  [86.5%] 8250/9535 | fetched=6194 failed=2056
+  [87.0%] 8300/9535 | fetched=6243 failed=2057
+  [87.6%] 8350/9535 | fetched=6290 failed=2060
+  [88.1%] 8400/9535 | fetched=6337 failed=2063
+  -> Saved checkpoint
+  [88.6%] 8450/9535 | fetched=6385 failed=2065
+  [89.1%] 8500/9535 | fetched=6433 failed=2067
+  [89.7%] 8550/9535 | fetched=6482 failed=2068
+  [90.2%] 8600/9535 | fetched=6531 failed=2069
+  -> Saved checkpoint
+  [90.7%] 8650/9535 | fetched=6580 failed=2070
+  [91.2%] 8700/9535 | fetched=6626 failed=2074
+  [91.8%] 8750/9535 | fetched=6675 failed=2075
+  [92.3%] 8800/9535 | fetched=6724 failed=2076
+  -> Saved checkpoint
+  [92.8%] 8850/9535 | fetched=6770 failed=2080
+  [93.3%] 8900/9535 | fetched=6820 failed=2080
+  [93.9%] 8950/9535 | fetched=6870 failed=2080
+  [94.4%] 9000/9535 | fetched=6915 failed=2085
+  -> Saved checkpoint
+  [94.9%] 9050/9535 | fetched=6964 failed=2086
+  [95.4%] 9100/9535 | fetched=7013 failed=2087
+  [96.0%] 9150/9535 | fetched=7063 failed=2087
+  [96.5%] 9200/9535 | fetched=7112 failed=2088
+  -> Saved checkpoint
+  [97.0%] 9250/9535 | fetched=7160 failed=2090
+  [97.5%] 9300/9535 | fetched=7209 failed=2091
+  [98.1%] 9350/9535 | fetched=7257 failed=2093
+  [98.6%] 9400/9535 | fetched=7306 failed=2094
+  -> Saved checkpoint
+  [99.1%] 9450/9535 | fetched=7355 failed=2095
+  [99.6%] 9500/9535 | fetched=7403 failed=2097
+
+=== Wikipedia Fetch Complete ===
+  Fetched: 7,436 new abstracts
+  Failed:  2,099 (will be handled by Llama in Script 2)
+  Saved to: /home/admin_wsl/research_kg/DBP5L/processed/entity_descriptions.json
+
+Next: run generate_llm_descriptions.py for remaining 2,099 entities

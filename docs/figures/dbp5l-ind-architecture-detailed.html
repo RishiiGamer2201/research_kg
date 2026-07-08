@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DBP-5L-Ind Detailed Architecture</title>
+<style>
+  :root {
+    --paper: #ffffff;
+    --page: #eef1f4;
+    --ink: #15202b;
+    --muted: #586672;
+    --faint: #8794a0;
+    --line: #d7dee6;
+    --grid: #e8edf2;
+    --blue: #2f6bae;
+    --blue-soft: #dbe9f7;
+    --green: #1f7a68;
+    --green-soft: #dff0eb;
+    --orange: #b0532f;
+    --orange-soft: #f7e5dc;
+    --violet: #5b4ea0;
+    --violet-soft: #e7e3f5;
+    --gray: #f7f9fb;
+    --sans: "Segoe UI", Arial, Helvetica, sans-serif;
+    --serif: Georgia, "Times New Roman", serif;
+    --mono: Consolas, "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .sheet {
+    max-width: 1280px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 26px 30px 24px;
+    box-shadow: 0 8px 24px rgba(21, 32, 43, 0.08);
+  }
+  .topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: baseline;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .tag {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--faint);
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+  .subtitle {
+    margin: 0 0 16px;
+    color: var(--muted);
+    max-width: 92ch;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin: 10px 0 14px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--gray);
+  }
+  .sw {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .wide { grid-column: 1 / -1; }
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fbfcfd;
+    padding: 12px;
+    min-width: 0;
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .letter {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .name {
+    font-weight: 700;
+    font-size: 12.5px;
+  }
+  .hint {
+    margin-left: auto;
+    color: var(--faint);
+    font-size: 10.5px;
+    text-align: right;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    min-width: 0;
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .grow { flex: 1; }
+  .box {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 8px 9px;
+    min-width: 0;
+  }
+  .box.blue { border-left: 4px solid var(--blue); }
+  .box.green { border-left: 4px solid var(--green); }
+  .box.orange { border-left: 4px solid var(--orange); }
+  .box.violet { border-left: 4px solid var(--violet); }
+  .box.soft-blue { background: var(--blue-soft); border-color: #bad2ec; }
+  .box.soft-green { background: var(--green-soft); border-color: #b8d9cf; }
+  .box.soft-orange { background: var(--orange-soft); border-color: #e3c5b6; }
+  .box.soft-violet { background: var(--violet-soft); border-color: #ccc4ea; }
+  .boxt {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .boxb {
+    color: var(--ink);
+    font-size: 12px;
+  }
+  .small {
+    font-size: 10.8px;
+    color: var(--muted);
+  }
+  .mono {
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .math {
+    font-family: var(--serif);
+    font-style: italic;
+  }
+  .arrow {
+    width: 32px;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--faint);
+  }
+  .arrow::before {
+    content: "";
+    display: block;
+    width: 26px;
+    border-top: 1.5px solid var(--faint);
+  }
+  .arrow::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--faint);
+    border-top: 1.5px solid var(--faint);
+    transform: rotate(45deg);
+    margin-left: -7px;
+  }
+  .down {
+    height: 18px;
+    display: flex;
+    justify-content: center;
+    color: var(--faint);
+  }
+  .down::before {
+    content: "";
+    height: 18px;
+    border-left: 1.5px solid var(--faint);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  th {
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--faint);
+    font-size: 9.5px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+    padding: 4px 5px;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  td {
+    padding: 4px 5px;
+    border-bottom: 1px solid var(--grid);
+    text-align: right;
+    color: var(--muted);
+  }
+  tr:last-child td { border-bottom: 0; }
+  .strong td { color: var(--ink); font-weight: 700; }
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1.05fr 0.08fr 1.35fr 0.08fr 1.15fr;
+    gap: 0;
+    align-items: stretch;
+  }
+  .stage-title {
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .encoder {
+    border: 1.5px solid var(--blue);
+    background: var(--paper);
+    border-radius: 6px;
+    padding: 10px;
+  }
+  .layers {
+    display: grid;
+    gap: 4px;
+    margin-top: 7px;
+  }
+  .layer {
+    display: grid;
+    grid-template-columns: 1fr 68px;
+    gap: 6px;
+    align-items: center;
+  }
+  .block {
+    background: #eef3f8;
+    border: 1px solid #cbd9e6;
+    border-radius: 3px;
+    text-align: center;
+    padding: 3px 2px;
+    font-size: 9.5px;
+    color: var(--muted);
+  }
+  .lora {
+    background: var(--green-soft);
+    border: 1px solid #9dcbbf;
+    color: var(--green);
+    font-size: 9.5px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 3px;
+    padding: 3px 2px;
+  }
+  .formula {
+    font-family: var(--serif);
+    font-size: 15px;
+    text-align: center;
+    padding: 7px 6px;
+    color: var(--ink);
+  }
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 3px;
+    margin-top: 6px;
+  }
+  .cell {
+    aspect-ratio: 1.4;
+    border: 1px solid var(--line);
+    background: #f1f5f8;
+    border-radius: 2px;
+  }
+  .cell.pos { background: var(--green-soft); border-color: #9dcbbf; }
+  .cell.hn { background: var(--orange-soft); border-color: #d69d83; }
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    height: 110px;
+    align-items: end;
+    border-bottom: 1px solid var(--line);
+    padding: 0 4px;
+  }
+  .bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+  }
+  .val {
+    font-size: 10px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .fill {
+    width: 80%;
+    max-width: 38px;
+    background: var(--blue);
+    border-radius: 3px 3px 0 0;
+  }
+  .xlab {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    padding: 4px 4px 0;
+    font-size: 10px;
+    color: var(--faint);
+    text-align: center;
+  }
+  .callout {
+    border: 1px dashed #b8c4cf;
+    border-radius: 5px;
+    background: #fff;
+    padding: 7px 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .caption {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .caption b { color: var(--ink); }
+  @media (max-width: 980px) {
+    body { padding: 12px; }
+    .sheet { padding: 18px; }
+    .grid { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr; gap: 8px; }
+    .arrow { width: 100%; min-width: 0; height: 18px; transform: rotate(90deg); }
+    .topline { flex-direction: column; gap: 2px; }
+  }
+  @media print {
+    body { background: white; padding: 0; }
+    .sheet { box-shadow: none; border: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <div class="topline">
+    <span class="tag">Detailed architecture figure for AAAI 2027 draft</span>
+    <span>Run E: BGE-M3 + LoRA r16, CRR + HN K=7, max_length 160, MRR 26.69%</span>
+  </div>
+  <h1>DBP-5L-Ind: Multilingual Inductive Knowledge Graph Completion Pipeline</h1>
+  <p class="subtitle">The figure separates the paper into four claims: benchmark construction, description enrichment, text-bi-encoder training, and filtered inductive evaluation. Every artifact in the diagram corresponds to a file or code path in the WSL implementation.</p>
+
+  <div class="legend">
+    <span class="key"><span class="sw" style="background:var(--blue)"></span> data / text representation</span>
+    <span class="key"><span class="sw" style="background:var(--green)"></span> trainable parameters</span>
+    <span class="key"><span class="sw" style="background:var(--orange)"></span> negatives / held-out facts</span>
+    <span class="key"><span class="sw" style="background:var(--violet)"></span> objective / metrics</span>
+    <span class="key"><span class="sw" style="background:#eef3f8;border:1px solid #cbd9e6"></span> frozen encoder backbone</span>
+  </div>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="head"><span class="letter">(a)</span><span class="name">Benchmark construction</span><span class="hint">build_dbp5l_ind.py</span></div>
+      <div class="row">
+        <div class="box blue grow">
+          <div class="boxt">Raw DBP-5L</div>
+          <div class="boxb">5 language-specific KGs: EN, FR, ES, JA, EL</div>
+          <div class="small">56,589 entities, 1,392 relations, 225,831 triples</div>
+        </div>
+        <div class="arrow"></div>
+        <div class="box orange grow">
+          <div class="boxt">Entity-disjoint holdout</div>
+          <div class="boxb">20% entities per language are unseen at train time</div>
+          <div class="small">eligible entities have at least 3 incident triples</div>
+        </div>
+      </div>
+      <div class="down"></div>
+      <table>
+        <tr><th>Lang</th><th>Train ent.</th><th>Unseen ent.</th><th>Train triples</th><th>Eval triples</th></tr>
+        <tr><td>EN</td><td>10,506</td><td>2,626</td><td>44,801</td><td>18,409</td></tr>
+        <tr><td>FR</td><td>8,060</td><td>2,014</td><td>25,968</td><td>11,154</td></tr>
+        <tr><td>ES</td><td>8,087</td><td>2,021</td><td>26,902</td><td>15,094</td></tr>
+        <tr><td>JA</td><td>5,979</td><td>1,494</td><td>13,531</td><td>7,237</td></tr>
+        <tr><td>EL</td><td>3,216</td><td>804</td><td>7,054</td><td>2,579</td></tr>
+        <tr class="strong"><td>Total</td><td>35,848</td><td>8,959</td><td>118,256</td><td>54,473</td></tr>
+      </table>
+      <div class="callout">Support graph: up to 5 facts per unseen entity, 39,995 total. These facts are not eval targets and are filtered at evaluation.</div>
+    </div>
+
+    <div class="panel">
+      <div class="head"><span class="letter">(b)</span><span class="name">Description enrichment</span><span class="hint">entity_descriptions.json</span></div>
+      <div class="col">
+        <div class="box blue"><div class="boxt">1. URI surface form</div><div class="boxb mono">d(e) = "Barack Obama"</div><div class="small">available for every entity</div></div>
+        <div class="box blue"><div class="boxt">2. KG-neighbor serialization</div><div class="boxb mono">name | relation: neighbor1, neighbor2 | ...</div><div class="small">built from train and valid edges only</div></div>
+        <div class="box blue"><div class="boxt">3. Native Wikipedia / DBpedia abstracts</div><div class="boxb">41,073 entities after bulk + REST passes</div><div class="small">rich multilingual text, truncated only by tokenizer max length</div></div>
+        <div class="box blue"><div class="boxt">4. Llama 3.2 back-fill</div><div class="boxb">+1,042 generated descriptions</div><div class="small">must be disclosed and spot-checked in appendix</div></div>
+      </div>
+      <div class="callout">Core empirical lesson: text quality and usable context length produce most of the MRR gain, from 1.45% zero-shot to 26.69% full model.</div>
+    </div>
+
+    <div class="panel wide">
+      <div class="head"><span class="letter">(c)</span><span class="name">Training architecture</span><span class="hint">train_dbp5l_lora.py</span></div>
+      <div class="pipeline">
+        <div class="col">
+          <div class="stage-title">Input construction</div>
+          <div class="box soft-blue">
+            <div class="boxt">Query text</div>
+            <div class="boxb mono">d(h) [SEP] r_name</div>
+            <div class="small">head description plus relation name</div>
+          </div>
+          <div class="box soft-blue">
+            <div class="boxt">Candidate text</div>
+            <div class="boxb mono">d(t)</div>
+            <div class="small">tail entity description in its language</div>
+          </div>
+          <div class="box soft-orange">
+            <div class="boxt">Optional anchor query</div>
+            <div class="boxb mono">d(anchor_tail)</div>
+            <div class="small">used only for XL-anchor experiments, not core model</div>
+          </div>
+        </div>
+        <div class="arrow"></div>
+        <div class="col">
+          <div class="stage-title">Shared encoder tower</div>
+          <div class="encoder">
+            <div class="boxb"><b>BGE-M3</b> multilingual encoder, 568M parameters</div>
+            <div class="small">frozen backbone, mean pooling, L2 normalization, bf16 forward</div>
+            <div class="layers">
+              <div class="layer"><div class="block">self-attention W_Q, W_V</div><div class="lora">LoRA r16</div></div>
+              <div class="layer"><div class="block">feed-forward block</div><div class="block">frozen</div></div>
+              <div class="layer"><div class="block">... repeated layers ...</div><div class="lora">trainable</div></div>
+            </div>
+            <div class="small">Trainable: LoRA adapters on query/value projections plus learned temperature, about 1.4% of parameters.</div>
+          </div>
+          <div class="row">
+            <div class="box green grow"><div class="boxt">Embeddings</div><div class="boxb mono">q, t in R^1024</div></div>
+            <div class="box violet grow"><div class="boxt">Score</div><div class="boxb mono">cos(q,t) / exp(tau)</div></div>
+          </div>
+        </div>
+        <div class="arrow"></div>
+        <div class="col">
+          <div class="stage-title">Contrastive learning</div>
+          <div class="box orange">
+            <div class="boxt">Hard negative cache</div>
+            <div class="boxb">Encode all 56,589 entities after each epoch from epoch 5</div>
+            <div class="small">for each query, select K=7 nearest non-gold tails</div>
+          </div>
+          <div class="box violet">
+            <div class="boxt">Logit matrix</div>
+            <div class="boxb mono">B x (B + K)</div>
+            <div class="matrix">
+              <span class="cell pos"></span><span class="cell"></span><span class="cell"></span><span class="cell hn"></span><span class="cell hn"></span><span class="cell hn"></span>
+              <span class="cell"></span><span class="cell pos"></span><span class="cell"></span><span class="cell hn"></span><span class="cell hn"></span><span class="cell hn"></span>
+              <span class="cell"></span><span class="cell"></span><span class="cell pos"></span><span class="cell hn"></span><span class="cell hn"></span><span class="cell hn"></span>
+            </div>
+            <div class="small">green = true diagonal, orange = mined hard negatives</div>
+          </div>
+          <div class="box violet">
+            <div class="boxt">CRR objective</div>
+            <div class="formula">log(1 + sum_j sigma((s_j - s_y - rho) / tau_c))</div>
+            <div class="small">rho = 0.1, tau_c = 0.1, exponent clamped to [-80, 80]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head"><span class="letter">(d)</span><span class="name">Inductive evaluation</span><span class="hint">eval_dbp5l.py</span></div>
+      <div class="col">
+        <div class="box blue">
+          <div class="boxt">Candidate index</div>
+          <div class="boxb">Encode every candidate description once</div>
+          <div class="small">unseen entities have no learned embedding row</div>
+        </div>
+        <div class="box violet">
+          <div class="boxt">Ranking protocol</div>
+          <div class="boxb">Tail-only, filtered MRR and Hits@1/3/10</div>
+          <div class="small">primary table ranks within same-language candidates</div>
+        </div>
+        <div class="box orange">
+          <div class="boxt">Filter set</div>
+          <div class="boxb">train + valid + test + support true tails</div>
+          <div class="small">support filtering fixed a subtle eval bug</div>
+        </div>
+        <div class="box green">
+          <div class="boxt">Checkpoint-safe eval</div>
+          <div class="boxb">max_length and tokenizer read from checkpoint</div>
+          <div class="small">prevents the earlier ml=96 truncation bug</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head"><span class="letter">(e)</span><span class="name">Results and interpretation</span><span class="hint">RESULTS_AND_INFERENCE.md</span></div>
+      <div class="row">
+        <div class="box violet grow">
+          <div class="boxt">Headline</div>
+          <div class="boxb" style="font-size:28px;font-weight:700;color:var(--blue)">26.69%</div>
+          <div class="small">within-language filtered MRR, Run E</div>
+        </div>
+        <div class="box green grow">
+          <div class="boxt">Relative lift</div>
+          <div class="boxb" style="font-size:28px;font-weight:700;color:var(--green)">18.4x</div>
+          <div class="small">over zero-shot BGE-M3, 1.45%</div>
+        </div>
+      </div>
+      <div class="bars">
+        <div class="bar"><span class="val">1.45</span><span class="fill" style="height:5px;background:#a9c7e8"></span></div>
+        <div class="bar"><span class="val">13.77</span><span class="fill" style="height:50px;background:#7da8d9"></span></div>
+        <div class="bar"><span class="val">23.80</span><span class="fill" style="height:87px;background:#4d83bd"></span></div>
+        <div class="bar"><span class="val">25.15</span><span class="fill" style="height:92px;background:#2f6bae"></span></div>
+        <div class="bar"><span class="val">26.69</span><span class="fill" style="height:98px;background:#174a83"></span></div>
+      </div>
+      <div class="xlab"><span>zero</span><span>CRR+HN</span><span>rich+128</span><span>r16</span><span>ml160</span></div>
+      <div class="callout">FR 35.93 and ES 37.32 approach transductive DBP-5L references despite unseen entities. JA remains context-window bound: 31% of JA descriptions still exceed max_length 160.</div>
+    </div>
+
+    <div class="panel wide">
+      <div class="head"><span class="letter">(f)</span><span class="name">Open gates before final paper table</span><span class="hint">what must land before submission</span></div>
+      <div class="row">
+        <div class="box green grow">
+          <div class="boxt">W1. Seed robustness</div>
+          <div class="boxb">Seeds 42 and 123 are done: 26.24, 26.85 MRR</div>
+          <div class="small">seed 777 still needs completion and evaluation; then report mean +/- std</div>
+        </div>
+        <div class="box orange grow">
+          <div class="boxt">W2. Anchor gate G1</div>
+          <div class="boxb">Run anchor-aware eval for CRR+XL checkpoint</div>
+          <div class="small">decides whether the XL negative result is real or a train/eval mismatch artifact</div>
+        </div>
+        <div class="box blue grow">
+          <div class="boxt">W3. External baseline</div>
+          <div class="boxb">mBERT full and/or mBERT SimKGC-style row</div>
+          <div class="small">same split, same evaluator, only encoder/loss recipe changes</div>
+        </div>
+        <div class="box violet grow">
+          <div class="boxt">W4. Statistical test</div>
+          <div class="boxb">Dump per-triple ranks and run bootstrap + Wilcoxon</div>
+          <div class="small">full model versus Row3-HN ablation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="caption"><b>Figure:</b> Detailed system diagram for DBP-5L-Ind. <b>(a)</b> The benchmark holds out entities rather than merely triples, creating the multilingual inductive setting. <b>(b)</b> Every entity is represented as text, with descriptions enriched from names, KG neighborhoods, Wikipedia/DBpedia abstracts, and a small disclosed LLM back-fill. <b>(c)</b> The model is a shared BGE-M3 bi-encoder with frozen backbone weights and trainable LoRA adapters; training combines in-batch negatives with per-epoch hard-negative mining and optimizes CRR, a smooth reciprocal-rank surrogate. <b>(d)</b> Evaluation ranks unseen tails by encoding their descriptions at inference time and filters all known true facts, including support edges. <b>(e)</b> The corrected full model reaches 26.69% MRR, with most gain attributed to text quality and context length. <b>(f)</b> Remaining gates are seed 777, anchor-aware evaluation, external mBERT baselines, and paired significance tests.</p>
+</main>
+</body>
+</html>

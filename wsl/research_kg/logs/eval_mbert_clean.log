@@ -1,0 +1,110 @@
+[18:01:49 INFO] Device: cuda
+[18:01:49 INFO] Loading checkpoint: DBP5L/checkpoints/bgem3_lora_dbp5l_20260704_1021_crr_hn7_r16/best_model.pt
+[18:01:49 INFO] HTTP Request: HEAD https://huggingface.co/bert-base-multilingual-cased/resolve/main/config.json "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+[18:01:50 INFO] HTTP Request: HEAD https://huggingface.co/bert-base-multilingual-cased/resolve/main/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:  27%|██▋       | 53/199 [00:00<00:00, 529.64it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 1016.09it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: bert-base-multilingual-cased
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[18:01:50 INFO] Loaded epoch 21 | valid acc@1 at save: 72.00%
+[18:01:50 INFO] Checkpoint training args: max_length=160 | lora_rank=16
+[18:01:51 INFO] Auto-detected max_length=160 from checkpoint
+[18:01:51 INFO] Evaluating with max_length=160
+[18:01:51 INFO] HTTP Request: HEAD https://huggingface.co/bert-base-multilingual-cased/resolve/main/config.json "HTTP/1.1 200 OK"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[18:01:51 WARNING] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[18:01:51 INFO] HTTP Request: HEAD https://huggingface.co/bert-base-multilingual-cased/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+[18:01:51 INFO] HTTP Request: GET https://huggingface.co/api/models/bert-base-multilingual-cased/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+[18:01:52 INFO] HTTP Request: GET https://huggingface.co/api/models/google-bert/bert-base-multilingual-cased/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+[18:01:52 INFO] HTTP Request: GET https://huggingface.co/api/models/bert-base-multilingual-cased/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+[18:01:52 INFO] HTTP Request: GET https://huggingface.co/api/models/google-bert/bert-base-multilingual-cased/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+[18:01:53 INFO] HTTP Request: GET https://huggingface.co/api/models/bert-base-multilingual-cased "HTTP/1.1 307 Temporary Redirect"
+[18:01:53 INFO] HTTP Request: GET https://huggingface.co/api/models/google-bert/bert-base-multilingual-cased "HTTP/1.1 200 OK"
+[18:01:53 INFO] Tokenizer: bert-base-multilingual-cased
+[18:01:53 INFO] Loading entity descriptions from DBP5L/processed/entity_descriptions_clean.json
+[18:01:53 INFO]   Loaded 56589 descriptions
+[18:01:53 INFO] Loaded 960 relation names
+[18:01:53 INFO] Loading test triples...
+[18:01:53 INFO]   54473 test triples
+[18:01:53 INFO] Building filter map...
+[18:01:54 INFO]   Added 39995 support triples to filter map
+[18:01:54 INFO] Encoding 56589 entities (batch 256)...
+[18:02:01 INFO]   Encoded 2560/56589 entities
+[18:02:02 INFO]   Encoded 5120/56589 entities
+[18:02:03 INFO]   Encoded 7680/56589 entities
+[18:02:05 INFO]   Encoded 10240/56589 entities
+[18:02:06 INFO]   Encoded 12800/56589 entities
+[18:02:08 INFO]   Encoded 15360/56589 entities
+[18:02:09 INFO]   Encoded 17920/56589 entities
+[18:02:10 INFO]   Encoded 20480/56589 entities
+[18:02:12 INFO]   Encoded 23040/56589 entities
+[18:02:13 INFO]   Encoded 25600/56589 entities
+[18:02:15 INFO]   Encoded 28160/56589 entities
+[18:02:16 INFO]   Encoded 30720/56589 entities
+[18:02:17 INFO]   Encoded 33280/56589 entities
+[18:02:19 INFO]   Encoded 35840/56589 entities
+[18:02:20 INFO]   Encoded 38400/56589 entities
+[18:02:21 INFO]   Encoded 40960/56589 entities
+[18:02:23 INFO]   Encoded 43520/56589 entities
+[18:02:24 INFO]   Encoded 46080/56589 entities
+[18:02:26 INFO]   Encoded 48640/56589 entities
+[18:02:27 INFO]   Encoded 51200/56589 entities
+[18:02:28 INFO]   Encoded 53760/56589 entities
+[18:02:30 INFO]   Encoded 56320/56589 entities
+[18:02:31 INFO] Entity embeddings: torch.Size([56589, 768]) | dtype: torch.float32
+[18:02:31 INFO] Per-language candidate counts: {'en': 13996, 'fr': 13176, 'es': 12381, 'ja': 11805, 'el': 5231}
+[18:02:31 INFO] Evaluating 54473 test triples...
+[18:02:51 INFO]   Evaluated 2560/54473 | running MRR: 0.1697
+[18:03:11 INFO]   Evaluated 5120/54473 | running MRR: 0.1701
+[18:03:29 INFO]   Evaluated 7680/54473 | running MRR: 0.1697
+[18:03:48 INFO]   Evaluated 10240/54473 | running MRR: 0.1658
+[18:04:08 INFO]   Evaluated 12800/54473 | running MRR: 0.1664
+[18:04:29 INFO]   Evaluated 15360/54473 | running MRR: 0.1661
+[18:04:49 INFO]   Evaluated 17920/54473 | running MRR: 0.1656
+[18:05:09 INFO]   Evaluated 20480/54473 | running MRR: 0.1831
+[18:05:28 INFO]   Evaluated 23040/54473 | running MRR: 0.2034
+[18:05:49 INFO]   Evaluated 25600/54473 | running MRR: 0.2184
+[18:06:06 INFO]   Evaluated 28160/54473 | running MRR: 0.2297
+[18:06:24 INFO]   Evaluated 30720/54473 | running MRR: 0.2386
+[18:06:42 INFO]   Evaluated 33280/54473 | running MRR: 0.2447
+[18:07:00 INFO]   Evaluated 35840/54473 | running MRR: 0.2493
+[18:07:18 INFO]   Evaluated 38400/54473 | running MRR: 0.2529
+[18:07:36 INFO]   Evaluated 40960/54473 | running MRR: 0.2574
+[18:07:54 INFO]   Evaluated 43520/54473 | running MRR: 0.2598
+[18:08:12 INFO]   Evaluated 46080/54473 | running MRR: 0.2580
+[18:08:30 INFO]   Evaluated 48640/54473 | running MRR: 0.2523
+[18:08:48 INFO]   Evaluated 51200/54473 | running MRR: 0.2473
+[18:09:07 INFO]   Evaluated 53760/54473 | running MRR: 0.2417
+[18:09:12 INFO] Results saved to: DBP5L/checkpoints/bgem3_lora_dbp5l_20260704_1021_crr_hn7_r16/eval_results.json
+[18:09:12 INFO] Per-triple within-language ranks (54473) dumped to: logs/ranks/mbert_clean.json
+
+======================================================================
+CHECKPOINT: bgem3_lora_dbp5l_20260704_1021_crr_hn7_r16
+======================================================================
+
+[CROSS-LINGUAL EVAL] Rank against all 56K entities:
+  OVERALL: MRR=23.96% H@1=15.68% H@3=27.00% H@10=39.30%  (n=54473)
+  EN : MRR=16.54% H@1=8.18% H@3=18.87% H@10=32.67%  (n=18409)
+  FR : MRR=34.99% H@1=25.81% H@3=38.61% H@10=51.90%  (n=11154)
+  ES : MRR=31.21% H@1=22.21% H@3=35.25% H@10=47.60%  (n=15094)
+  JA : MRR=15.50% H@1=9.37% H@3=18.05% H@10=25.72%  (n=7237)
+  EL : MRR=10.59% H@1=4.92% H@3=11.55% H@10=21.75%  (n=2579)
+
+[WITHIN-LANGUAGE EVAL] Rank against same-language entities only (standard ML-KGC):
+  OVERALL: MRR=24.08% H@1=15.72% H@3=27.15% H@10=39.54%  (n=54473)
+  EN  (13,996 cands): MRR=16.75% H@1=8.25% H@3=19.18% H@10=33.01%  (n=18409)
+  FR  (13,176 cands): MRR=35.17% H@1=25.87% H@3=38.81% H@10=52.36%  (n=11154)
+  ES  (12,381 cands): MRR=31.25% H@1=22.22% H@3=35.28% H@10=47.67%  (n=15094)
+  JA  (11,805 cands): MRR=15.50% H@1=9.37% H@3=18.05% H@10=25.74%  (n=7237)
+  EL  (5,231 cands): MRR=10.63% H@1=4.92% H@3=11.63% H@10=21.95%  (n=2579)
