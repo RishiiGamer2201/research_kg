@@ -1,0 +1,308 @@
+INFO:root:============ Initialized logger ============
+INFO:root:add_ht_emb: True
+add_traspose_rels: False
+attn_rel_emb_dim: 32
+batch_size: 32
+clip: 1000
+constrained_neg_prob: 0.0
+dataset: WN18RR_v4
+disable_cuda: False
+dropout: 0
+early_stop: 100
+edge_dropout: 0.5
+emb_dim: 32
+enclosing_sub_graph: True
+eval_every: 3
+eval_every_iter: 455
+exp_dir: utils/../experiments/sdn_wn_v4_gpu
+experiment_name: sdn_wn_v4_gpu
+feature_denoise: True
+gnn_agg_type: sum
+gpu: 0
+graph_type: prob
+has_attn: True
+hidden_size: 32
+hop: 3
+input_size: 100
+kge_model: TransE
+l2: 0.0005
+load_model: False
+lr: 0.01
+main_dir: utils/..
+margin: 10
+max_links: 1000000
+max_nodes_per_hop: None
+metric_type: attention
+model_type: dgl
+num_bases: 4
+num_epochs: 100
+num_gcn_layers: 3
+num_neg_samples_per_link: 1
+num_pers: 2
+num_workers: 4
+optimizer: Adam
+rel_emb_dim: 32
+save_every: 10
+top_k: 10
+train_file: train
+use_kge_embeddings: False
+valid_file: valid
+weight_decay: 0.0017
+INFO:root:============================================
+INFO:root:Sampling negative links for train
+  0%|          | 0/7940 [00:00<?, ?it/s]100%|██████████| 7940/7940 [00:00<00:00, 100261.24it/s]
+INFO:root:Sampling negative links for valid
+  0%|          | 0/934 [00:00<?, ?it/s]100%|██████████| 934/934 [00:00<00:00, 106711.34it/s]
+INFO:root:Extracting enclosing subgraphs for positive links in train set
+  0%|          | 0/7940 [00:00<?, ?it/s]  1%|          | 74/7940 [00:00<00:10, 735.92it/s]  2%|▏         | 174/7940 [00:00<00:08, 889.99it/s]  3%|▎         | 277/7940 [00:00<00:08, 953.08it/s]  5%|▍         | 383/7940 [00:00<00:07, 993.94it/s]  6%|▌         | 495/7940 [00:00<00:07, 1035.67it/s]  8%|▊         | 608/7940 [00:00<00:06, 1065.03it/s]  9%|▉         | 715/7940 [00:00<00:07, 1032.08it/s] 10%|█         | 819/7940 [00:00<00:06, 1028.46it/s] 12%|█▏        | 927/7940 [00:00<00:06, 1043.70it/s] 13%|█▎        | 1043/7940 [00:01<00:06, 1078.70it/s] 15%|█▍        | 1152/7940 [00:01<00:06, 1041.63it/s] 16%|█▌        | 1257/7940 [00:01<00:07, 925.31it/s]  17%|█▋        | 1352/7940 [00:01<00:07, 873.02it/s] 18%|█▊        | 1442/7940 [00:01<00:07, 850.69it/s] 19%|█▉        | 1543/7940 [00:01<00:07, 892.12it/s] 21%|██        | 1634/7940 [00:01<00:07, 843.36it/s] 22%|██▏       | 1739/7940 [00:01<00:06, 898.84it/s] 23%|██▎       | 1831/7940 [00:01<00:06, 889.85it/s] 24%|██▍       | 1923/7940 [00:02<00:06, 897.44it/s] 25%|██▌       | 2014/7940 [00:02<00:06, 899.79it/s] 27%|██▋       | 2107/7940 [00:02<00:06, 904.93it/s] 28%|██▊       | 2211/7940 [00:02<00:06, 943.60it/s] 29%|██▉       | 2306/7940 [00:02<00:06, 925.63it/s] 30%|███       | 2400/7940 [00:02<00:05, 928.54it/s] 31%|███▏      | 2494/7940 [00:02<00:05, 930.83it/s] 33%|███▎      | 2588/7940 [00:02<00:06, 873.88it/s] 34%|███▎      | 2677/7940 [00:02<00:06, 825.63it/s] 35%|███▍      | 2761/7940 [00:03<00:06, 783.03it/s] 36%|███▌      | 2854/7940 [00:03<00:06, 822.48it/s] 37%|███▋      | 2958/7940 [00:03<00:05, 882.14it/s] 39%|███▊      | 3070/7940 [00:03<00:05, 949.04it/s] 40%|███▉      | 3167/7940 [00:03<00:05, 922.38it/s] 41%|████      | 3265/7940 [00:03<00:05, 927.88it/s] 42%|████▏     | 3359/7940 [00:03<00:04, 921.07it/s] 44%|████▎     | 3461/7940 [00:03<00:04, 946.98it/s] 45%|████▍     | 3557/7940 [00:03<00:04, 945.06it/s] 46%|████▌     | 3657/7940 [00:03<00:04, 960.60it/s] 47%|████▋     | 3754/7940 [00:04<00:04, 957.66it/s] 48%|████▊     | 3850/7940 [00:04<00:04, 941.96it/s] 50%|████▉     | 3954/7940 [00:04<00:04, 968.12it/s] 51%|█████     | 4055/7940 [00:04<00:03, 977.89it/s] 52%|█████▏    | 4153/7940 [00:04<00:03, 973.95it/s] 54%|█████▎    | 4251/7940 [00:04<00:03, 964.42it/s] 55%|█████▍    | 4360/7940 [00:04<00:03, 999.69it/s] 56%|█████▋    | 4467/7940 [00:04<00:03, 1020.10it/s] 58%|█████▊    | 4575/7940 [00:04<00:03, 1037.79it/s] 59%|█████▉    | 4679/7940 [00:04<00:03, 1010.72it/s] 60%|██████    | 4781/7940 [00:05<00:03, 904.52it/s]  61%|██████▏   | 4883/7940 [00:05<00:03, 933.97it/s] 63%|██████▎   | 4980/7940 [00:05<00:03, 942.80it/s] 64%|██████▍   | 5076/7940 [00:05<00:03, 937.75it/s] 65%|██████▌   | 5171/7940 [00:05<00:03, 833.99it/s] 66%|██████▌   | 5259/7940 [00:05<00:03, 845.77it/s] 67%|██████▋   | 5346/7940 [00:05<00:03, 835.47it/s] 68%|██████▊   | 5431/7940 [00:05<00:03, 835.35it/s] 69%|██████▉   | 5516/7940 [00:05<00:03, 804.56it/s] 71%|███████   | 5623/7940 [00:06<00:02, 871.95it/s] 72%|███████▏  | 5712/7940 [00:06<00:02, 854.37it/s] 73%|███████▎  | 5799/7940 [00:06<00:02, 763.71it/s] 74%|███████▍  | 5882/7940 [00:06<00:02, 780.93it/s] 75%|███████▌  | 5962/7940 [00:06<00:02, 763.75it/s] 76%|███████▋  | 6059/7940 [00:06<00:02, 817.97it/s] 78%|███████▊  | 6156/7940 [00:06<00:02, 857.67it/s] 79%|███████▉  | 6258/7940 [00:06<00:01, 900.79it/s] 80%|████████  | 6361/7940 [00:06<00:01, 937.42it/s] 82%|████████▏ | 6474/7940 [00:07<00:01, 991.45it/s] 83%|████████▎ | 6574/7940 [00:07<00:01, 932.06it/s] 84%|████████▍ | 6671/7940 [00:07<00:01, 942.09it/s] 85%|████████▌ | 6767/7940 [00:07<00:01, 939.87it/s] 86%|████████▋ | 6862/7940 [00:07<00:01, 934.71it/s] 88%|████████▊ | 6959/7940 [00:07<00:01, 940.57it/s] 89%|████████▉ | 7054/7940 [00:07<00:01, 864.76it/s] 90%|█████████ | 7155/7940 [00:07<00:00, 902.97it/s] 92%|█████████▏| 7276/7940 [00:07<00:00, 989.84it/s] 93%|█████████▎| 7395/7940 [00:08<00:00, 1046.61it/s] 95%|█████████▍| 7505/7940 [00:08<00:00, 1061.87it/s] 96%|█████████▌| 7613/7940 [00:08<00:00, 1054.26it/s] 97%|█████████▋| 7724/7940 [00:08<00:00, 1069.52it/s] 99%|█████████▊| 7832/7940 [00:08<00:00, 962.01it/s] 100%|█████████▉| 7931/7940 [00:08<00:00, 916.02it/s]100%|██████████| 7940/7940 [00:08<00:00, 924.22it/s]
+INFO:root:Extracting enclosing subgraphs for negative links in train set
+  0%|          | 0/7940 [00:00<?, ?it/s]  1%|          | 68/7940 [00:00<00:11, 675.40it/s]  2%|▏         | 182/7940 [00:00<00:08, 944.26it/s]  4%|▍         | 301/7940 [00:00<00:07, 1054.18it/s]  5%|▌         | 412/7940 [00:00<00:07, 1074.31it/s]  7%|▋         | 520/7940 [00:00<00:07, 1012.24it/s]  8%|▊         | 622/7940 [00:00<00:07, 984.49it/s]   9%|▉         | 724/7940 [00:00<00:07, 994.53it/s] 10%|█         | 827/7940 [00:00<00:07, 1004.60it/s] 12%|█▏        | 928/7940 [00:00<00:07, 990.61it/s]  13%|█▎        | 1028/7940 [00:01<00:07, 979.89it/s] 14%|█▍        | 1149/7940 [00:01<00:06, 1047.58it/s] 16%|█▌        | 1255/7940 [00:01<00:06, 1024.29it/s] 17%|█▋        | 1367/7940 [00:01<00:06, 1051.61it/s] 19%|█▉        | 1489/7940 [00:01<00:05, 1099.04it/s] 20%|██        | 1604/7940 [00:01<00:05, 1112.81it/s] 22%|██▏       | 1725/7940 [00:01<00:05, 1139.70it/s] 23%|██▎       | 1840/7940 [00:01<00:05, 1102.78it/s] 25%|██▍       | 1951/7940 [00:01<00:05, 1008.78it/s] 26%|██▌       | 2054/7940 [00:02<00:06, 939.17it/s]  27%|██▋       | 2160/7940 [00:02<00:05, 968.66it/s] 29%|██▊       | 2278/7940 [00:02<00:05, 1025.82it/s] 30%|███       | 2398/7940 [00:02<00:05, 1070.91it/s] 32%|███▏      | 2507/7940 [00:02<00:05, 1074.00it/s] 33%|███▎      | 2616/7940 [00:02<00:05, 1042.13it/s] 34%|███▍      | 2722/7940 [00:02<00:05, 1033.71it/s] 36%|███▌      | 2826/7940 [00:02<00:05, 970.42it/s]  37%|███▋      | 2925/7940 [00:02<00:05, 975.60it/s] 38%|███▊      | 3025/7940 [00:02<00:05, 981.69it/s] 40%|███▉      | 3138/7940 [00:03<00:04, 1023.93it/s] 41%|████      | 3246/7940 [00:03<00:04, 1036.30it/s] 42%|████▏     | 3351/7940 [00:03<00:04, 994.23it/s]  43%|████▎     | 3452/7940 [00:03<00:04, 949.61it/s] 45%|████▍     | 3558/7940 [00:03<00:04, 979.68it/s] 46%|████▌     | 3667/7940 [00:03<00:04, 1010.73it/s] 48%|████▊     | 3787/7940 [00:03<00:03, 1064.91it/s] 49%|████▉     | 3895/7940 [00:03<00:03, 1026.99it/s] 50%|█████     | 4004/7940 [00:03<00:03, 1043.42it/s] 52%|█████▏    | 4109/7940 [00:04<00:03, 1026.49it/s] 53%|█████▎    | 4226/7940 [00:04<00:03, 1067.64it/s] 55%|█████▍    | 4343/7940 [00:04<00:03, 1095.73it/s] 56%|█████▌    | 4462/7940 [00:04<00:03, 1123.22it/s] 58%|█████▊    | 4575/7940 [00:04<00:03, 1083.37it/s] 59%|█████▉    | 4684/7940 [00:04<00:03, 1069.05it/s] 60%|██████    | 4802/7940 [00:04<00:02, 1099.76it/s] 62%|██████▏   | 4913/7940 [00:04<00:02, 1068.84it/s] 63%|██████▎   | 5021/7940 [00:04<00:02, 1032.88it/s] 65%|██████▍   | 5126/7940 [00:04<00:02, 1031.43it/s] 66%|██████▌   | 5244/7940 [00:05<00:02, 1073.27it/s] 68%|██████▊   | 5367/7940 [00:05<00:02, 1115.98it/s] 69%|██████▉   | 5483/7940 [00:05<00:02, 1128.78it/s] 71%|███████   | 5607/7940 [00:05<00:02, 1159.42it/s] 72%|███████▏  | 5724/7940 [00:05<00:01, 1154.58it/s] 74%|███████▎  | 5840/7940 [00:05<00:01, 1155.27it/s] 75%|███████▌  | 5956/7940 [00:05<00:01, 1087.82it/s] 76%|███████▋  | 6073/7940 [00:05<00:01, 1110.07it/s] 78%|███████▊  | 6185/7940 [00:05<00:01, 1112.46it/s] 79%|███████▉  | 6298/7940 [00:05<00:01, 1113.85it/s] 81%|████████  | 6410/7940 [00:06<00:01, 1010.68it/s] 82%|████████▏ | 6514/7940 [00:06<00:01, 1012.72it/s] 83%|████████▎ | 6617/7940 [00:06<00:01, 1014.35it/s] 85%|████████▍ | 6725/7940 [00:06<00:01, 1028.87it/s] 86%|████████▌ | 6829/7940 [00:06<00:01, 962.82it/s]  87%|████████▋ | 6932/7940 [00:06<00:01, 977.08it/s] 89%|████████▊ | 7043/7940 [00:06<00:00, 1012.51it/s] 90%|█████████ | 7158/7940 [00:06<00:00, 1050.89it/s] 92%|█████████▏| 7267/7940 [00:06<00:00, 1061.20it/s] 93%|█████████▎| 7374/7940 [00:07<00:00, 1038.06it/s] 94%|█████████▍| 7487/7940 [00:07<00:00, 1060.27it/s] 96%|█████████▌| 7612/7940 [00:07<00:00, 1114.20it/s] 97%|█████████▋| 7738/7940 [00:07<00:00, 1156.81it/s] 99%|█████████▉| 7857/7940 [00:07<00:00, 1166.49it/s]100%|██████████| 7940/7940 [00:07<00:00, 1052.61it/s]
+INFO:root:Extracting enclosing subgraphs for positive links in valid set
+  0%|          | 0/934 [00:00<?, ?it/s] 10%|█         | 98/934 [00:00<00:00, 971.56it/s] 21%|██        | 198/934 [00:00<00:00, 974.96it/s] 32%|███▏      | 296/934 [00:00<00:00, 965.78it/s] 42%|████▏     | 393/934 [00:00<00:00, 895.53it/s] 53%|█████▎    | 495/934 [00:00<00:00, 935.28it/s] 64%|██████▍   | 602/934 [00:00<00:00, 976.04it/s] 76%|███████▌  | 706/934 [00:00<00:00, 991.60it/s] 86%|████████▋ | 807/934 [00:00<00:00, 993.59it/s] 97%|█████████▋| 907/934 [00:00<00:00, 990.40it/s]100%|██████████| 934/934 [00:00<00:00, 978.44it/s]
+INFO:root:Extracting enclosing subgraphs for negative links in valid set
+  0%|          | 0/934 [00:00<?, ?it/s] 10%|█         | 95/934 [00:00<00:00, 946.61it/s] 23%|██▎       | 213/934 [00:00<00:00, 1082.63it/s] 35%|███▌      | 327/934 [00:00<00:00, 1108.52it/s] 47%|████▋     | 438/934 [00:00<00:00, 1081.13it/s] 59%|█████▉    | 553/934 [00:00<00:00, 1104.57it/s] 72%|███████▏  | 669/934 [00:00<00:00, 1121.84it/s] 84%|████████▎ | 782/934 [00:00<00:00, 1113.70it/s] 96%|█████████▌| 894/934 [00:00<00:00, 1063.64it/s]100%|██████████| 934/934 [00:00<00:00, 1081.48it/s]
+INFO:root:Max distance from sub : 3, Max distance from obj : 3
+INFO:root:Max distance from sub : 3, Max distance from obj : 3
+INFO:root:No existing model found. Initializing new model..
+INFO:root:Device: cuda:0
+INFO:root:Input dim : 8, # Relations : 9, # Augmented relations : 9
+INFO:root:Total number of parameters: 25863
+INFO:root:Starting training with full batch...
+[ Multi-perspective attention GraphLearner: 2 ]
+---------------regularization weight---------------
+gnn.attn_rel_emb.weight
+gnn.layers.0.weight
+gnn.layers.0.self_loop_weight
+gnn.layers.0.A.weight
+gnn.layers.0.B.weight
+gnn.layers.0.smooth.weight
+gnn.layers.1.weight
+gnn.layers.1.self_loop_weight
+gnn.layers.1.A.weight
+gnn.layers.1.B.weight
+gnn.layers.1.smooth.weight
+gnn.layers.2.weight
+gnn.layers.2.self_loop_weight
+gnn.layers.2.A.weight
+gnn.layers.2.B.weight
+gnn.layers.2.smooth.weight
+rel_emb.weight
+gsl.linear_sims.0.weight
+gsl.linear_sims.1.weight
+g_learn.conv1.weight
+g_learn.conv2.weight
+fc_layer.weight
+---------------------------------------------------
+  0%|          | 0/100 [00:00<?, ?it/s]INFO:root:Epoch 1 with loss: 21360.13671875, training auc: 0.8729082942008972, training auc_pr: 0.897781491279602, best validation AUC: 0, weight_norm: 122.60027313232422 in 58.29417371749878
+  1%|          | 1/100 [00:58<1:36:11, 58.29s/it]INFO:root:
+Performance:{'auc': tensor(0.8649), 'auc_pr': tensor(0.9073)}in 6.730262517929077
+INFO:root:Better models found w.r.t accuracy. Saved it!
+INFO:root:Epoch 2 with loss: 17863.763671875, training auc: 0.8900233507156372, training auc_pr: 0.9201022386550903, best validation AUC: 0.8649301528930664, weight_norm: 134.49188232421875 in 62.81776237487793
+  2%|▏         | 2/100 [02:01<1:39:33, 60.96s/it]INFO:root:Epoch 3 with loss: 17580.75, training auc: 0.8928518891334534, training auc_pr: 0.9215580821037292, best validation AUC: 0.8649301528930664, weight_norm: 133.8850555419922 in 55.363903760910034
+  3%|▎         | 3/100 [02:56<1:34:25, 58.40s/it]INFO:root:
+Performance:{'auc': tensor(0.8543), 'auc_pr': tensor(0.8993)}in 6.277320623397827
+INFO:root:Epoch 4 with loss: 17323.208984375, training auc: 0.9004780054092407, training auc_pr: 0.9269100427627563, best validation AUC: 0.8649301528930664, weight_norm: 135.51812744140625 in 64.0578145980835
+  4%|▍         | 4/100 [04:00<1:37:00, 60.64s/it]INFO:root:Epoch 5 with loss: 17231.44921875, training auc: 0.8945755958557129, training auc_pr: 0.9242783784866333, best validation AUC: 0.8649301528930664, weight_norm: 144.1644287109375 in 54.9859344959259
+  5%|▌         | 5/100 [04:55<1:32:46, 58.60s/it]INFO:root:
+Performance:{'auc': tensor(0.8762), 'auc_pr': tensor(0.9113)}in 5.720202684402466
+INFO:root:Better models found w.r.t accuracy. Saved it!
+INFO:root:Epoch 6 with loss: 16813.138671875, training auc: 0.8958103656768799, training auc_pr: 0.9249171614646912, best validation AUC: 0.8761875033378601, weight_norm: 149.59283447265625 in 57.119856119155884
+  6%|▌         | 6/100 [05:52<1:31:01, 58.10s/it]INFO:root:Epoch 7 with loss: 16761.953125, training auc: 0.8964775800704956, training auc_pr: 0.925903856754303, best validation AUC: 0.8761875033378601, weight_norm: 151.42515563964844 in 53.268046140670776
+  7%|▋         | 7/100 [06:45<1:27:36, 56.52s/it]INFO:root:
+Performance:{'auc': tensor(0.8639), 'auc_pr': tensor(0.9052)}in 6.0205841064453125
+INFO:root:Epoch 8 with loss: 16265.1806640625, training auc: 0.8380739688873291, training auc_pr: 0.8607036471366882, best validation AUC: 0.8761875033378601, weight_norm: 157.2394256591797 in 57.98127770423889
+  8%|▊         | 8/100 [07:43<1:27:22, 56.98s/it]INFO:root:Epoch 9 with loss: 16972.94921875, training auc: 0.8663651943206787, training auc_pr: 0.8943294882774353, best validation AUC: 0.8761875033378601, weight_norm: 173.24710083007812 in 52.768202781677246
+  9%|▉         | 9/100 [08:36<1:24:25, 55.67s/it]INFO:root:
+Performance:{'auc': tensor(0.8853), 'auc_pr': tensor(0.9145)}in 5.815586090087891
+INFO:root:Better models found w.r.t accuracy. Saved it!
+INFO:root:Epoch 10 with loss: 16431.83984375, training auc: 0.8948462605476379, training auc_pr: 0.9249267578125, best validation AUC: 0.8852669596672058, weight_norm: 182.73817443847656 in 58.24789834022522
+ 10%|█         | 10/100 [09:34<1:24:41, 56.46s/it]INFO:root:
+Performance:{'auc': tensor(0.8771), 'auc_pr': tensor(0.9150)}in 6.193585395812988
+INFO:root:Epoch 11 with loss: 16769.072265625, training auc: 0.8873298764228821, training auc_pr: 0.9172857403755188, best validation AUC: 0.8852669596672058, weight_norm: 186.8525390625 in 59.19668531417847
+ 11%|█         | 11/100 [10:34<1:24:59, 57.30s/it]INFO:root:Epoch 12 with loss: 16643.75390625, training auc: 0.8936324119567871, training auc_pr: 0.9236187934875488, best validation AUC: 0.8852669596672058, weight_norm: 188.06179809570312 in 53.79616022109985
+ 12%|█▏        | 12/100 [11:27<1:22:28, 56.23s/it]INFO:root:
+Performance:{'auc': tensor(0.8590), 'auc_pr': tensor(0.9052)}in 6.05292272567749
+INFO:root:Epoch 13 with loss: 16416.7578125, training auc: 0.901048481464386, training auc_pr: 0.9310563802719116, best validation AUC: 0.8852669596672058, weight_norm: 186.68118286132812 in 59.4607150554657
+ 13%|█▎        | 13/100 [12:27<1:22:57, 57.21s/it]INFO:root:Epoch 14 with loss: 16594.033203125, training auc: 0.8952756524085999, training auc_pr: 0.926598310470581, best validation AUC: 0.8852669596672058, weight_norm: 186.56565856933594 in 53.71981072425842
+ 14%|█▍        | 14/100 [13:21<1:20:29, 56.16s/it]INFO:root:
+Performance:{'auc': tensor(0.8614), 'auc_pr': tensor(0.9072)}in 5.788174152374268
+INFO:root:Epoch 15 with loss: 16127.220703125, training auc: 0.8992800712585449, training auc_pr: 0.929435133934021, best validation AUC: 0.8852669596672058, weight_norm: 186.34201049804688 in 59.296947717666626
+ 15%|█▌        | 15/100 [14:20<1:20:53, 57.10s/it]INFO:root:Epoch 16 with loss: 16462.841796875, training auc: 0.8943130373954773, training auc_pr: 0.925184428691864, best validation AUC: 0.8852669596672058, weight_norm: 186.9270782470703 in 52.46727728843689
+ 16%|█▌        | 16/100 [15:12<1:17:59, 55.71s/it]INFO:root:
+Performance:{'auc': tensor(0.8730), 'auc_pr': tensor(0.9109)}in 5.963295221328735
+INFO:root:Epoch 17 with loss: 16242.8017578125, training auc: 0.9000822901725769, training auc_pr: 0.9299934506416321, best validation AUC: 0.8852669596672058, weight_norm: 188.67665100097656 in 57.895671129226685
+ 17%|█▋        | 17/100 [16:10<1:17:58, 56.37s/it]INFO:root:Epoch 18 with loss: 16415.0390625, training auc: 0.8979517817497253, training auc_pr: 0.9290784597396851, best validation AUC: 0.8852669596672058, weight_norm: 187.62139892578125 in 52.2569625377655
+ 18%|█▊        | 18/100 [17:03<1:15:20, 55.13s/it]INFO:root:
+Performance:{'auc': tensor(0.9095), 'auc_pr': tensor(0.9336)}in 5.771265983581543
+INFO:root:Better models found w.r.t accuracy. Saved it!
+INFO:root:Epoch 19 with loss: 15876.09765625, training auc: 0.909012496471405, training auc_pr: 0.9360419511795044, best validation AUC: 0.9095140099525452, weight_norm: 187.6925048828125 in 58.05526542663574
+ 19%|█▉        | 19/100 [18:01<1:15:36, 56.01s/it]INFO:root:Epoch 20 with loss: 16409.423828125, training auc: 0.8898815512657166, training auc_pr: 0.9194799661636353, best validation AUC: 0.9095140099525452, weight_norm: 189.42623901367188 in 55.53273129463196
+ 20%|██        | 20/100 [18:56<1:14:29, 55.87s/it]INFO:root:
+Performance:{'auc': tensor(0.8934), 'auc_pr': tensor(0.9227)}in 5.754710674285889
+INFO:root:Epoch 21 with loss: 15830.2626953125, training auc: 0.9044374227523804, training auc_pr: 0.9336713552474976, best validation AUC: 0.9095140099525452, weight_norm: 188.8606414794922 in 58.128068685531616
+ 21%|██        | 21/100 [19:54<1:14:27, 56.55s/it]INFO:root:
+Performance:{'auc': tensor(0.8904), 'auc_pr': tensor(0.9184)}in 5.742693901062012
+INFO:root:Epoch 22 with loss: 16451.462890625, training auc: 0.8930867314338684, training auc_pr: 0.9234322905540466, best validation AUC: 0.9095140099525452, weight_norm: 191.60302734375 in 60.019574880599976
+ 22%|██▏       | 22/100 [20:54<1:14:51, 57.59s/it]INFO:root:Epoch 23 with loss: 16392.681640625, training auc: 0.8980007171630859, training auc_pr: 0.9268104434013367, best validation AUC: 0.9095140099525452, weight_norm: 193.2804718017578 in 54.22467565536499
+ 23%|██▎       | 23/100 [21:48<1:12:36, 56.58s/it]INFO:root:
+Performance:{'auc': tensor(0.8263), 'auc_pr': tensor(0.8873)}in 6.139069080352783
+INFO:root:Epoch 24 with loss: 16427.138671875, training auc: 0.888370156288147, training auc_pr: 0.9190329313278198, best validation AUC: 0.9095140099525452, weight_norm: 194.73251342773438 in 60.98792028427124
+ 24%|██▍       | 24/100 [22:49<1:13:20, 57.90s/it]INFO:root:Epoch 25 with loss: 16338.388671875, training auc: 0.88959139585495, training auc_pr: 0.9237104058265686, best validation AUC: 0.9095140099525452, weight_norm: 197.7991485595703 in 52.49710202217102
+ 25%|██▌       | 25/100 [23:42<1:10:21, 56.28s/it]INFO:root:
+Performance:{'auc': tensor(0.8319), 'auc_pr': tensor(0.8928)}in 5.851622581481934
+INFO:root:Epoch 26 with loss: 16330.3369140625, training auc: 0.8922131061553955, training auc_pr: 0.9273436665534973, best validation AUC: 0.9095140099525452, weight_norm: 198.55503845214844 in 57.03290128707886
+ 26%|██▌       | 26/100 [24:39<1:09:41, 56.51s/it]INFO:root:Epoch 27 with loss: 16276.3232421875, training auc: 0.8933082222938538, training auc_pr: 0.9244090914726257, best validation AUC: 0.9095140099525452, weight_norm: 198.05953979492188 in 51.77479314804077
+ 27%|██▋       | 27/100 [25:31<1:07:01, 55.09s/it]INFO:root:
+Performance:{'auc': tensor(0.8469), 'auc_pr': tensor(0.8993)}in 5.9253363609313965
+INFO:root:Epoch 28 with loss: 15989.376953125, training auc: 0.884762704372406, training auc_pr: 0.9204856157302856, best validation AUC: 0.9095140099525452, weight_norm: 198.03822326660156 in 58.3224983215332
+ 28%|██▊       | 28/100 [26:29<1:07:16, 56.06s/it]INFO:root:Epoch 29 with loss: 16714.712890625, training auc: 0.8594744205474854, training auc_pr: 0.8884261846542358, best validation AUC: 0.9095140099525452, weight_norm: 223.51821899414062 in 58.91849422454834
+ 29%|██▉       | 29/100 [27:28<1:07:21, 56.92s/it]INFO:root:
+Performance:{'auc': tensor(0.8468), 'auc_pr': tensor(0.8918)}in 6.937679052352905
+INFO:root:Epoch 30 with loss: 16397.65234375, training auc: 0.8908988833427429, training auc_pr: 0.9242420196533203, best validation AUC: 0.9095140099525452, weight_norm: 228.10899353027344 in 69.65289211273193
+ 30%|███       | 30/100 [28:38<1:10:51, 60.74s/it]INFO:root:Epoch 31 with loss: 16894.271484375, training auc: 0.8924809694290161, training auc_pr: 0.9217399954795837, best validation AUC: 0.9095140099525452, weight_norm: 246.35006713867188 in 61.72822904586792
+ 31%|███       | 31/100 [29:39<1:10:11, 61.04s/it]INFO:root:
+Performance:{'auc': tensor(0.8662), 'auc_pr': tensor(0.9074)}in 6.670559883117676
+INFO:root:Epoch 32 with loss: 15913.3505859375, training auc: 0.8996685147285461, training auc_pr: 0.9319799542427063, best validation AUC: 0.9095140099525452, weight_norm: 243.58816528320312 in 64.82322335243225
+ 32%|███▏      | 32/100 [30:44<1:10:27, 62.17s/it]INFO:root:
+Performance:{'auc': tensor(0.8987), 'auc_pr': tensor(0.9265)}in 6.346922159194946
+INFO:root:Epoch 33 with loss: 16427.951171875, training auc: 0.9021967053413391, training auc_pr: 0.930165708065033, best validation AUC: 0.9095140099525452, weight_norm: 245.26480102539062 in 63.15545320510864
+ 33%|███▎      | 33/100 [31:47<1:09:45, 62.47s/it]INFO:root:Epoch 34 with loss: 16381.7080078125, training auc: 0.9005233645439148, training auc_pr: 0.9303592443466187, best validation AUC: 0.9095140099525452, weight_norm: 243.7356414794922 in 56.34246778488159
+ 34%|███▍      | 34/100 [32:44<1:06:41, 60.63s/it]INFO:root:
+Performance:{'auc': tensor(0.8640), 'auc_pr': tensor(0.9068)}in 6.113950729370117
+INFO:root:Epoch 35 with loss: 16208.0224609375, training auc: 0.8975002765655518, training auc_pr: 0.9272134304046631, best validation AUC: 0.9095140099525452, weight_norm: 242.21298217773438 in 60.98604941368103
+ 35%|███▌      | 35/100 [33:45<1:05:47, 60.74s/it]INFO:root:Epoch 36 with loss: 16566.37109375, training auc: 0.9008065462112427, training auc_pr: 0.9305328130722046, best validation AUC: 0.9095140099525452, weight_norm: 238.57472229003906 in 54.90516757965088
+ 36%|███▌      | 36/100 [34:40<1:02:55, 58.99s/it]INFO:root:
+Performance:{'auc': tensor(0.8666), 'auc_pr': tensor(0.9075)}in 6.45968222618103
+INFO:root:Epoch 37 with loss: 16155.5185546875, training auc: 0.8977484703063965, training auc_pr: 0.9300395250320435, best validation AUC: 0.9095140099525452, weight_norm: 235.45867919921875 in 63.292426347732544
+ 37%|███▋      | 37/100 [35:43<1:03:17, 60.28s/it]INFO:root:Epoch 38 with loss: 16287.470703125, training auc: 0.9012696146965027, training auc_pr: 0.9314233660697937, best validation AUC: 0.9095140099525452, weight_norm: 233.4998779296875 in 56.86836886405945
+ 38%|███▊      | 38/100 [36:40<1:01:13, 59.26s/it]INFO:root:
+Performance:{'auc': tensor(0.8665), 'auc_pr': tensor(0.9082)}in 6.301199197769165
+INFO:root:Epoch 39 with loss: 15973.3076171875, training auc: 0.8979220390319824, training auc_pr: 0.9311367273330688, best validation AUC: 0.9095140099525452, weight_norm: 231.016357421875 in 63.926716327667236
+ 39%|███▉      | 39/100 [37:44<1:01:40, 60.66s/it]INFO:root:Epoch 40 with loss: 16299.544921875, training auc: 0.897057294845581, training auc_pr: 0.9293132424354553, best validation AUC: 0.9095140099525452, weight_norm: 230.72747802734375 in 55.846434354782104
+ 40%|████      | 40/100 [38:40<59:12, 59.22s/it]  INFO:root:
+Performance:{'auc': tensor(0.8741), 'auc_pr': tensor(0.9121)}in 6.054919958114624
+INFO:root:Epoch 41 with loss: 15898.4130859375, training auc: 0.9044163227081299, training auc_pr: 0.934432327747345, best validation AUC: 0.9095140099525452, weight_norm: 228.33633422851562 in 61.94962286949158
+ 41%|████      | 41/100 [39:42<59:02, 60.04s/it]INFO:root:Epoch 42 with loss: 16467.123046875, training auc: 0.8982511758804321, training auc_pr: 0.9295992255210876, best validation AUC: 0.9095140099525452, weight_norm: 226.3087158203125 in 55.79822611808777
+ 42%|████▏     | 42/100 [40:37<56:48, 58.76s/it]INFO:root:
+Performance:{'auc': tensor(0.8510), 'auc_pr': tensor(0.9022)}in 6.408160448074341
+INFO:root:Epoch 43 with loss: 15753.572265625, training auc: 0.8991753458976746, training auc_pr: 0.9321507215499878, best validation AUC: 0.9095140099525452, weight_norm: 225.72637939453125 in 61.55878138542175
+ 43%|████▎     | 43/100 [41:39<56:37, 59.60s/it]INFO:root:
+Performance:{'auc': tensor(0.8657), 'auc_pr': tensor(0.9089)}in 6.160625219345093
+INFO:root:Epoch 44 with loss: 16244.0576171875, training auc: 0.8988540172576904, training auc_pr: 0.9302406311035156, best validation AUC: 0.9095140099525452, weight_norm: 224.74807739257812 in 61.541948556900024
+ 44%|████▍     | 44/100 [42:40<56:10, 60.19s/it]INFO:root:Epoch 45 with loss: 16315.123046875, training auc: 0.900044322013855, training auc_pr: 0.9310193061828613, best validation AUC: 0.9095140099525452, weight_norm: 221.49444580078125 in 55.8042848110199
+ 45%|████▌     | 45/100 [43:36<53:57, 58.87s/it]INFO:root:
+Performance:{'auc': tensor(0.8663), 'auc_pr': tensor(0.9084)}in 6.13056206703186
+INFO:root:Epoch 46 with loss: 16106.56640625, training auc: 0.9025602340698242, training auc_pr: 0.9325388073921204, best validation AUC: 0.9095140099525452, weight_norm: 217.828125 in 61.81591749191284
+ 46%|████▌     | 46/100 [44:38<53:46, 59.75s/it]INFO:root:Epoch 47 with loss: 16213.634765625, training auc: 0.8977200984954834, training auc_pr: 0.929624080657959, best validation AUC: 0.9095140099525452, weight_norm: 217.20616149902344 in 56.08635926246643
+ 47%|████▋     | 47/100 [45:34<51:48, 58.65s/it]INFO:root:
+Performance:{'auc': tensor(0.8721), 'auc_pr': tensor(0.9096)}in 6.196112394332886
+INFO:root:Epoch 48 with loss: 16134.822265625, training auc: 0.8896592855453491, training auc_pr: 0.9229558706283569, best validation AUC: 0.9095140099525452, weight_norm: 216.07302856445312 in 61.686317920684814
+ 48%|████▊     | 48/100 [46:36<51:37, 59.56s/it]INFO:root:Epoch 49 with loss: 16124.4052734375, training auc: 0.8949108123779297, training auc_pr: 0.9268068075180054, best validation AUC: 0.9095140099525452, weight_norm: 214.86532592773438 in 56.04123854637146
+ 49%|████▉     | 49/100 [47:32<49:43, 58.51s/it]INFO:root:
+Performance:{'auc': tensor(0.8730), 'auc_pr': tensor(0.9111)}in 6.6252827644348145
+INFO:root:Epoch 50 with loss: 15927.83984375, training auc: 0.9013506174087524, training auc_pr: 0.9317010641098022, best validation AUC: 0.9095140099525452, weight_norm: 211.89309692382812 in 66.84663939476013
+ 50%|█████     | 50/100 [48:39<50:50, 61.01s/it]INFO:root:Epoch 51 with loss: 16378.1259765625, training auc: 0.898097574710846, training auc_pr: 0.9291730523109436, best validation AUC: 0.9095140099525452, weight_norm: 212.00881958007812 in 58.67898344993591
+ 51%|█████     | 51/100 [49:37<49:15, 60.31s/it]INFO:root:
+Performance:{'auc': tensor(0.8703), 'auc_pr': tensor(0.9090)}in 6.0826029777526855
+INFO:root:Epoch 52 with loss: 15943.396484375, training auc: 0.8973851799964905, training auc_pr: 0.9310632944107056, best validation AUC: 0.9095140099525452, weight_norm: 208.99118041992188 in 65.41204905509949
+ 52%|█████▏    | 52/100 [50:43<49:28, 61.84s/it]INFO:root:
+Performance:{'auc': tensor(0.8659), 'auc_pr': tensor(0.9088)}in 6.103935480117798
+INFO:root:Epoch 53 with loss: 16285.0146484375, training auc: 0.8895080089569092, training auc_pr: 0.9232931733131409, best validation AUC: 0.9095140099525452, weight_norm: 208.0563201904297 in 62.0169198513031
+ 53%|█████▎    | 53/100 [51:45<48:29, 61.89s/it]INFO:root:Epoch 54 with loss: 16407.23046875, training auc: 0.8914253115653992, training auc_pr: 0.9200965762138367, best validation AUC: 0.9095140099525452, weight_norm: 219.6812744140625 in 56.19505262374878
+ 54%|█████▍    | 54/100 [52:41<46:08, 60.18s/it]INFO:root:
+Performance:{'auc': tensor(0.8556), 'auc_pr': tensor(0.9039)}in 6.190109491348267
+INFO:root:Epoch 55 with loss: 16349.3935546875, training auc: 0.8959300518035889, training auc_pr: 0.9273238778114319, best validation AUC: 0.9095140099525452, weight_norm: 222.85504150390625 in 62.182185888290405
+ 55%|█████▌    | 55/100 [53:43<45:35, 60.78s/it]INFO:root:Epoch 56 with loss: 16336.5927734375, training auc: 0.8982551693916321, training auc_pr: 0.9300587177276611, best validation AUC: 0.9095140099525452, weight_norm: 219.70596313476562 in 56.175824880599976
+ 56%|█████▌    | 56/100 [54:39<43:33, 59.40s/it]INFO:root:
+Performance:{'auc': tensor(0.8675), 'auc_pr': tensor(0.9084)}in 6.162895679473877
+INFO:root:Epoch 57 with loss: 16119.466796875, training auc: 0.8979025483131409, training auc_pr: 0.9294525384902954, best validation AUC: 0.9095140099525452, weight_norm: 217.05194091796875 in 62.405972957611084
+ 57%|█████▋    | 57/100 [55:42<43:13, 60.30s/it]INFO:root:Epoch 58 with loss: 16255.546875, training auc: 0.9005691409111023, training auc_pr: 0.9308017492294312, best validation AUC: 0.9095140099525452, weight_norm: 214.39686584472656 in 56.1733295917511
+ 58%|█████▊    | 58/100 [56:38<41:20, 59.06s/it]INFO:root:
+Performance:{'auc': tensor(0.8670), 'auc_pr': tensor(0.9080)}in 6.219045639038086
+INFO:root:Epoch 59 with loss: 15983.966796875, training auc: 0.9010814428329468, training auc_pr: 0.9319498538970947, best validation AUC: 0.9095140099525452, weight_norm: 210.9748077392578 in 63.800148248672485
+ 59%|█████▉    | 59/100 [57:42<41:19, 60.49s/it]INFO:root:Epoch 60 with loss: 16118.00390625, training auc: 0.9033067226409912, training auc_pr: 0.932897686958313, best validation AUC: 0.9095140099525452, weight_norm: 207.9037628173828 in 64.04496836662292
+ 60%|██████    | 60/100 [58:46<41:02, 61.55s/it]INFO:root:
+Performance:{'auc': tensor(0.8660), 'auc_pr': tensor(0.9087)}in 7.376449823379517
+INFO:root:Epoch 61 with loss: 15779.0771484375, training auc: 0.9036515355110168, training auc_pr: 0.9345170855522156, best validation AUC: 0.9095140099525452, weight_norm: 205.59091186523438 in 72.77269315719604
+ 61%|██████    | 61/100 [59:59<42:11, 64.92s/it]INFO:root:Epoch 62 with loss: 16197.4912109375, training auc: 0.8998371362686157, training auc_pr: 0.9306761026382446, best validation AUC: 0.9095140099525452, weight_norm: 203.329833984375 in 57.130532026290894
+ 62%|██████▏   | 62/100 [1:00:56<39:38, 62.58s/it]INFO:root:
+Performance:{'auc': tensor(0.8824), 'auc_pr': tensor(0.9176)}in 6.378118276596069
+INFO:root:Epoch 63 with loss: 15741.1796875, training auc: 0.9070820808410645, training auc_pr: 0.9360748529434204, best validation AUC: 0.9095140099525452, weight_norm: 200.88890075683594 in 62.76235270500183
+ 63%|██████▎   | 63/100 [1:01:58<38:37, 62.64s/it]INFO:root:
+Performance:{'auc': tensor(0.8686), 'auc_pr': tensor(0.9100)}in 6.315921306610107
+INFO:root:Epoch 64 with loss: 16135.1328125, training auc: 0.9025863409042358, training auc_pr: 0.9322092533111572, best validation AUC: 0.9095140099525452, weight_norm: 202.726318359375 in 62.3291232585907
+ 64%|██████▍   | 64/100 [1:03:01<37:31, 62.55s/it]INFO:root:Epoch 65 with loss: 16100.287109375, training auc: 0.9017507433891296, training auc_pr: 0.93240886926651, best validation AUC: 0.9095140099525452, weight_norm: 206.10757446289062 in 56.499319314956665
+ 65%|██████▌   | 65/100 [1:03:57<35:25, 60.73s/it]INFO:root:
+Performance:{'auc': tensor(0.8592), 'auc_pr': tensor(0.9051)}in 6.721047878265381
+INFO:root:Epoch 66 with loss: 16247.83984375, training auc: 0.900489866733551, training auc_pr: 0.9318162202835083, best validation AUC: 0.9095140099525452, weight_norm: 207.57716369628906 in 63.39163112640381
+ 66%|██████▌   | 66/100 [1:05:01<34:52, 61.53s/it]INFO:root:Epoch 67 with loss: 16432.25390625, training auc: 0.9029527306556702, training auc_pr: 0.9321038126945496, best validation AUC: 0.9095140099525452, weight_norm: 207.34930419921875 in 60.82586979866028
+ 67%|██████▋   | 67/100 [1:06:02<33:43, 61.32s/it]INFO:root:
+Performance:{'auc': tensor(0.8730), 'auc_pr': tensor(0.9119)}in 5.913502931594849
+INFO:root:Epoch 68 with loss: 16174.3994140625, training auc: 0.9017002582550049, training auc_pr: 0.9323272109031677, best validation AUC: 0.9095140099525452, weight_norm: 209.02455139160156 in 63.245707511901855
+ 68%|██████▊   | 68/100 [1:07:05<33:00, 61.90s/it]INFO:root:Epoch 69 with loss: 16533.5234375, training auc: 0.8903641700744629, training auc_pr: 0.9227659106254578, best validation AUC: 0.9095140099525452, weight_norm: 221.54824829101562 in 54.48401069641113
+ 69%|██████▉   | 69/100 [1:07:59<30:49, 59.67s/it]INFO:root:
+Performance:{'auc': tensor(0.8651), 'auc_pr': tensor(0.9066)}in 6.657876253128052
+INFO:root:Epoch 70 with loss: 15978.958984375, training auc: 0.8993757963180542, training auc_pr: 0.931817352771759, best validation AUC: 0.9095140099525452, weight_norm: 217.35792541503906 in 66.56710934638977
+ 70%|███████   | 70/100 [1:09:06<30:52, 61.74s/it]INFO:root:Epoch 71 with loss: 16383.3798828125, training auc: 0.897453784942627, training auc_pr: 0.929246723651886, best validation AUC: 0.9095140099525452, weight_norm: 215.1744384765625 in 59.55153155326843
+ 71%|███████   | 71/100 [1:10:05<29:31, 61.09s/it]INFO:root:
+Performance:{'auc': tensor(0.8623), 'auc_pr': tensor(0.9068)}in 6.581383466720581
+INFO:root:Epoch 72 with loss: 15788.408203125, training auc: 0.899959921836853, training auc_pr: 0.9321644306182861, best validation AUC: 0.9095140099525452, weight_norm: 213.80728149414062 in 66.6836302280426
+ 72%|███████▏  | 72/100 [1:11:12<29:17, 62.77s/it]INFO:root:Epoch 73 with loss: 16159.41015625, training auc: 0.9023770689964294, training auc_pr: 0.9316896200180054, best validation AUC: 0.9095140099525452, weight_norm: 214.50193786621094 in 59.97249484062195
+ 73%|███████▎  | 73/100 [1:12:12<27:52, 61.93s/it]INFO:root:
+Performance:{'auc': tensor(0.8720), 'auc_pr': tensor(0.9108)}in 6.613530874252319
+INFO:root:Epoch 74 with loss: 15940.427734375, training auc: 0.9000632762908936, training auc_pr: 0.9321070909500122, best validation AUC: 0.9095140099525452, weight_norm: 214.8208465576172 in 64.93595552444458
+ 74%|███████▍  | 74/100 [1:13:17<27:13, 62.83s/it]INFO:root:
+Performance:{'auc': tensor(0.8754), 'auc_pr': tensor(0.9120)}in 6.193778991699219
+INFO:root:Epoch 75 with loss: 16347.2294921875, training auc: 0.8975355625152588, training auc_pr: 0.9284740090370178, best validation AUC: 0.9095140099525452, weight_norm: 218.07644653320312 in 61.84691405296326
+ 75%|███████▌  | 75/100 [1:14:19<26:03, 62.54s/it]INFO:root:Epoch 76 with loss: 16319.1142578125, training auc: 0.9012916088104248, training auc_pr: 0.9302240014076233, best validation AUC: 0.9095140099525452, weight_norm: 217.9404754638672 in 55.48385787010193
+ 76%|███████▌  | 76/100 [1:15:14<24:10, 60.42s/it]INFO:root:
+Performance:{'auc': tensor(0.8617), 'auc_pr': tensor(0.9052)}in 6.030787706375122
+INFO:root:Epoch 77 with loss: 16207.1787109375, training auc: 0.8969828486442566, training auc_pr: 0.9297695755958557, best validation AUC: 0.9095140099525452, weight_norm: 216.69371032714844 in 61.394126176834106
+ 77%|███████▋  | 77/100 [1:16:16<23:16, 60.71s/it]INFO:root:Epoch 78 with loss: 16410.93359375, training auc: 0.8999327421188354, training auc_pr: 0.9300695657730103, best validation AUC: 0.9095140099525452, weight_norm: 215.4615020751953 in 55.76130175590515
+ 78%|███████▊  | 78/100 [1:17:11<21:43, 59.23s/it]INFO:root:
+Performance:{'auc': tensor(0.8699), 'auc_pr': tensor(0.9087)}in 6.4377601146698
+INFO:root:Epoch 79 with loss: 16485.654296875, training auc: 0.8989711999893188, training auc_pr: 0.9294776320457458, best validation AUC: 0.9095140099525452, weight_norm: 250.2843475341797 in 63.22335743904114
+ 79%|███████▉  | 79/100 [1:18:15<21:08, 60.43s/it]INFO:root:Epoch 80 with loss: 16543.642578125, training auc: 0.9008647203445435, training auc_pr: 0.9299054145812988, best validation AUC: 0.9095140099525452, weight_norm: 252.47308349609375 in 56.83883285522461
+ 80%|████████  | 80/100 [1:19:12<19:47, 59.35s/it]INFO:root:
+Performance:{'auc': tensor(0.8693), 'auc_pr': tensor(0.9097)}in 6.575622081756592
+INFO:root:Epoch 81 with loss: 16013.666015625, training auc: 0.8984562158584595, training auc_pr: 0.9302828311920166, best validation AUC: 0.9095140099525452, weight_norm: 252.0626678466797 in 64.1680235862732
+ 81%|████████  | 81/100 [1:20:16<19:15, 60.80s/it]INFO:root:Epoch 82 with loss: 16286.7314453125, training auc: 0.8994511365890503, training auc_pr: 0.9310775995254517, best validation AUC: 0.9095140099525452, weight_norm: 250.23861694335938 in 59.600170612335205
+ 82%|████████▏ | 82/100 [1:21:15<18:07, 60.44s/it]INFO:root:
+Performance:{'auc': tensor(0.8758), 'auc_pr': tensor(0.9143)}in 6.553305625915527
+INFO:root:Epoch 83 with loss: 15832.7509765625, training auc: 0.9010165929794312, training auc_pr: 0.9331240057945251, best validation AUC: 0.9095140099525452, weight_norm: 246.28890991210938 in 62.44835352897644
+ 83%|████████▎ | 83/100 [1:22:18<17:17, 61.04s/it]INFO:root:Epoch 84 with loss: 16381.4150390625, training auc: 0.8997465968132019, training auc_pr: 0.9304120540618896, best validation AUC: 0.9095140099525452, weight_norm: 245.2965087890625 in 55.55299472808838
+ 84%|████████▍ | 84/100 [1:23:13<15:50, 59.40s/it]INFO:root:
+Performance:{'auc': tensor(0.8645), 'auc_pr': tensor(0.9087)}in 6.590722560882568
+INFO:root:Epoch 85 with loss: 15701.4931640625, training auc: 0.8967944979667664, training auc_pr: 0.9309976696968079, best validation AUC: 0.9095140099525452, weight_norm: 240.83509826660156 in 60.90972685813904
+ 85%|████████▌ | 85/100 [1:24:14<14:57, 59.85s/it]INFO:root:
+Performance:{'auc': tensor(0.8662), 'auc_pr': tensor(0.9093)}in 5.956550598144531
+INFO:root:Epoch 86 with loss: 16103.7841796875, training auc: 0.9001476764678955, training auc_pr: 0.9312184453010559, best validation AUC: 0.9095140099525452, weight_norm: 240.37753295898438 in 60.285874128341675
+ 86%|████████▌ | 86/100 [1:25:14<13:59, 59.98s/it]INFO:root:Epoch 87 with loss: 16114.4443359375, training auc: 0.903110921382904, training auc_pr: 0.932624101638794, best validation AUC: 0.9095140099525452, weight_norm: 240.08099365234375 in 54.07968211174011
+ 87%|████████▋ | 87/100 [1:26:09<12:36, 58.21s/it]INFO:root:
+Performance:{'auc': tensor(0.8739), 'auc_pr': tensor(0.9122)}in 5.892634391784668
+INFO:root:Epoch 88 with loss: 15937.19921875, training auc: 0.8974270224571228, training auc_pr: 0.930477499961853, best validation AUC: 0.9095140099525452, weight_norm: 246.66043090820312 in 60.24738430976868
+ 88%|████████▊ | 88/100 [1:27:09<11:45, 58.82s/it]INFO:root:Epoch 89 with loss: 16043.3359375, training auc: 0.9057004451751709, training auc_pr: 0.9348937273025513, best validation AUC: 0.9095140099525452, weight_norm: 246.49034118652344 in 53.48075199127197
+ 89%|████████▉ | 89/100 [1:28:02<10:29, 57.22s/it]INFO:root:
+Performance:{'auc': tensor(0.8627), 'auc_pr': tensor(0.9063)}in 6.168484210968018
+INFO:root:Epoch 90 with loss: 15872.650390625, training auc: 0.8984233736991882, training auc_pr: 0.9310656785964966, best validation AUC: 0.9095140099525452, weight_norm: 245.6195068359375 in 60.24390172958374
+ 90%|█████████ | 90/100 [1:29:03<09:41, 58.13s/it]INFO:root:Epoch 91 with loss: 16219.28125, training auc: 0.9026713371276855, training auc_pr: 0.9324045181274414, best validation AUC: 0.9095140099525452, weight_norm: 245.19577026367188 in 54.31939363479614
+ 91%|█████████ | 91/100 [1:29:57<08:32, 56.99s/it]INFO:root:
+Performance:{'auc': tensor(0.8667), 'auc_pr': tensor(0.9095)}in 5.913381814956665
+INFO:root:Epoch 92 with loss: 15752.5146484375, training auc: 0.8977440595626831, training auc_pr: 0.9312436580657959, best validation AUC: 0.9095140099525452, weight_norm: 245.35894775390625 in 63.02471923828125
+ 92%|█████████▏| 92/100 [1:31:00<07:50, 58.80s/it]INFO:root:Epoch 93 with loss: 15970.8984375, training auc: 0.9030172824859619, training auc_pr: 0.9329615831375122, best validation AUC: 0.9095140099525452, weight_norm: 246.91737365722656 in 60.00168538093567
+ 93%|█████████▎| 93/100 [1:32:00<06:54, 59.16s/it]INFO:root:
+Performance:{'auc': tensor(0.8399), 'auc_pr': tensor(0.8975)}in 6.800908803939819
+INFO:root:Epoch 94 with loss: 15873.13671875, training auc: 0.8877662420272827, training auc_pr: 0.9257769584655762, best validation AUC: 0.9095140099525452, weight_norm: 245.2637176513672 in 64.69101357460022
+ 94%|█████████▍| 94/100 [1:33:05<06:04, 60.82s/it]INFO:root:Epoch 95 with loss: 16271.0517578125, training auc: 0.897208571434021, training auc_pr: 0.93034827709198, best validation AUC: 0.9095140099525452, weight_norm: 243.4031524658203 in 54.48802185058594
+ 95%|█████████▌| 95/100 [1:33:59<04:54, 58.92s/it]INFO:root:
+Performance:{'auc': tensor(0.8650), 'auc_pr': tensor(0.9091)}in 6.038012504577637
+INFO:root:Epoch 96 with loss: 15670.494140625, training auc: 0.8986823558807373, training auc_pr: 0.9320893287658691, best validation AUC: 0.9095140099525452, weight_norm: 240.75408935546875 in 60.901055097579956
+ 96%|█████████▌| 96/100 [1:35:00<03:58, 59.51s/it]INFO:root:
+Performance:{'auc': tensor(0.8679), 'auc_pr': tensor(0.9097)}in 6.044104814529419
+INFO:root:Epoch 97 with loss: 16121.2998046875, training auc: 0.9001320600509644, training auc_pr: 0.9311356544494629, best validation AUC: 0.9095140099525452, weight_norm: 241.17657470703125 in 60.92675256729126
+ 97%|█████████▋| 97/100 [1:36:01<02:59, 59.94s/it]INFO:root:Epoch 98 with loss: 16350.7783203125, training auc: 0.9024767279624939, training auc_pr: 0.9327349662780762, best validation AUC: 0.9095140099525452, weight_norm: 241.55551147460938 in 54.12733578681946
+ 98%|█████████▊| 98/100 [1:36:55<01:56, 58.20s/it]INFO:root:
+Performance:{'auc': tensor(0.8720), 'auc_pr': tensor(0.9132)}in 6.002414703369141
+INFO:root:Epoch 99 with loss: 16006.21484375, training auc: 0.9002552628517151, training auc_pr: 0.931330144405365, best validation AUC: 0.9095140099525452, weight_norm: 239.8636474609375 in 60.52052116394043
+ 99%|█████████▉| 99/100 [1:37:56<00:58, 58.89s/it]INFO:root:Epoch 100 with loss: 16400.275390625, training auc: 0.8990597724914551, training auc_pr: 0.930145263671875, best validation AUC: 0.9095140099525452, weight_norm: 243.2528533935547 in 54.61270523071289
+100%|██████████| 100/100 [1:38:50<00:00, 57.61s/it]100%|██████████| 100/100 [1:38:50<00:00, 59.31s/it]
