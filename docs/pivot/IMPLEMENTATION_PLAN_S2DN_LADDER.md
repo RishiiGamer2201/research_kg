@@ -26,8 +26,9 @@ each completed split, reproduction run, ablation, or architectural modification.
 |---|---|---|---|---:|---:|---:|---:|
 | 2026-07-08 | WN18RR_v1_ind | `sdn_wn_v1_gpu` | Complete | 79.95 | 74.73 | 84.84 | 87.23 |
 | 2026-07-08 | WN18RR_v2_ind | `sdn_wn_v2_gpu` | Complete | 80.83 | 77.32 | 83.11 | 85.26 |
-| 2026-07-08 | WN18RR completed average | v1-v2 | Partial | 80.39 | 76.03 | 83.97 | 86.25 |
-| 2026-07-08 | WN18RR_v3 / WN18RR_v3_ind | `sdn_wn_v3_gpu` | Running | - | - | - | - |
+| 2026-07-08 | WN18RR_v3_ind | `sdn_wn_v3_gpu` | Complete | 57.02 | 49.83 | 62.98 | 68.84 |
+| 2026-07-08 | WN18RR_v4_ind | `sdn_wn_v4_gpu` | Running | - | - | - | - |
+| 2026-07-08 | WN18RR completed average | v1-v3 | Partial | 72.60 | 67.30 | 76.97 | 80.45 |
 
 ### Paper Metrics
 
@@ -51,6 +52,8 @@ not report `Hits@5` in this table.
 |---|---|---|
 | WN18RR_v1_ind | Paper: MRR 79.89, Hits@1 74.73, Hits@10 87.64 | Reproduction is successful. MRR is slightly above paper, Hits@1 matches exactly, and Hits@10 is only 0.41 points below. Continue v2-v4. |
 | WN18RR_v2_ind | Paper WN18RR average Hits@10: 81.23 | v2 completed cleanly. Hits@10 is 85.26, and the v1-v2 completed average is already 86.25, which is comfortably above the paper's reported WN18RR average target. Finish v3-v4 before making the final claim. |
+| WN18RR_v3_ind | Paper: MRR 58.10, Hits@1 52.89, Hits@10 69.52 | v3 completed cleanly and lands close to the paper's hard-split target. Hits@10 is 0.68 points below paper; MRR is 1.08 points below. This is acceptable reproduction drift for the hardest WN18RR split. |
+| WN18RR_v4_ind | Paper: MRR 78.04, Hits@1 75.33, Hits@10 82.15 | v4 is running in the same GPU environment. This is the final missing WN18RR split needed to compute the full reproduction average. |
 
 ### Engineering Results
 
@@ -78,8 +81,8 @@ Engineering evidence and inference:
 
 | Question | Current Answer | Confidence | Next Evidence Needed |
 |---|---|---:|---|
-| Can we reproduce S2DN on English inductive KGC? | Yes for WN18RR_v1 and WN18RR_v2. | High | Finish WN18RR_v3-v4 and compute the final average. |
-| Is the GPU setup usable? | Yes; v1 and v2 completed in the GPU env. S2DN remains subgraph-heavy and not fully GPU-saturated. | High | Observe v3-v4 stability and runtime. |
+| Can we reproduce S2DN on English inductive KGC? | Yes for WN18RR_v1, WN18RR_v2, and WN18RR_v3; WN18RR_v4 is running. | High | Finish WN18RR_v4 and compute the final average. |
+| Is the GPU setup usable? | Yes; v1-v3 completed in the GPU env and v4 launched successfully. S2DN remains subgraph-heavy and not fully GPU-saturated. | High | Observe v4 stability and runtime. |
 | Are we ready to implement RuleTrust-S2DN? | Not yet; first finish WN18RR v1-v4 reproduction average. | Medium | WN18RR average close to paper target `81.23` Hits@10. |
 | Is multilingual/self-healing next? | No. It remains downstream after English reproduction and one principled S2DN improvement. | High | RuleTrust-S2DN result on WN18RR and preferably FB15k-237. |
 
@@ -189,8 +192,8 @@ Goal: run the official code end to end and land close to the paper's WN18RR-V1 r
 
 - [~] Only after v1 is close, run WN18RR v2, v3, v4.
   - [x] WN18RR_v2. Completed on 2026-07-08.
-  - [~] WN18RR_v3. Launched detached on 2026-07-08 as the next reproduction split.
-  - [ ] WN18RR_v4.
+  - [x] WN18RR_v3. Completed on 2026-07-08.
+  - [~] WN18RR_v4. Launched on 2026-07-08 as `sdn_wn_v4_gpu`.
 - [ ] Compute the WN18RR average Hits@10 and compare against the paper's `81.23`.
 - [ ] Then FB15k-237 v1..v4 (paper average Hits@10 `81.25`).
 - [ ] NELL last, only after WN18RR and FB15k-237 are stable.
@@ -244,8 +247,30 @@ Training and ranking log:
 Separate ranking log:
 `/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v2_test_gpu.log`.
 
-WN18RR_v3 detached run:
+WN18RR_v3 reproduction completed on the GPU env. Training finished 100 epochs in about 5 hours
+41 minutes. Best validation AUC reached `0.9186472296714783`. Ranking evaluation completed on
+`WN18RR_v3_ind` with:
+
+| Metric | Reproduced | Paper target |
+|---|---:|---:|
+| MRR | 57.02 | 58.10 |
+| Hits@1 | 49.83 | 52.89 |
+| Hits@5 | 62.98 | - |
+| Hits@10 | 68.84 | 69.52 |
+
+Training and ranking log:
 `/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v3_detached.log`.
+Separate ranking log:
+`/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v3_test_gpu.log`.
+
+WN18RR_v4 reproduction was launched on the same GPU env as `sdn_wn_v4_gpu`. The run passed
+negative sampling, enclosing subgraph extraction, model initialization, and reached `Device:
+cuda:0`; training is now in progress.
+
+Detached training and ranking log:
+`/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v4_detached.log`.
+Expected separate ranking log after completion:
+`/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v4_test_gpu.log`.
 
 Compatibility patches needed for the modern env:
 
