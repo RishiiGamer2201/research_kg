@@ -29,6 +29,7 @@ each completed split, reproduction run, ablation, or architectural modification.
 | 2026-07-08 | WN18RR_v3_ind | `sdn_wn_v3_gpu` | Complete | 57.02 | 49.83 | 62.98 | 68.84 |
 | 2026-07-08 | WN18RR_v4_ind | `sdn_wn_v4_gpu` | Complete | 77.28 | 74.60 | 78.52 | 80.93 |
 | 2026-07-08 | WN18RR completed average | v1-v4 | Complete | 73.77 | 69.12 | 77.36 | 80.57 |
+| 2026-07-08 | fb237_v1_ind | `sdn_fb_v1_gpu` | Running | - | - | - | - |
 
 ### Paper Metrics
 
@@ -54,7 +55,7 @@ not report `Hits@5` in this table.
 | WN18RR_v2_ind | Paper WN18RR average Hits@10: 81.23 | v2 completed cleanly. Hits@10 is 85.26, and the v1-v2 completed average is already 86.25, which is comfortably above the paper's reported WN18RR average target. Finish v3-v4 before making the final claim. |
 | WN18RR_v3_ind | Paper: MRR 58.10, Hits@1 52.89, Hits@10 69.52 | v3 completed cleanly and lands close to the paper's hard-split target. Hits@10 is 0.68 points below paper; MRR is 1.08 points below. This is acceptable reproduction drift for the hardest WN18RR split. |
 | WN18RR_v4_ind | Paper: MRR 78.04, Hits@1 75.33, Hits@10 82.15 | v4 completed cleanly. MRR is 0.76 points below paper, Hits@1 is 0.73 points below, and Hits@10 is 1.22 points below. |
-| WN18RR average | Paper average Hits@10: 81.23 | Full v1-v4 reproduced average Hits@10 is 80.57, only 0.66 points below paper. This is close enough to treat the S2DN reproduction as successful and move to RuleTrust-S2DN. |
+| WN18RR average | Paper average Hits@10: 81.23 | Full v1-v4 reproduced average Hits@10 is 80.57, only 0.66 points below paper. This completes the first reproduction block. Continue the paper ladder with FB15k-237 v1-v4 and NELL before serious RuleTrust claims. |
 
 ### Engineering Results
 
@@ -67,6 +68,7 @@ not report `Hits@5` in this table.
 | 2026-07-08 | Result collection | WN18RR CSV collector added and v1-v4 average computed |
 | 2026-07-08 | RuleTrust-S2DN scaffold | Implemented rule miner, rule prior builder, CLI flags, and Structure Refining prior injection |
 | 2026-07-08 | RuleTrust smoke test | WN18RR_v1 one-epoch GPU smoke run completed; 10 length-2 rules mined at support >= 2 and confidence >= 0.1 |
+| 2026-07-08 | Generic reproduction launcher | Added reusable detached launcher for `wn18rr`, `fb237`, and `nell` splits |
 
 Engineering evidence and inference:
 
@@ -84,10 +86,10 @@ Engineering evidence and inference:
 
 | Question | Current Answer | Confidence | Next Evidence Needed |
 |---|---|---:|---|
-| Can we reproduce S2DN on English inductive KGC? | Yes. WN18RR v1-v4 completed with average Hits@10 `80.57` against paper `81.23`. | High | Start RuleTrust-S2DN on top of the reproduced baseline. |
-| Is the GPU setup usable? | Yes; v1-v4 completed in the GPU env. S2DN remains subgraph-heavy and not fully GPU-saturated. | High | Reuse the same env for RuleTrust-S2DN ablations. |
-| Are we ready to implement RuleTrust-S2DN? | The scaffold is implemented and smoke-tested. | High | Run full WN18RR_v1 RuleTrust training and compare against `sdn_wn_v1_gpu`. |
-| Is multilingual/self-healing next? | No. It remains downstream after English reproduction and one principled S2DN improvement. | High | RuleTrust-S2DN result on WN18RR and preferably FB15k-237. |
+| Can we reproduce S2DN on English inductive KGC? | WN18RR v1-v4 is reproduced; FB15k-237 and NELL still need to be reproduced for the stricter ladder. | High | Run FB15k-237 v1-v4, then NELL. |
+| Is the GPU setup usable? | Yes; WN18RR v1-v4 completed in the GPU env. S2DN remains subgraph-heavy and not fully GPU-saturated. | High | Reuse the same env for FB15k-237 and NELL. |
+| Are we ready to implement RuleTrust-S2DN? | The scaffold is implemented and smoke-tested, but full RuleTrust ablations should wait until FB15k-237 and NELL baselines are reproduced. | High | Finish FB15k-237/NELL reproduction, then run RuleTrust ablations. |
+| Is multilingual/self-healing next? | No. It remains downstream after English reproduction and one principled S2DN improvement. | High | Complete S2DN reproduction ladder and RuleTrust comparison first. |
 
 ---
 
@@ -198,7 +200,11 @@ Goal: run the official code end to end and land close to the paper's WN18RR-V1 r
   - [x] WN18RR_v3. Completed on 2026-07-08.
   - [x] WN18RR_v4. Completed on 2026-07-08.
 - [x] Compute the WN18RR average Hits@10 and compare against the paper's `81.23`.
-- [ ] Then FB15k-237 v1..v4 (paper average Hits@10 `81.25`).
+- [~] Then FB15k-237 v1..v4 (paper average Hits@10 `81.25`).
+  - [~] fb237_v1 launched on 2026-07-08 as `sdn_fb_v1_gpu`.
+  - [ ] fb237_v2.
+  - [ ] fb237_v3.
+  - [ ] fb237_v4.
 - [ ] NELL last, only after WN18RR and FB15k-237 are stable.
 
 Deliverables:
@@ -290,6 +296,11 @@ Training and ranking log:
 `/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v4_detached.log`.
 Separate ranking log:
 `/home/admin_wsl/research_kg/logs/s2dn_reproduction/wn18rr_v4_test_gpu.log`.
+
+FB15k-237 reproduction started with `fb237_v1` as `sdn_fb_v1_gpu` using the same GPU environment
+and generic detached launcher. Current logs:
+`/home/admin_wsl/research_kg/logs/s2dn_reproduction/fb237_v1_detached.log` and
+`/home/admin_wsl/research_kg/logs/s2dn_reproduction/fb237_v1_train_gpu.log`.
 
 Compatibility patches needed for the modern env:
 
