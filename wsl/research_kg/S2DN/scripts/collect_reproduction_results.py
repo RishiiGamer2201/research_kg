@@ -45,6 +45,8 @@ def main():
     for split in range(1, 5):
         metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}_test_gpu.log")
         if metrics is None:
+            metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}_test_retry.log")
+        if metrics is None:
             metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}_detached.log")
         if metrics is None:
             continue
