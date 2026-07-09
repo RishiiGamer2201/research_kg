@@ -10,11 +10,13 @@ PATTERN = re.compile(r"MRR \| Hits@1 \| Hits@5 \| Hits@10 : ([0-9.]+) \| ([0-9.]
 
 def family_parts(family):
     if family == "wn18rr":
-        return "WN18RR", "wn18rr"
+        return "WN18RR", "wn18rr", "results_wn18rr.csv", []
     if family == "fb237":
-        return "fb237", "fb237"
+        return "fb237", "fb237", "results_fb237.csv", []
+    if family == "fb237_paper":
+        return "fb237", "fb237", "results_fb237_paper.csv", ["_paper"]
     if family == "nell":
-        return "nell", "nell"
+        return "nell", "nell", "results_nell.csv", []
     raise ValueError(f"unknown family: {family}")
 
 
@@ -35,19 +37,22 @@ def extract_metrics(log_path):
 
 
 def main():
-    if len(sys.argv) != 2 or sys.argv[1] not in {"wn18rr", "fb237", "nell"}:
-        print("Usage: python scripts/collect_reproduction_results.py <wn18rr|fb237|nell>", file=sys.stderr)
+    if len(sys.argv) != 2 or sys.argv[1] not in {"wn18rr", "fb237", "fb237_paper", "nell"}:
+        print("Usage: python scripts/collect_reproduction_results.py <wn18rr|fb237|fb237_paper|nell>", file=sys.stderr)
         raise SystemExit(2)
 
     family = sys.argv[1]
-    dataset_prefix, log_prefix = family_parts(family)
+    dataset_prefix, log_prefix, out_name, suffixes = family_parts(family)
     rows = []
     for split in range(1, 5):
-        metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}_test_gpu.log")
-        if metrics is None:
-            metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}_test_retry.log")
-        if metrics is None:
-            metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}_detached.log")
+        metrics = None
+        for suffix in suffixes + [""]:
+            for stem in ("test_gpu", "test_retry", "detached"):
+                metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}{suffix}_{stem}.log")
+                if metrics is not None:
+                    break
+            if metrics is not None:
+                break
         if metrics is None:
             continue
         row = {"dataset": f"{dataset_prefix}_v{split}"}
@@ -60,7 +65,7 @@ def main():
             avg[key] = sum(row[key] for row in rows) / len(rows)
         rows.append(avg)
 
-    out_path = LOG_DIR / f"results_{family}.csv"
+    out_path = LOG_DIR / out_name
     with out_path.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["dataset", "mrr", "hits@1", "hits@5", "hits@10"])
         writer.writeheader()

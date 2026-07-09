@@ -196,8 +196,6 @@ if __name__ == '__main__':
                             help='RuleTrust JSON cache path. Defaults to data/{dataset}/ruletrust_rules.json')
 
         params = parser.parse_args()
-        params.lr = 0.01
-        params.batch_size = 32
         # params.hop = k
         # params.experiment_name = f'{params.experiment_name}_hop_{params.hop}'
 
