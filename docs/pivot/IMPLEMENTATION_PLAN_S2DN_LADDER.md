@@ -397,6 +397,30 @@ Smoke result: training reached `Device: cuda:0`, mined cache
 `0.8491`.
 - [ ] Deterministic, cached rule files so runs are reproducible.
 
+Known issue found in code review 2026-07-10 (must fix before any ablation run): the smoke run only
+proved the code executes, not that the prior changes the output. Tracing the prior through S2DN's
+real defaults (`metric_type='attention'`, `graph_type='prob'`) shows the injection is currently
+close to inert, so an ablation now would produce a misleading "rules do not help" result. Fix these
+before spending GPU:
+
+- [ ] Inject boost-only support, not centered. `(prior - 0.5)` penalizes edges supported by rules
+      with confidence below 0.5, and `--rule-conf-threshold 0.1` admits many such rules. Use
+      `rule_support = confidence` for supported pairs and `0` otherwise, so unsupported pairs are
+      untouched and supported pairs only ever increase.
+- [ ] Inject where it is not saturated. The `attention` metric produces unbounded non-negative
+      dot products that `build_prob_neighbourhood` clamps to `[0.01, 0.99]`, so a small centered
+      additive prior is dwarfed and then clipped away. Apply the boost in probability space after
+      the clamp: `p = clamp(p + rule_weight * rule_support, 0.01, 0.99)`.
+- [ ] Precompute each subgraph's prior once and cache it. `build_rule_prior` rebuilds a dense
+      N by N matrix with Python loops and per-element GPU writes plus `.tolist()` host syncs on
+      every forward pass, though the enclosing subgraphs are static across epochs. This will slow
+      RuleTrust runs several-fold; compute once per subgraph like the subgraphs themselves.
+- [ ] Add a one-batch sanity print: fraction of selected adjacency entries that change with the
+      prior on versus off. This proves the prior is live before a full run. This check was missing,
+      which is why the inert version looked fine.
+- [ ] Note: `rule_miner.py` is a custom length-2 miner, not AnyBURL or AMIE as the mentor
+      research note suggested. Acceptable for a first pass; revisit if longer rules are needed.
+
 Ablations:
 
 - [ ] S2DN reproduced baseline.
@@ -409,6 +433,27 @@ Success criterion:
 
 - [ ] Beat reproduced S2DN on WN18RR average MRR or Hits@10.
 - [ ] Then confirm the gain holds on FB15k-237.
+
+---
+
+## 3b. Phase 2b: Semantic Smoothing Modification (deferred second branch)
+
+The mentor research note recommends a two-branch modification: rule confidence into Structure
+Refining (Phase 2 above) and, in parallel, guiding Semantic Smoothing with relation, schema, or
+text similarity (mentor_plan_research section 7, step 5: regularize Semantic Smoothing so
+semantically or ontologically similar relations are easier to smooth together, while unrelated
+relations stay apart). Phase 2 deliberately keeps Semantic Smoothing intact to isolate the
+Structure Refining effect first. This section keeps the second branch on record so it is deferred,
+not dropped.
+
+- [ ] Decision needed: confirm with the mentor whether both branches are expected, or whether
+      beating S2DN with the Structure Refining branch alone is sufficient for milestone 2.
+- [ ] If pursued: initialize or regularize the Gumbel-Softmax relation-smoothing weights using a
+      relation similarity matrix instead of learning all blur weights from scratch.
+- [ ] Relation similarity sources to try: relation-name text embeddings (BGE-M3), co-occurrence
+      statistics, and heuristic ontology or schema alignment across relations.
+- [ ] Ablation: Structure Refining branch only, Semantic Smoothing branch only, both branches.
+- [ ] Try this branch if Phase 2 alone does not beat S2DN, or stack it for additional gain.
 
 ---
 
@@ -444,9 +489,15 @@ Assets already present:
 Pipeline:
 
 - [ ] Detect contaminated descriptions with graph-text consistency (BGE-M3).
+- [ ] Detect bad triples with rule evidence: flag contradictions and low-rule-support edges as
+      removal or quarantine candidates (GOLD-style, mentor_plan_research sections 3 and 6). This
+      reuses the Phase 2 rule miner and covers structural noise, complementing the text detector.
 - [ ] Quarantine flagged text.
-- [ ] Repair with native-language Wikipedia when available.
-- [ ] Otherwise use an aligned high-resource description.
+- [ ] Repair with native-language Wikipedia when available. Use fuzzy search (n-gram index,
+      BK-tree, or vector index) to match noisy entity names and aliases to canonical entity IDs and
+      to locate candidate Wikipedia or Wikidata pages.
+- [ ] Otherwise use an aligned high-resource description. Use ontology or entity alignment plus
+      fuzzy search for cross-lingual lookup when spelling or script differs.
 - [ ] Final fallback: entity name only, never hallucinated text.
 - [ ] Optional later: constrained LLM repair (LLM_sim style), accepted only if graph-text
       consistency improves.
@@ -531,3 +582,27 @@ These change the plan and should be confirmed before Phase 2 investment.
   is "reproduce S2DN and land one principled improvement (RuleTrust-S2DN) on English inductive KGC."
   The full multilingual plus self-healing version is a later-cycle target (WSDM or SIGIR, pending the
   venue question above). The mentor said there is no hurry, which fits.
+
+---
+
+## 9. Mentor Topic Coverage Map
+
+Every topic the mentor named, and where it lands in this plan. Kept explicit so no topic is silently
+dropped and so each can be defended in the next meeting.
+
+| Mentor topic | Relevance | Where it is implemented or studied |
+|---|---|---|
+| Rule mining, prediction, inference | Very high | Phase 2: `rule_miner.py` mines length-2 Horn rules; confidence becomes a Structure Refining prior. Also Phase 4 for contradiction-based triple quarantine. |
+| Neurosymbolic AI | Very high | Phase 2 is the neurosymbolic layer: neural subgraph reasoning plus symbolic rule priors. Umbrella framing for the paper. |
+| Heuristic ontology alignment | Medium now, high later | Phase 2b: schema and relation similarity to guide Semantic Smoothing. Phase 3: aligning relations and classes across the five languages. Phase 4: cross-lingual entity lookup for repair. |
+| Fuzzy search | Medium | Phase 4: matching noisy names and aliases to canonical entity IDs, finding candidate Wikipedia or Wikidata pages, cross-lingual lookup across scripts. A tool, not the novelty. |
+| Gephi | Low as method, useful for analysis | Analysis and figures, not a scored result. Use to visualize original GraIL subgraphs versus S2DN refined subgraphs, and contamination clusters, for the paper and for understanding model decisions. Schedule alongside Phase 2 ablations. |
+| B+ trees (Abdul Bari) | Low for novelty, foundational | Fundamentals and scalability: efficient entity ID lookup, alias indexing, adjacency and relation indexes, scalable candidate retrieval. Note that for fuzzy and vector retrieval an n-gram index, BK-tree, or vector index is usually more directly useful than a plain B+ tree. Study item, not a paper contribution. |
+
+Three papers from the mentor meeting and how each is used:
+
+| Paper | Role in this plan |
+|---|---|
+| S2DN (03121-MaT, AAAI 2025) | The reproduce-and-beat target. Phases 1, 2, 2b. |
+| GOLD (EMNLP Findings 2023) | Method source for rule plus structure denoising. Motivates the Phase 2 rule prior and the Phase 4 contradiction quarantine. Also the closest neighbour to differentiate against in the novelty scoping check. |
+| LLM_sim (GenAIK 2025) | Repair baseline. Phase 4 optional constrained LLM repair, compared against re-sourcing. Deliberately not used for reproduction. |
