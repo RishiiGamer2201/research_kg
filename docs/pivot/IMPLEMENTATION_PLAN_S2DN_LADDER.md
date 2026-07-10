@@ -471,39 +471,72 @@ Success criterion:
 
 ---
 
-## 3a. Phase 2c: Fixing RuleTrust Leverage (decision required)
+## 3a. Phase 2c: Fixing RuleTrust Leverage (resolved by measurement, 2026-07-10)
 
-The injection now works. The symbolic signal is too sparse to matter. Three ways forward, not
-mutually exclusive. Each can be evaluated with `diag_ruletrust_report.py` in minutes, with no
-training run, by checking whether rule-supported coverage and headroom rise to a level that could
-plausibly shift metrics.
+The plan was Option A plus Option B. Measurement overturned that and selected Option C. Every claim
+below is measured, not argued.
 
-Option A: raise coverage with a real rule miner.
+Option A, richer rule language: implemented, insufficient on its own.
 
-- [ ] Adopt AnyBURL, as the mentor research note originally recommended and as we skipped. It mines
-      a much richer language: inverse relations, constants, and rules of length 1 to 3.
-- [ ] Include inverse and transpose relations in mining, since S2DN's subgraphs carry them.
-- [ ] Re-measure coverage and headroom with the diagnostic before any training run.
+- [x] Rewrote `rule_miner.py` with inverse literals and length-1 rules (AnyBURL's key language
+      features, kept in Python to avoid a Java dependency). Rule cache bumped to
+      `ruletrust_rules_v2.json` so a stale v1 cache can never load silently.
+- [x] Yield on fb237_v1 rose from 142 rules over 62 of 180 head relations to **462 rules over 93 of
+      180**, and high-confidence rules from 47 to 168.
+- [x] But adjacency coverage barely moved: **0.01 percent to 0.02 percent** of node pairs, headroom
+      356 to 563 pairs out of 13 million, max logit delta unchanged at about 1.1e-4. A dense N by N
+      prior cannot be steered by a signal this sparse, no matter how many rules are mined.
 
-Option B: invert the leverage, penalize instead of boost.
+Option B, penalize instead of boost: rejected by evidence.
 
-- [ ] Boosting acts on 0.01 percent of pairs. Penalizing acts on the 81.78 percent graded mass.
-      Use rules to down-weight edges that are contradicted or unsupported, rather than to boost the
-      few that are supported.
-- [ ] This is closer to what the mentor research note actually described: "detecting contradictions
-      or unsupported edges" and "use contradictions or low-rule-support triples as candidates for
-      removal or quarantine" (sections 3 and 6). It is also the GOLD and RUDIK framing.
-- [ ] Needs care: penalizing every unsupported pair would delete most of the graph. The negative
-      signal must be targeted, for example RUDIK-style mined negative rules.
+- [x] The premise was that penalizing acts on the 81.78 percent graded mass rather than a 0.01
+      percent sliver. But the adjacency turned out to be the wrong object entirely: rules speak
+      about a single pair, the target triple's head and tail, not about 326,000 node pairs per
+      subgraph. Penalizing every unsupported pair would delete most of the refined graph on the
+      strength of evidence about one of them.
 
-Option C: move the symbolic signal from the adjacency to the score.
+Option C, symbolic evidence at the score: selected and implemented.
 
-- [ ] Apply a relation-level rule prior to the final link-prediction logit, where it directly shifts
-      predictions, instead of to the refined adjacency where it is diluted across N by N pairs.
-- [ ] Cheapest to test and easiest to ablate, but less architecturally novel than A or B.
+Measured on `fb237_v1`, target-pair rule support, with the target edge removed from the subgraph so
+there is no leakage:
 
-Recommendation on file: A plus B. Use AnyBURL to get a rule set with real coverage, then use it to
-both support and contradict edges. Option C is the fallback if the adjacency remains too diluted.
+| | Train subgraphs | Inductive test (unseen entities) |
+|---|---:|---:|
+| Positives with rule support | 38.8% | 36.1% |
+| Negatives with rule support | 0.8% | 0.1% |
+| Rule-only AUC | 0.690 | 0.680 |
+
+The key result: **the rule signal does not degrade on unseen entities** (0.690 to 0.680), because
+rules are relation-level and entity-independent. That is precisely the property a GNN lacks and an
+inductive benchmark rewards. Rule support is a high-precision, low-recall signal that fires on
+about 36 percent of cases and is almost never wrong when it fires.
+
+- [x] `build_rule_target_score`: max rule confidence supporting the target pair. Edge-list based,
+      not dense, because a dense per-literal adjacency would allocate hundreds of MB per batch on
+      FB15k-237 subgraphs just to read one row and column.
+- [x] Fusion at the final logit: `output = fc_layer(g_rep) + rule_scale * rule_target_score`, with
+      `rule_scale` a learnable scalar initialised to 0, so training begins exactly at the baseline
+      and the model must learn how much to trust the symbolic evidence.
+- [x] `--rule-trust-mode {score,adjacency,both}` so the inert adjacency variant remains ablatable.
+- [x] Verified before any training run (`diag_score_fusion.py`): zero-init fusion equals baseline
+      exactly; `rule_scale` receives a non-zero gradient; with a non-zero weight all rule-supported
+      examples move up and zero unsupported examples move.
+
+Note for the mentor: this places the symbolic term at the score rather than inside Structure
+Refining. That deviates from the two-branch framing in the research note. The reason is measured,
+not aesthetic: the Structure Refining prior touches 0.02 percent of node pairs and provably leaves
+the output unchanged, while the same rules carry AUC 0.68 on the target pair and transfer to unseen
+entities. This should be confirmed with him before it becomes the paper's headline contribution.
+
+Next experiment (the first that is worth GPU time):
+
+- [ ] `sdn_fb_v1_ruletrust_gpu`: paper params plus `--use-rule-trust --rule-trust-mode score` on
+      fb237_v1. Compare against the reproduced baseline `sdn_fb_v1_paper_gpu` (MRR 53.13,
+      Hits@1 44.63, Hits@10 67.80).
+- [ ] Report the learned `rule_scale`. If it converges near 0, the model is telling us the GNN
+      already contains the rule signal on this split.
+- [ ] Ablations: `rule_weight`/mode sweep, `--rule-no-inverse` (old miner), mode=adjacency
+      (expected to equal baseline), and a rules-shuffled control.
 
 ---
 

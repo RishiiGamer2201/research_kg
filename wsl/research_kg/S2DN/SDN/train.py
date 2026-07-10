@@ -193,7 +193,17 @@ if __name__ == '__main__':
         parser.add_argument('--rule-min-support', type=int, default=2,
                             help='Minimum support for mined RuleTrust rules')
         parser.add_argument('--rule-cache', type=str, default='',
-                            help='RuleTrust JSON cache path. Defaults to data/{dataset}/ruletrust_rules.json')
+                            help='RuleTrust JSON cache path. Defaults to data/{dataset}/ruletrust_rules_v2.json')
+        parser.add_argument('--rule-trust-mode', dest='rule_trust_mode', type=str, default='score',
+                            choices=['score', 'adjacency', 'both'],
+                            help="Where to inject symbolic evidence. 'score': at the final logit "
+                                 "(recommended; the adjacency prior was measured to touch only "
+                                 "0.02%% of node pairs and leave the output unchanged).")
+        parser.add_argument('--rule-max-len', dest='rule_max_len', type=int, default=2,
+                            help='Max rule body length (1 or 2)')
+        parser.add_argument('--rule-no-inverse', dest='rule_use_inverse', action='store_false',
+                            help='Disable inverse literals in mining (forward-only, the old miner)')
+        parser.set_defaults(rule_use_inverse=True)
 
         params = parser.parse_args()
         # params.hop = k

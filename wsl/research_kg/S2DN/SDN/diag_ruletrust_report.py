@@ -21,8 +21,8 @@ from torch.utils.data import DataLoader
 
 from subgraph_extraction.datasets import SubgraphDataset
 from utils.graph_utils import collate_dgl, move_batch_to_device_dgl
-from utils.rule_miner import mine_length2_rules
-from utils.rule_features import load_rule_index, build_rule_boost
+from utils.rule_miner import mine_rules
+from utils.rule_features import rules_to_index, build_rule_boost
 
 MAIN_DIR = "/home/admin_wsl/research_kg/S2DN/SDN"
 SEED = 12345
@@ -40,6 +40,8 @@ def main():
     ap.add_argument("--conf-threshold", type=float, default=0.1)
     ap.add_argument("--min-support", type=int, default=2)
     ap.add_argument("--n-subgraphs", type=int, default=40)
+    ap.add_argument("--max-len", type=int, default=2)
+    ap.add_argument("--no-inverse", action="store_true", help="forward-only literals (old miner)")
     args = ap.parse_args()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -69,12 +71,10 @@ def main():
     # CRITICAL: mine with the dataset's own relation2id so rule relation ids align with
     # graph.edata['type']. An ad-hoc ordering would silently target the wrong relations.
     relation2id = {rel: idx for idx, rel in ds.id2relation.items()}
-    rules = mine_length2_rules(file_paths["train"], relation2id,
-                              min_support=args.min_support, conf_threshold=args.conf_threshold)
-    rule_index = {}
-    for r in rules:
-        rule_index.setdefault(int(r["head"]), []).append(
-            (int(r["body"][0]), int(r["body"][1]), float(r["confidence"])))
+    rules = mine_rules(file_paths["train"], relation2id,
+                       min_support=args.min_support, conf_threshold=args.conf_threshold,
+                       max_len=args.max_len, use_inverse=not args.no_inverse)
+    rule_index = rules_to_index(rules, args.conf_threshold)
     model.rule_index = rule_index
     hi = sum(1 for r in rules if r["confidence"] >= 0.5)
     print(f"\nrules: {len(rules)} over {len(rule_index)}/{len(relation2id)} head relations, "
