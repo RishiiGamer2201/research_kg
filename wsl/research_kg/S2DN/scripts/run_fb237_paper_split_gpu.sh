@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: $0 <1|2|3|4>" >&2
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "Usage: $0 <1|2|3|4> [batch_size]" >&2
   exit 2
 fi
 
@@ -12,10 +12,23 @@ if [[ "$SPLIT" != "1" && "$SPLIT" != "2" && "$SPLIT" != "3" && "$SPLIT" != "4" ]
   exit 2
 fi
 
+BATCH="${2:-32}"
+if ! [[ "$BATCH" =~ ^[0-9]+$ ]]; then
+  echo "batch_size must be a positive integer" >&2
+  exit 2
+fi
+
 DATASET="fb237_v${SPLIT}"
 IND_DATASET="${DATASET}_ind"
-EXPERIMENT="sdn_fb_v${SPLIT}_paper_gpu"
-LOG_PREFIX="fb237_v${SPLIT}_paper"
+if [[ "$BATCH" == "32" ]]; then
+  EXPERIMENT="sdn_fb_v${SPLIT}_paper_gpu"
+  LOG_PREFIX="fb237_v${SPLIT}_paper"
+else
+  # Deviation from paper batch size (16 GB GPU memory limit): encode it in the names
+  # so paper-batch artifacts are never overwritten.
+  EXPERIMENT="sdn_fb_v${SPLIT}_paper_bs${BATCH}_gpu"
+  LOG_PREFIX="fb237_v${SPLIT}_paper_bs${BATCH}"
+fi
 LOG_DIR="/home/admin_wsl/research_kg/logs/s2dn_reproduction"
 CACHE="/home/admin_wsl/research_kg/S2DN/grail/data/${DATASET}/subgraphs_en_True_neg_1_hop_3"
 
@@ -23,7 +36,10 @@ source /home/admin_wsl/research_kg/S2DN/venv_s2dn_gpu_latest/bin/activate
 cd /home/admin_wsl/research_kg/S2DN/SDN
 mkdir -p "$LOG_DIR"
 
-echo "Running FB15k-237 v${SPLIT} with paper hyperparameters: dim=64, lr=0.0005, batch_size=32, hop=3."
+echo "Running FB15k-237 v${SPLIT} with paper hyperparameters: dim=64, lr=0.0005, batch_size=${BATCH}, hop=3."
+if [[ "$BATCH" != "32" ]]; then
+  echo "NOTE: batch_size deviates from the paper value 32 due to 16 GB GPU memory."
+fi
 echo "Removing any existing ${DATASET} subgraph cache so this run uses the full dataset."
 rm -rf "$CACHE"
 
@@ -32,7 +48,7 @@ python train.py \
   -e "$EXPERIMENT" \
   --gpu 0 \
   --num_workers 4 \
-  --batch_size 32 \
+  --batch_size "$BATCH" \
   --lr 0.0005 \
   --emb_dim 64 \
   --rel_emb_dim 64 \

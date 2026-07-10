@@ -14,7 +14,10 @@ def family_parts(family):
     if family == "fb237":
         return "fb237", "fb237", "results_fb237.csv", []
     if family == "fb237_paper":
-        return "fb237", "fb237", "results_fb237_paper.csv", ["_paper"]
+        # Prefer the paper batch size, then the documented reduced-batch fallbacks
+        # (16 GB GPU memory). Never fall back to the suffix-less default-param logs,
+        # which are not valid for paper comparison.
+        return "fb237", "fb237", "results_fb237_paper.csv", ["_paper", "_paper_bs16", "_paper_bs8"]
     if family == "nell":
         return "nell", "nell", "results_nell.csv", []
     raise ValueError(f"unknown family: {family}")
@@ -46,7 +49,7 @@ def main():
     rows = []
     for split in range(1, 5):
         metrics = None
-        for suffix in suffixes + [""]:
+        for suffix in (suffixes if suffixes else [""]):
             for stem in ("test_gpu", "test_retry", "detached"):
                 metrics = extract_metrics(LOG_DIR / f"{log_prefix}_v{split}{suffix}_{stem}.log")
                 if metrics is not None:

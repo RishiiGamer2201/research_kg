@@ -32,7 +32,8 @@ each completed split, reproduction run, ablation, or architectural modification.
 | 2026-07-09 | fb237_v1_ind | `sdn_fb_v1_gpu` | Complete, default params | 47.29 | 37.07 | 57.80 | 65.12 |
 | 2026-07-10 | fb237_v1_ind | `sdn_fb_v1_paper_gpu` | Complete, paper params | 53.13 | 44.63 | 61.22 | 67.80 |
 | 2026-07-09 | fb237_v2_ind | `sdn_fb_v2_gpu` | Stopped, default params | - | - | - | - |
-| 2026-07-10 | fb237_v2_ind | `sdn_fb_v2_paper_gpu` | Running, paper params | - | - | - | - |
+| 2026-07-10 | fb237_v2_ind | `sdn_fb_v2_paper_gpu` | Crashed, CUDA OOM at batch 32 | - | - | - | - |
+| 2026-07-10 | fb237_v2_ind | `sdn_fb_v2_paper_bs16_gpu` | Ready to launch, paper params except batch 16 | - | - | - | - |
 
 ### Paper Metrics
 
@@ -81,6 +82,8 @@ not report `Hits@5` in this table.
 | 2026-07-10 | S2DN CLI hyperparameter fix | Removed hardcoded `params.lr = 0.01` and `params.batch_size = 32` from `train.py` so paper hyperparameters are actually honored |
 | 2026-07-10 | FB15k-237 v1 paper-param result | Corrected `sdn_fb_v1_paper_gpu` completed and beats paper v1 on MRR, Hits@1, and Hits@10 |
 | 2026-07-10 | FB15k-237 v2 paper-param launch | Started `sdn_fb_v2_paper_gpu`; log confirms `lr=0.0005`, `dim=64`, `batch_size=32`, `hop=3`, and `use_rule_trust=False` |
+| 2026-07-10 | FB15k-237 v2 paper-param crash | `sdn_fb_v2_paper_gpu` crashed in epoch 1 with `CUBLAS_STATUS_EXECUTION_FAILED` then `CUDA: out of memory`. Paper batch 32 with dim 64 and hop 3 does not fit v2 subgraphs on the 16 GB RTX 5070 Ti; the paper used RTX 2080 Ti / RTX 3090 hardware |
+| 2026-07-10 | Batch-size fallback tooling | `run_fb237_paper_split_gpu.sh` and `start_fb237_paper_split_detached.py` now take an optional batch-size argument. Non-32 batch runs get distinct experiment and log names (`_bs16`) so paper-batch artifacts are never overwritten. `collect_reproduction_results.py` prefers `_paper` logs, then `_paper_bs16`, then `_paper_bs8`, and no longer falls back to invalid default-param logs |
 
 Engineering evidence and inference:
 
@@ -215,9 +218,16 @@ Goal: run the official code end to end and land close to the paper's WN18RR-V1 r
 - [~] Then FB15k-237 v1..v4 (paper average Hits@10 `81.25`).
   - [x] fb237_v1 default-param run completed on 2026-07-09 as `sdn_fb_v1_gpu`; not valid for paper comparison.
   - [x] fb237_v1 paper-param run completed on 2026-07-10 as `sdn_fb_v1_paper_gpu`.
-  - [~] fb237_v2 paper-param run launched on 2026-07-10 as `sdn_fb_v2_paper_gpu`.
+  - [x] fb237_v2 paper-param run `sdn_fb_v2_paper_gpu` crashed with CUDA OOM at batch 32 on
+        2026-07-10; batch 32 with dim 64 and hop 3 does not fit v2 on 16 GB.
+  - [ ] fb237_v2 rerun at batch 16 as `sdn_fb_v2_paper_bs16_gpu`, all other paper settings
+        unchanged. Document as: paper hyperparameters except reduced batch size due to 16 GB GPU
+        memory. If batch 16 still OOMs, use batch 8.
   - [ ] fb237_v3.
   - [ ] fb237_v4.
+  - [ ] Batch-size consistency decision: if v2..v4 need batch 16, decide whether to also rerun v1
+        at batch 16 so the FB15k-237 average is computed over one batch size instead of mixing 32
+        and 16. Cheap option: report v1 at both batch sizes and state the deviation in the paper.
 - [ ] NELL last, only after WN18RR and FB15k-237 are stable.
 
 Deliverables:
