@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix
 import torch.nn as nn
 import torch
 import dgl
-from utils.rule_features import build_rule_prior, load_rule_index
+from utils.rule_features import build_rule_boost, load_rule_index
 """
 File based off of dgl tutorial on RGCN
 Source: https://github.com/dmlc/dgl/tree/master/examples/pytorch/rgcn
@@ -40,7 +40,7 @@ class GraphClassifier(nn.Module):
         for graph, rel_label in zip(dgl.unbatch(batch_g), rel_labels.detach().cpu().tolist()):
             rule_prior = None
             if getattr(self.params, 'use_rule_trust', False):
-                rule_prior = build_rule_prior(graph, rel_label, self.rule_index)
+                rule_prior = build_rule_boost(graph, rel_label, self.rule_index)
 
             node_features, learned_adj = self.gsl(graph.ndata['h'], rule_prior=rule_prior)
             csr_adj = csr_matrix(learned_adj.detach().cpu().numpy())

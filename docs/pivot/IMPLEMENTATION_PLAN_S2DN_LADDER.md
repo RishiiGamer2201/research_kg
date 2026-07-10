@@ -397,29 +397,64 @@ Smoke result: training reached `Device: cuda:0`, mined cache
 `0.8491`.
 - [ ] Deterministic, cached rule files so runs are reproducible.
 
-Known issue found in code review 2026-07-10 (must fix before any ablation run): the smoke run only
-proved the code executes, not that the prior changes the output. Tracing the prior through S2DN's
-real defaults (`metric_type='attention'`, `graph_type='prob'`) shows the injection is currently
-close to inert, so an ablation now would produce a misleading "rules do not help" result. Fix these
-before spending GPU:
+Code review and measurement, 2026-07-10. The smoke run only proved the code executes, not that the
+prior changes the output. Review plus three diagnostics found two bugs (now fixed) and one design
+blocker (open). Diagnostics are `diag_attention_scale.py`, `diag_ruletrust_live.py`, and
+`diag_ruletrust_report.py`, all read-only forward passes on trained checkpoints.
 
-- [ ] Inject boost-only support, not centered. `(prior - 0.5)` penalizes edges supported by rules
-      with confidence below 0.5, and `--rule-conf-threshold 0.1` admits many such rules. Use
-      `rule_support = confidence` for supported pairs and `0` otherwise, so unsupported pairs are
-      untouched and supported pairs only ever increase.
-- [ ] Inject where it is not saturated. The `attention` metric produces unbounded non-negative
-      dot products that `build_prob_neighbourhood` clamps to `[0.01, 0.99]`, so a small centered
-      additive prior is dwarfed and then clipped away. Apply the boost in probability space after
-      the clamp: `p = clamp(p + rule_weight * rule_support, 0.01, 0.99)`.
-- [ ] Precompute each subgraph's prior once and cache it. `build_rule_prior` rebuilds a dense
-      N by N matrix with Python loops and per-element GPU writes plus `.tolist()` host syncs on
-      every forward pass, though the enclosing subgraphs are static across epochs. This will slow
-      RuleTrust runs several-fold; compute once per subgraph like the subgraphs themselves.
-- [ ] Add a one-batch sanity print: fraction of selected adjacency entries that change with the
-      prior on versus off. This proves the prior is live before a full run. This check was missing,
-      which is why the inert version looked fine.
-- [ ] Note: `rule_miner.py` is a custom length-2 miner, not AnyBURL or AMIE as the mentor
-      research note suggested. Acceptable for a first pass; revisit if longer rules are needed.
+Bugs found and fixed:
+
+- [x] Boost-only support, not centered. The old `(prior - 0.5)` penalized edges supported by rules
+      with confidence below 0.5. Measured: **all 5 WN18RR_v1 rules have confidence below 0.5**
+      (max 0.257), so the original code subtracted from every rule-supported edge on WN18RR. Now
+      `rule_support = confidence` for supported pairs and `0` otherwise.
+- [x] Inject in probability space, not into raw attention. Measured on WN18RR_v1 with the trained
+      checkpoint: `attention` is an unbounded ReLU dot product (median 1.65, mean 7.75, max 1.8e4).
+      `build_prob_neighbourhood` clamps to `[0.01, 0.99]`, so 60.93 percent of entries saturate at
+      the ceiling and the remaining 39.06 percent receive a wildly out-of-scale shift. The boost is
+      now applied after the clamp: `p = clamp(p + rule_weight * rule_support, 0.01, 0.99)`.
+- [x] Vectorized `build_rule_boost`. The old version did triple-nested Python loops with
+      per-element GPU scalar writes and `.tolist()` host syncs on every forward pass. Now composes
+      per-relation dense adjacencies with matmul. This supersedes the "cache the prior" task:
+      subgraph identity is not plumbed through the batched graph, so vectorizing is the practical
+      fix.
+- [x] Liveness instrumentation added (`RULETRUST_DEBUG=<n>`), reporting rule-supported pair count,
+      headroom, and how many refined-adjacency probabilities actually change. This is the check
+      that was missing and that let the inert version look healthy.
+- [x] Baseline preserved: with `--use-rule-trust` absent the new code path is skipped entirely, and
+      `rule_weight=0` reproduces baseline output to within GPU float nondeterminism (about 1e-6).
+
+Open blocker: rule coverage is far too sparse for the prior to matter.
+
+Measured on `fb237_v1` with the trained `sdn_fb_v1_paper_gpu` checkpoint, 40 real subgraphs:
+
+| Quantity | WN18RR_v1 | fb237_v1 |
+|---|---:|---:|
+| Mined length-2 rules (min_support 2, conf 0.1) | 5 | 98 |
+| Head relations covered | 3 of 9 | 44 of 180 |
+| Rules with confidence at or above 0.5 | 0 | 39 |
+| Attention in the graded band | 39.06% | 81.78% |
+| Rule-supported node pairs | about 0% | 1698 of 13,036,128 (0.01%) |
+| Supported pairs with headroom below the ceiling | 0 | 261 (15.37% of supported) |
+| End-to-end max logit change | 0.000000 | 0.000144 (noise floor 1e-6) |
+
+Conclusions:
+
+- WN18RR is rule-barren and is the wrong testbed for a rule-based contribution. Its rules are few,
+  low confidence, and support pairs the neural attention already keeps.
+- On FB15k-237 the injection is now provably live, but it touches 0.01 percent of node pairs and
+  only about 6 pairs per subgraph have headroom, so it cannot move MRR or Hits@10.
+- Threshold tuning does not fix this. At the most permissive setting (min_support 1, confidence
+  0.01) fb237_v1 yields 257 rules over 75 of 180 head relations, roughly 2.5 times more, which
+  leaves coverage negligible. The rule language is the limit, not the thresholds.
+- Rule support as currently defined is largely redundant with the neural attention: a typed
+  length-2 path implies graph proximity, which a ReLU dot-product attention already scores highly.
+
+- [ ] Do not run a RuleTrust ablation until coverage or leverage is fixed. It would report "rules
+      do not help" for reasons that have nothing to do with the hypothesis.
+- [ ] Decide the redesign direction (see Phase 2c below).
+- [x] Note: `rule_miner.py` is a custom length-2 miner, not AnyBURL or AMIE as the mentor research
+      note recommended. This is now believed to be a root cause of the coverage problem.
 
 Ablations:
 
@@ -433,6 +468,42 @@ Success criterion:
 
 - [ ] Beat reproduced S2DN on WN18RR average MRR or Hits@10.
 - [ ] Then confirm the gain holds on FB15k-237.
+
+---
+
+## 3a. Phase 2c: Fixing RuleTrust Leverage (decision required)
+
+The injection now works. The symbolic signal is too sparse to matter. Three ways forward, not
+mutually exclusive. Each can be evaluated with `diag_ruletrust_report.py` in minutes, with no
+training run, by checking whether rule-supported coverage and headroom rise to a level that could
+plausibly shift metrics.
+
+Option A: raise coverage with a real rule miner.
+
+- [ ] Adopt AnyBURL, as the mentor research note originally recommended and as we skipped. It mines
+      a much richer language: inverse relations, constants, and rules of length 1 to 3.
+- [ ] Include inverse and transpose relations in mining, since S2DN's subgraphs carry them.
+- [ ] Re-measure coverage and headroom with the diagnostic before any training run.
+
+Option B: invert the leverage, penalize instead of boost.
+
+- [ ] Boosting acts on 0.01 percent of pairs. Penalizing acts on the 81.78 percent graded mass.
+      Use rules to down-weight edges that are contradicted or unsupported, rather than to boost the
+      few that are supported.
+- [ ] This is closer to what the mentor research note actually described: "detecting contradictions
+      or unsupported edges" and "use contradictions or low-rule-support triples as candidates for
+      removal or quarantine" (sections 3 and 6). It is also the GOLD and RUDIK framing.
+- [ ] Needs care: penalizing every unsupported pair would delete most of the graph. The negative
+      signal must be targeted, for example RUDIK-style mined negative rules.
+
+Option C: move the symbolic signal from the adjacency to the score.
+
+- [ ] Apply a relation-level rule prior to the final link-prediction logit, where it directly shifts
+      predictions, instead of to the refined adjacency where it is diluted across N by N pairs.
+- [ ] Cheapest to test and easiest to ablate, but less architecturally novel than A or B.
+
+Recommendation on file: A plus B. Use AnyBURL to get a rule set with real coverage, then use it to
+both support and contradict edges. Option C is the fallback if the adjacency remains too diluted.
 
 ---
 

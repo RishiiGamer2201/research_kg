@@ -2,6 +2,7 @@
 File baseed off of dgl tutorial on RGCN
 Source: https://github.com/dmlc/dgl/tree/master/examples/pytorch/rgcn
 """
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -160,6 +161,9 @@ class RGCNBasisLayer(RGCNLayer):
         g.update_all(msg_func, self.aggregator, None)
 
 class GraphLearner(nn.Module):
+    # Shared across instances so RULETRUST_DEBUG=<n> prints for n subgraphs total, not n per module.
+    _rule_debug_left = int(os.environ.get('RULETRUST_DEBUG', '0'))
+
     def __init__(self, params) -> None:
         super(GraphLearner, self).__init__()
         self.input_size = params.emb_dim
@@ -253,18 +257,26 @@ class GraphLearner(nn.Module):
             attention /= self.num_pers
             markoff_value = -INF
 
+        # RuleTrust: do NOT add the prior to raw `attention` here. With metric_type='attention'
+        # the scores are unbounded ReLU dot products (measured on WN18RR_v1: median 1.65, max
+        # 1.8e4), so 61% of entries saturate the [0.01, 0.99] clamp below and a small additive
+        # prior is destroyed, while the remaining 39% get a wildly out-of-scale shift. Instead
+        # apply the boost in probability space, inside the neighbourhood builders.
+        boost = None
         if self.use_rule_trust and rule_prior is not None:
-            prior = rule_prior.to(device=attention.device, dtype=attention.dtype)
-            attention = attention + self.rule_weight * (prior - 0.5)
-        
+            boost = rule_prior.to(device=attention.device, dtype=attention.dtype)
+
         if self.graph_type == 'epsilonNN':
             assert self.epsilon is not None
-            attention = self.build_epsilon_neighbourhood(attention, self.epsilon, markoff_value)
+            attention = self.build_epsilon_neighbourhood(attention, self.epsilon, markoff_value, rule_boost=boost)
         elif self.graph_type == 'KNN':
             assert self.top_k is not None
+            # top-k selection is scale-relative, so boosting pre-selection is the right hook here
+            if boost is not None:
+                attention = attention + self.rule_weight * boost
             attention = self.build_knn_neighbourhood(attention, self.top_k, markoff_value)
         elif self.graph_type == 'prob':
-            attention = self.build_prob_neighbourhood(attention, temperature=0.05)
+            attention = self.build_prob_neighbourhood(attention, temperature=0.05, rule_boost=boost)
         else:
             raise ValueError('Unknown graph_type: {}'.format(self.graph_type))
         if self.graph_type in ['KNN', 'epsilonNN']:
@@ -287,14 +299,26 @@ class GraphLearner(nn.Module):
 
         return weighted_adjacency_matrix
 
-    def build_epsilon_neighbourhood(self, attention, epsilon, markoff_value):
+    def build_epsilon_neighbourhood(self, attention, epsilon, markoff_value, rule_boost=None):
         attention = torch.sigmoid(attention)
+        if rule_boost is not None:
+            boosted = torch.clamp(attention + self.rule_weight * rule_boost, 0.0, 1.0)
+            self._report_rule_effect(attention, boosted, rule_boost)
+            attention = boosted
         mask = (attention > epsilon).detach().float()
         weighted_adjacency_matrix = attention * mask + markoff_value * (1 - mask)
         return weighted_adjacency_matrix
 
-    def build_prob_neighbourhood(self, attention, temperature=0.1):
+    def build_prob_neighbourhood(self, attention, temperature=0.1, rule_boost=None):
         attention = torch.clamp(attention, 0.01, 0.99)
+
+        # Boost rule-supported pairs in probability space, where the scale is bounded and
+        # the shift is meaningful. Pairs already at the 0.99 ceiling cannot move, which is
+        # intended: the prior's job is to rescue borderline edges, not certain ones.
+        if rule_boost is not None:
+            boosted = torch.clamp(attention + self.rule_weight * rule_boost, 0.01, 0.99)
+            self._report_rule_effect(attention, boosted, rule_boost)
+            attention = boosted
 
         weighted_adjacency_matrix = RelaxedBernoulli(temperature=torch.Tensor([temperature]).to(attention.device),
                                                      probs=attention).rsample()
@@ -302,6 +326,27 @@ class GraphLearner(nn.Module):
         mask = (weighted_adjacency_matrix > eps).detach().float()
         weighted_adjacency_matrix = weighted_adjacency_matrix * mask + 0.0 * (1 - mask)
         return weighted_adjacency_matrix
+
+    def _report_rule_effect(self, before, after, boost):
+        """Prove the rule prior is live. Set RULETRUST_DEBUG=<n> to print for n subgraphs.
+
+        A smoke test only proves the code runs. This proves the prior actually changes the
+        refined adjacency: if `prob-changed` is 0, the prior is inert and any ablation from
+        that run is a false negative.
+        """
+        if GraphLearner._rule_debug_left <= 0:
+            return
+        GraphLearner._rule_debug_left -= 1
+        total = before.numel()
+        supported = int((boost > 0).sum().item())
+        headroom = int(((boost > 0) & (before < 0.99)).sum().item())
+        changed = int((after != before).sum().item())
+        print(f"[RuleTrust] entries={total} rule-supported={supported} "
+              f"({100.0 * supported / max(total, 1):.2f}%) with-headroom={headroom} "
+              f"prob-changed={changed} ({100.0 * changed / max(total, 1):.2f}%)")
+        if changed == 0:
+            print("[RuleTrust] WARNING: the prior changed nothing on this subgraph. "
+                  "If this holds across subgraphs, the prior is inert; do not trust an ablation.")
 
     def compute_distance_mat(self, X, weight=None):
         if weight is not None:

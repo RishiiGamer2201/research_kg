@@ -20,25 +20,49 @@ def load_rule_index(cache_path, conf_threshold=0.0):
     return dict(rule_index)
 
 
-def build_rule_prior(graph, target_rel, rule_index, default_prior=0.5):
+def build_rule_boost(graph, target_rel, rule_index):
+    """Dense (N, N) boost-only rule support for one enclosing subgraph.
+
+    entry[i, j] = max confidence over mined rules (r1, r2) -> target_rel such that a
+    typed length-2 path i --r1--> m --r2--> j exists in this subgraph. 0.0 when no rule
+    supports the pair.
+
+    Boost-only by construction: unsupported pairs get exactly 0.0 and are never penalised.
+    An earlier version centred this at 0.5 and returned (conf - 0.5), which pushed pairs
+    supported by sub-0.5-confidence rules BELOW unsupported pairs. That was a sign error.
+
+    Fully vectorised: composes per-relation adjacencies with matmul instead of looping
+    over edges in Python. The previous implementation did triple-nested Python loops with
+    per-element GPU scalar writes and .tolist() host syncs on every forward pass.
+    """
     num_nodes = graph.number_of_nodes()
     device = graph.device
-    prior = torch.full((num_nodes, num_nodes), float(default_prior), device=device)
+    boost = torch.zeros((num_nodes, num_nodes), device=device)
+
     rules = rule_index.get(int(target_rel), ())
     if not rules or graph.number_of_edges() == 0:
-        return prior
+        return boost
 
     src_nodes, dst_nodes = graph.edges()
-    rel_types = graph.edata["type"].tolist()
-    out_edges = defaultdict(lambda: defaultdict(list))
-    for src, dst, rel in zip(src_nodes.tolist(), dst_nodes.tolist(), rel_types):
-        out_edges[int(rel)][int(src)].append(int(dst))
+    rel_types = graph.edata["type"]
+
+    needed = set()
+    for r1, r2, _ in rules:
+        needed.add(r1)
+        needed.add(r2)
+
+    # one dense typed adjacency per relation that appears in a rule body
+    adj = {}
+    for rel in needed:
+        mask = rel_types == rel
+        a = torch.zeros((num_nodes, num_nodes), device=device)
+        # empty mask yields an empty index assignment, which is a no-op
+        a[src_nodes[mask], dst_nodes[mask]] = 1.0
+        adj[rel] = a
 
     for r1, r2, confidence in rules:
-        for src, mids in out_edges.get(r1, {}).items():
-            for mid in mids:
-                for dst in out_edges.get(r2, {}).get(mid, ()):
-                    if confidence > prior[src, dst]:
-                        prior[src, dst] = confidence
+        reach = adj[r1] @ adj[r2]  # >0 exactly where a typed length-2 path exists
+        support = (reach > 0).to(boost.dtype) * float(confidence)
+        boost = torch.maximum(boost, support)
 
-    return prior
+    return boost
