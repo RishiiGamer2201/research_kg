@@ -27,6 +27,18 @@ def main(params):
     simplefilter(action='ignore', category=UserWarning)
     simplefilter(action='ignore', category=SparseEfficiencyWarning)
 
+    # Seed all RNGs when a seed is given, so runs are reproducible and, crucially, so a baseline
+    # and a RuleTrust run at the SAME seed share initialisation, data order, and negative sampling.
+    # That paired design makes the only difference the rule term, cancelling most seed variance.
+    if getattr(params, 'seed', None) is not None:
+        import random
+        random.seed(params.seed)
+        np.random.seed(params.seed)
+        torch.manual_seed(params.seed)
+        torch.cuda.manual_seed_all(params.seed)
+        os.environ['PYTHONHASHSEED'] = str(params.seed)
+        logging.info(f"Global seed set to {params.seed}")
+
     params.db_path = os.path.join(params.main_dir, f'data/{params.dataset}/subgraphs_en_{params.enclosing_sub_graph}_neg_{params.num_neg_samples_per_link}_hop_{params.hop}')
 
     if not os.path.isdir(params.db_path):
@@ -209,6 +221,9 @@ if __name__ == '__main__':
                                  'symbolic gain must vanish under this.')
         parser.add_argument('--rule-shuffle-seed', dest='rule_shuffle_seed', type=int, default=0,
                             help='Seed for the shuffle derangement')
+        parser.add_argument('--seed', type=int, default=None,
+                            help='Global RNG seed. Unset means nondeterministic (original behavior). '
+                                 'Set the same seed for a baseline and a RuleTrust run to pair them.')
 
         params = parser.parse_args()
         # params.hop = k

@@ -36,6 +36,7 @@ parameter.
 |---|---|---|---|---:|---:|---:|---:|---:|---|
 | 2026-07-10 | `sdn_fb_v1_paper_gpu` | fb237_v1 | paper params, no rules | 53.13 | 44.63 | 61.22 | 67.80 | n/a | Reproduction baseline. Beats paper v1 (52.10 / 43.68 / 67.34). |
 | 2026-07-12 | `sdn_fb_v1_ruletrust_gpu` | fb237_v1 | paper params, mode=score | 53.19 | 44.15 | 61.95 | 71.22 | 3.90 | Completed. Hits@10 +3.42 over baseline; MRR flat (+0.06); Hits@1 -0.49. rule_scale learned 3.90 from init 0, so the model actively uses the rule signal. Single seed, 205 test triples. Not yet validated: shuffled-rule control pending. |
+| 2026-07-12 | `sdn_fb_v1_ruletrust_shuffle0_gpu` | fb237_v1 | paper params, mode=score, --rule-shuffle (control) | 51.03 | 41.22 | 59.76 | 70.00 | 0.12 | Control run; rule bodies deranged onto wrong head relations. rule_scale collapsed from 3.90 to 0.12 (32x drop), so the model ignores shuffled rules: mechanism check passes. But metrics swung 2+ points from baseline in incoherent directions (MRR -2.10, Hits@10 +2.20), so single-seed variance exceeds the effect and no metric claim is supported. Best val AUC 0.8317. |
 
 Paper reference for fb237_v1: MRR 52.10, Hits@1 43.68, Hits@10 67.34.
 
@@ -58,12 +59,14 @@ falsify anything is not worth GPU time.
       nondeterminism floor of 1e-6. If this run somehow improves on baseline, our measurement is
       wrong and everything here needs re-checking.
 
-- [ ] **Rules-shuffled control.** NEXT PRIORITY. This is the make-or-break control and must run
-      before any claim, now that a real Hits@10 gain exists and needs an explanation. Reassign mined
-      rules to wrong head relations, keep count and confidence distribution identical. Any gain must
-      DISAPPEAR. If a shuffled rule set still helps, the gain is not coming from symbolic evidence
-      (it would be acting as noise regularisation) and the headline result is invalid. This is the
-      single most important control in the study.
+- [x] **Rules-shuffled control.** `--use-rule-trust --rule-trust-mode score --rule-shuffle`
+      `sdn_fb_v1_ruletrust_shuffle0_gpu`, 2026-07-12. Reassigned mined rules to wrong head relations,
+      count and confidence distribution held identical.
+      Result (split verdict): mechanism passes but metrics inconclusive. rule_scale collapsed from
+      3.90 (real) to 0.12 (shuffled), a 32x drop, so the model distinguishes genuine from shuffled
+      rules and nearly ignores the fakes. But a should-be-baseline run swung MRR -2.10 and Hits@10
+      +2.20 from baseline in incoherent directions, so run-to-run variance exceeds the effect and the
+      +3.42 Hits@10 cannot be attributed to the rules from single seeds.
 
 - [ ] **Weaker miner.** `--rule-no-inverse` (forward-only length-2, the v1 miner: 142 rules over 62
       of 180 head relations, versus v2's 462 over 93).
@@ -80,8 +83,11 @@ falsify anything is not worth GPU time.
 - [ ] **Rule body length.** `--rule-max-len 1` versus 2. Isolates how much comes from direct
       relation implications versus two-hop composition.
 
-- [ ] **Seeds.** At least 3 seeds for baseline and for mode=score before any claim is made. See
-      threats to validity.
+- [ ] **Seeds.** REQUIRED NEXT STEP, no longer optional. Run at least 3 to 5 seeds each of baseline
+      and real RuleTrust (mode=score) on fb237_v1 to get an error bar before any metric claim. The
+      shuffle control on 2026-07-12 demonstrated that a should-be-baseline run moved metrics by more
+      than the observed +3.42 Hits@10 gain, so the effect size is inside single-seed variance and an
+      error bar is now the gating requirement. See threats to validity.
 
 - [ ] **Generalisation across splits.** fb237_v2, v3, v4.
       Note: v2 previously crashed with CUDA OOM at batch 32 on the 16 GB RTX 5070 Ti. Use batch 16
@@ -118,11 +124,44 @@ A positive rule_scale is necessary but NOT sufficient evidence. A shuffled-rule 
 the gain disappears, otherwise the effect could be noise regularisation from one extra learnable
 parameter rather than symbolic evidence.
 
+### Shuffle control outcome (2026-07-12)
+
+The make-or-break control ran to completion. `sdn_fb_v1_ruletrust_shuffle0_gpu` used the same paper
+hyperparameters and mode=score as the real run, but with `--rule-shuffle` (rule bodies deranged onto
+wrong head relations). It ran all 100 epochs and ranked all 205 inductive test triples cleanly. The
+control gives a split result.
+
+1. Mechanism passes. rule_scale collapsed from 3.90 (real) to 0.12 (shuffled), a 32x drop, so the
+   model strongly distinguishes genuine rules from shuffled ones and nearly ignores the fakes. Best
+   validation AUC also orders correctly: real 0.8586 > baseline 0.8527 > shuffle 0.8317. These are
+   the least noisy evidence available (a learned parameter and the larger validation set).
+
+2. Metric claim NOT supported. The shuffle run should sit near baseline (rule_scale 0.12, shuffled
+   rules cover about 0 percent of cases), yet it swung to MRR 51.03 (2.1 below baseline) and Hits@10
+   70.0 (2.2 above baseline) in incoherent directions, and reached a worse validation optimum. A
+   should-be-baseline run moved the metrics by more than the real run's apparent +3.42 Hits@10. So
+   run-to-run variance on this 205-triple split exceeds the effect size, and the +3.42 cannot be
+   attributed to the rules from single seeds.
+
+Three-way comparison:
+
+| Run | rule_scale | best val AUC | MRR | Hits@10 |
+|---|---:|---:|---:|---:|
+| Baseline `sdn_fb_v1_paper_gpu` | n/a | 0.8527 | 53.13 | 67.80 |
+| Real RuleTrust `sdn_fb_v1_ruletrust_gpu` | 3.90 | 0.8586 | 53.19 | 71.22 |
+| Shuffle control `sdn_fb_v1_ruletrust_shuffle0_gpu` | 0.12 | 0.8317 | 51.03 | 70.00 |
+
+Overall: the rules carry a real signal the model chooses to use (rule_scale and validation AUC both
+order correctly), but no ranking-metric improvement above noise has been demonstrated. Multiple
+seeds are now required, not optional.
+
 ## 5. Threats to Validity
 
-- [ ] **Single seed.** The current runs are one seed each. Seed-to-seed variation on these splits has
-      not been measured. Until multiple seeds exist, treat any gain below roughly 1 MRR point as not
-      yet meaningful. Do not report a headline improvement from one seed.
+- [x] **Single seed.** The current runs are one seed each. Seed-to-seed variation on these splits was
+      not measured up front. Treat any gain below roughly 1 MRR point as not yet meaningful, and do
+      not report a headline improvement from one seed. Demonstrated on 2026-07-12: a should-be-baseline
+      control run (shuffle, rule_scale 0.12) differed from baseline by -2.1 MRR and +2.2 Hits@10,
+      empirically confirming variance exceeds the effect size at one seed.
 - [ ] **Small test set.** fb237_v1's inductive test set has 205 triples. One triple is worth roughly
       0.5 percentage points of Hits@k, so metric noise is substantial and confidence intervals are
       wide.
