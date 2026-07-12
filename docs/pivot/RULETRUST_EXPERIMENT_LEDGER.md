@@ -35,7 +35,7 @@ parameter.
 | Date | Experiment | Dataset | Config | MRR | Hits@1 | Hits@5 | Hits@10 | rule_scale | Notes |
 |---|---|---|---|---:|---:|---:|---:|---:|---|
 | 2026-07-10 | `sdn_fb_v1_paper_gpu` | fb237_v1 | paper params, no rules | 53.13 | 44.63 | 61.22 | 67.80 | n/a | Reproduction baseline. Beats paper v1 (52.10 / 43.68 / 67.34). |
-| 2026-07-10 | `sdn_fb_v1_ruletrust_gpu` | fb237_v1 | paper params, mode=score | pending | pending | pending | pending | pending | Running. Only difference from baseline is `--use-rule-trust`. |
+| 2026-07-12 | `sdn_fb_v1_ruletrust_gpu` | fb237_v1 | paper params, mode=score | 53.19 | 44.15 | 61.95 | 71.22 | 3.90 | Completed. Hits@10 +3.42 over baseline; MRR flat (+0.06); Hits@1 -0.49. rule_scale learned 3.90 from init 0, so the model actively uses the rule signal. Single seed, 205 test triples. Not yet validated: shuffled-rule control pending. |
 
 Paper reference for fb237_v1: MRR 52.10, Hits@1 43.68, Hits@10 67.34.
 
@@ -46,10 +46,11 @@ falsify anything is not worth GPU time.
 
 - [x] **Baseline.** No rule flags. `sdn_fb_v1_paper_gpu`. Establishes the number to beat.
 
-- [~] **Main run, mode=score.** `--use-rule-trust --rule-trust-mode score`
+- [x] **Main run, mode=score.** `--use-rule-trust --rule-trust-mode score`
       Supports the hypothesis if MRR or Hits@10 improves over baseline beyond seed noise, and
       `rule_scale` converges clearly positive. Falsifies it if metrics are flat and `rule_scale`
       converges to about 0.
+      Result: Hits@10 rose 3.42 points, MRR flat, rule_scale learned 3.90.
 
 - [ ] **Negative control, mode=adjacency.** `--use-rule-trust --rule-trust-mode adjacency`
       Predicted to equal the baseline, because the adjacency prior is measured inert: rule-supported
@@ -57,11 +58,12 @@ falsify anything is not worth GPU time.
       nondeterminism floor of 1e-6. If this run somehow improves on baseline, our measurement is
       wrong and everything here needs re-checking.
 
-- [ ] **Rules-shuffled control.** Reassign mined rules to wrong head relations, keep count and
-      confidence distribution identical. Any gain must DISAPPEAR. If a shuffled rule set still
-      helps, the gain is not coming from symbolic evidence (it would be acting as noise
-      regularisation) and the headline result is invalid. This is the single most important control
-      in the study.
+- [ ] **Rules-shuffled control.** NEXT PRIORITY. This is the make-or-break control and must run
+      before any claim, now that a real Hits@10 gain exists and needs an explanation. Reassign mined
+      rules to wrong head relations, keep count and confidence distribution identical. Any gain must
+      DISAPPEAR. If a shuffled rule set still helps, the gain is not coming from symbolic evidence
+      (it would be acting as noise regularisation) and the headline result is invalid. This is the
+      single most important control in the study.
 
 - [ ] **Weaker miner.** `--rule-no-inverse` (forward-only length-2, the v1 miner: 142 rules over 62
       of 180 head relations, versus v2's 462 over 93).
@@ -103,6 +105,18 @@ evidence is worth. It is more informative than the headline metric.
 - Converges negative: something is wrong. Rule support is a high-precision positive indicator, so a
   negative weight would indicate a sign error or a data alignment bug. Stop and re-verify the
   relation2id alignment between the mined rules and `graph.edata['type']`.
+
+### Observed on fb237_v1 (2026-07-12)
+
+rule_scale converged to 3.90 from an initialisation of 0, which is the "converges clearly positive"
+case. This means the rule evidence carries information the GNN did not already encode on this split.
+The gain is concentrated in Hits@10 (+3.42) rather than Hits@1 (-0.49) or MRR (+0.06), which is
+consistent with a high-precision low-recall signal that pulls true tails into the top 10 but does
+not sharpen rank 1.
+
+A positive rule_scale is necessary but NOT sufficient evidence. A shuffled-rule control must show
+the gain disappears, otherwise the effect could be noise regularisation from one extra learnable
+parameter rather than symbolic evidence.
 
 ## 5. Threats to Validity
 

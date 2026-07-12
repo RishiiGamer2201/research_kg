@@ -5,7 +5,8 @@ from scipy.sparse import csr_matrix
 import torch.nn as nn
 import torch
 import dgl
-from utils.rule_features import build_rule_boost, build_rule_target_score, load_rule_index
+from utils.rule_features import build_rule_boost, build_rule_target_score, load_rule_index, shuffle_rule_index
+import logging
 """
 File based off of dgl tutorial on RGCN
 Source: https://github.com/dmlc/dgl/tree/master/examples/pytorch/rgcn
@@ -31,6 +32,11 @@ class GraphClassifier(nn.Module):
         self.rule_mode = getattr(self.params, 'rule_trust_mode', 'score')
         if getattr(self.params, 'use_rule_trust', False):
             self.rule_index = load_rule_index(self.params.rule_cache, self.params.rule_conf_threshold)
+            if getattr(self.params, 'rule_shuffle', False):
+                seed = getattr(self.params, 'rule_shuffle_seed', 0)
+                self.rule_index = shuffle_rule_index(self.rule_index, seed)
+                logging.info(f"RuleTrust SHUFFLE control active (derangement seed {seed}). "
+                             f"Rule bodies reassigned to wrong head relations.")
         # learnable trust weight, initialised to 0 so a RuleTrust run starts bit-identical to
         # baseline and must earn its reliance on the symbolic signal
         self.rule_scale = nn.Parameter(torch.zeros(1))

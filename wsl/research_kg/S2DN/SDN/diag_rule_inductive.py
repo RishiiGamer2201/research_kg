@@ -93,6 +93,8 @@ def main():
     ap.add_argument("--min-support", type=int, default=2)
     ap.add_argument("--negatives", type=int, default=50, help="corrupted tails per test triple")
     ap.add_argument("--no-inverse", action="store_true")
+    ap.add_argument("--shuffle", action="store_true", help="derangement control: rules to wrong heads")
+    ap.add_argument("--shuffle-seed", type=int, default=0)
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
     random.seed(args.seed)
@@ -119,6 +121,12 @@ def main():
         rule_index[k].sort(key=lambda x: -x[1])  # high confidence first, enables early exit
     print(f"{args.dataset}: mined {len(rules)} rules on the TRAIN graph "
           f"({len(rule_index)}/{len(relation2id)} head relations)")
+
+    if args.shuffle:
+        from utils.rule_features import shuffle_rule_index
+        rule_index = shuffle_rule_index(rule_index, args.shuffle_seed)
+        print(f"SHUFFLE CONTROL active (derangement seed {args.shuffle_seed}): "
+              f"rule bodies reassigned to wrong head relations. AUC should collapse toward 0.5.")
 
     ind_support = read_triples(ind_sup_path)
     ind_test = read_triples(ind_test_path)

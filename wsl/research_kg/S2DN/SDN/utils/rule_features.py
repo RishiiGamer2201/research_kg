@@ -1,4 +1,5 @@
 import json
+import random
 
 import torch
 
@@ -32,6 +33,30 @@ def load_rule_index(cache_path, conf_threshold=0.0):
             "Delete it and let ensure_rule_cache remine, or point --rule-cache at a v2 file."
         )
     return rules_to_index(payload.get("rules", []), conf_threshold)
+
+
+def shuffle_rule_index(rule_index, seed=0):
+    """Derangement control: reassign each head relation's rule list to a DIFFERENT head.
+
+    Preserves the exact per-head rule count and the global confidence distribution. Only the
+    body-to-head correspondence is broken, so a rule that genuinely predicted relation r now
+    claims to predict some other relation. On the target pair this should collapse rule support
+    on true positives and drive the rule-only AUC toward 0.5.
+
+    This is the make-or-break control: if a measured gain survives shuffling, it is noise
+    regularisation from one extra learnable parameter, not symbolic evidence.
+    """
+    heads = sorted(rule_index.keys())
+    if len(heads) < 2:
+        return dict(rule_index)
+    rng = random.Random(seed)
+    perm = heads[:]
+    # derangement: no head keeps its own rule list
+    while True:
+        rng.shuffle(perm)
+        if all(perm[i] != heads[i] for i in range(len(heads))):
+            break
+    return {heads[i]: rule_index[perm[i]] for i in range(len(heads))}
 
 
 def _literal_adjacency(num_nodes, src, dst, rel_types, relation, inverted, dtype, device):

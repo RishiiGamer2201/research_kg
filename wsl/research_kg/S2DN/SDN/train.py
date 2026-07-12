@@ -204,6 +204,11 @@ if __name__ == '__main__':
         parser.add_argument('--rule-no-inverse', dest='rule_use_inverse', action='store_false',
                             help='Disable inverse literals in mining (forward-only, the old miner)')
         parser.set_defaults(rule_use_inverse=True)
+        parser.add_argument('--rule-shuffle', dest='rule_shuffle', action='store_true',
+                            help='Control: derange rule bodies onto wrong head relations. A real '
+                                 'symbolic gain must vanish under this.')
+        parser.add_argument('--rule-shuffle-seed', dest='rule_shuffle_seed', type=int, default=0,
+                            help='Seed for the shuffle derangement')
 
         params = parser.parse_args()
         # params.hop = k
