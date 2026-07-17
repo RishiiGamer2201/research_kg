@@ -169,13 +169,15 @@ the problem miss each other exactly where our project lives.
 ## 5. What the 96 GB GPU unblocks (test plan for when it lands)
 
 The new GPU (remote SSH, being set up around 2026-07-17) removes the memory wall that shaped several
-findings. In priority order:
+findings. Note: NELL v1-v4 does NOT need it, NELL runs at S2DN defaults (dim 32, batch 16) and fits
+16 GB, so it is reproducing on the local GPU now; only FB15k-237 v2-v4 (dim 64, batch 32) needs the
+96 GB machine. In priority order:
 
-1. Reproduce FB15k-237 v2, v3, v4 and NELL v1 to v4 at true paper settings (dim 64, batch 32, hop 3),
-   which 16 GB could not fit. Closes Phase A and lets the FB15k-237 average be computed at a single
-   batch size (removes W10/W4 as confounds).
-2. Run the RuleTrust seed sweep (3 to 5 seeds, baseline vs mode=score) now that larger batches fit,
-   which is the gating experiment for the whole neuro-symbolic thread (addresses W11).
+1. Reproduce FB15k-237 v2, v3, v4 at true paper settings (dim 64, batch 32, hop 3), which 16 GB could
+   not fit. Closes the last of Phase A and lets the FB15k-237 average be computed at a single batch
+   size (removes W10/W4 as confounds).
+2. Run the deferred RuleTrust paired-seed sweep (3 to 5 seeds, baseline vs mode=score) once the design
+   is locked, the gating experiment for the whole neuro-symbolic thread (addresses W11).
 3. Test S2DN and S2DN-style denoising against the realistic-fabrication injection set rather than
    synthetic noise (directly probes W9), on both English and the multilingual bridge.
 4. Larger enclosing subgraphs (higher hop, more max_links) to see whether SR's contribution grows when

@@ -10,6 +10,39 @@ Style note: no shorthand dashes or emojis anywhere, so it stays clean if pasted 
 
 ---
 
+## UPDATE 2026-07-17 (read this first; the body below is the pre-meeting narrative and is now partly superseded)
+
+This document was written 2026-07-05/07 for the senior meeting, before the direction was settled. It
+is still the best plain-language explanation of the fundamentals, the original system, and the
+discoveries (Sections 1 to 5, 9, 11), so read those. But four things have changed since, and where the
+body disagrees with this banner, the banner wins:
+
+1. Direction settled: the mentor chose a bottom-up ladder, reproduce S2DN (AAAI 2025 inductive KGC),
+   beat it on English inductive with a neuro-symbolic modification (RuleTrust), extend to multilingual,
+   then add self-healing. This ladder is now merged with the external gap plan into the single plan of
+   record, `docs/pivot/UNIFIED_PATHWAY.md`. Section 6 and 10 below (the "two candidate directions" and
+   the venue plan) are superseded by it.
+
+2. Venue changed: WSDM 2027 (Section 10) is NOT the target. Decision 2026-07-17 is A-star only, so
+   SIGIR 2027 is primary (late-January-style deadline, gives about six months of runway), with WSDM
+   and KDD Cycle 2 as fallbacks. Ignore the WSDM crunch timeline in Section 10.
+
+3. SOTA moved: SS-AGA (2022), the transductive anchor cited throughout, is superseded by SimRMKGC
+   (2025). And S2DN itself is not the current inductive SOTA (MorsE, CATS, MGIL, and the foundation
+   model ULTRA postdate or outrank it). See `docs/pivot/sota_benchmark_survey_2026-07-17.md`. The paper
+   must compare against those, not just S2DN.
+
+4. Progress since: S2DN reproduced on WN18RR (v1-v4) and FB15k-237 v1 (beats paper); NELL v1-v4
+   reproducing now; RuleTrust built but its gain is inside single-seed noise (seeds deferred to the
+   end, run once on the locked-in models); DBP-5L to GraIL converter done; the self-healing detector
+   mechanism designed with real data. Current status and next steps live in `UNIFIED_PATHWAY.md`
+   Sections 0a, 0b, and 10, not here.
+
+Current reading order: this banner, then Sections 1 to 5 and 9 and 11 below for the fundamentals, then
+`docs/pivot/UNIFIED_PATHWAY.md` for the actual plan.
+
+---
+
 ## 0. The thirty-second summary
 
 We built a system that completes facts in a multilingual knowledge graph for entities the model

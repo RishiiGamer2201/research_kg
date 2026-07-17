@@ -83,11 +83,16 @@ falsify anything is not worth GPU time.
 - [ ] **Rule body length.** `--rule-max-len 1` versus 2. Isolates how much comes from direct
       relation implications versus two-hop composition.
 
-- [ ] **Seeds.** REQUIRED NEXT STEP, no longer optional. Run at least 3 to 5 seeds each of baseline
-      and real RuleTrust (mode=score) on fb237_v1 to get an error bar before any metric claim. The
-      shuffle control on 2026-07-12 demonstrated that a should-be-baseline run moved metrics by more
-      than the observed +3.42 Hits@10 gain, so the effect size is inside single-seed variance and an
-      error bar is now the gating requirement. See threats to validity.
+- [ ] **Seeds.** DEFERRED to the end (decision 2026-07-17), then required. Rationale: the RuleTrust
+      mechanism is not yet locked, so spending about 27 hours of GPU on a 3-seed paired sweep now would
+      validate a design that may still change. Plan: keep exploring modifications; once the
+      architecture is locked, run 3 to 5 paired seeds (baseline and RuleTrust at the same seed) on the
+      final model(s) to get the error bar before any metric claim. A paired-seed launcher already
+      exists (`scripts/run_seed_sweep_fb237_v1.sh`, `start_seed_sweep_detached.py`); one attempt on
+      2026-07-17 was started and killed at epoch 20, nothing usable. Still gating for any published
+      number: the 2026-07-12 shuffle control showed a should-be-baseline run moving metrics by more
+      than the observed +3.42 Hits@10, so the effect is inside single-seed variance. No metric claim
+      until the paired seeds run on the locked model.
 
 - [ ] **Generalisation across splits.** fb237_v2, v3, v4.
       Note: v2 previously crashed with CUDA OOM at batch 32 on the 16 GB RTX 5070 Ti. Use batch 16

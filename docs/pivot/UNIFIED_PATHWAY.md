@@ -70,6 +70,15 @@ below stands.
    until access lands: study architecture limitations and weaknesses (finding 6 is that
    deliverable); mentor provides GPU for testing.
 
+8. **NELL v1-v4 reproduction running now** (local GPU came free, 2026-07-17 evening; detached PID
+   516, about 10 to 14 hours). At S2DN defaults, the official NELL recipe. Closes the last Phase A
+   piece that fits on 16 GB. See Section 10.
+
+9. **Seeds deferred to the end** (decision 2026-07-17). The RuleTrust design is still open, so the
+   3-to-5 paired-seed sweep runs once on the locked model, not now. Gate B still governs any metric
+   claim; it is just not being forced yet. A sweep attempt on 2026-07-17 was killed at epoch 20,
+   nothing usable.
+
 ## 0b. New benchmark papers: their scores versus ours
 
 Protocol warning applies throughout: S2DN and our reproductions use GraIL's 50-negative ranking on
@@ -85,6 +94,7 @@ Inductive English (GraIL splits), Hits@10 unless stated:
 | FB15k-237 v1 | 67.34 | 67.80 | 71.22 | 87.17 | MorsE 82.59 |
 | FB15k-237 v1 MRR | 52.10 | 53.13 | 53.19 | not reported comparably | - |
 | FB15k-237 v2-v4 | 82.38 / 83.97 / 91.31 | pending (OOM wall, now lifted by 96 GB GPU) | pending | 94.98 / 94.62 / 96.01 | MorsE 94.92 / 95.00 / 95.78 |
+| NELL v1-v4 | (paper targets to pull) | RUNNING 2026-07-17 (local GPU, defaults) | not run | 84.40 / 97.37 / 98.80 / 95.48 | CoMPILE 58.38 / 93.87 / 92.77 / 75.19 |
 
 Readings: our reproduction is faithful (v1 within noise of paper on both datasets, slightly above on
 FB15k-237). On WN18RR, S2DN and our reproduction still lead MGIL, so S2DN remains a defensible
@@ -177,7 +187,8 @@ Status:
 - [ ] Batch-size consistency decision: if v2-v4 need batch 16, rerun v1 at batch 16 too, or report v1
       at both batch sizes and state the deviation, so the FB15k-237 average is over one batch size.
       With the 96 GB GPU this decision likely dissolves: everything at batch 32, single protocol.
-- [ ] NELL v1-v4, last, only after WN18RR and FB15k-237 are stable.
+- [~] NELL v1-v4: RUNNING now (2026-07-17, local GPU, detached PID 516) at S2DN defaults, the
+      official recipe. Fits 16 GB. Record results into Section 0b as splits land.
 
 Cross-check assets already on disk (independent second data path if the S2DN loader misbehaves):
 CBLiP and a Phase-0 WN18RR setup exist at `~/research_kg/CBLiP/` and `~/research_kg/WN18RR/`.
@@ -244,8 +255,10 @@ Runs so far:
       baseline > shuffle), but metric claim not supported (a should-be-baseline run swung 2+ points).
 
 Required next and ablations:
-- [ ] REQUIRED NEXT: 3 to 5 seeds each of baseline and RuleTrust mode=score on fb237_v1, for an error
-      bar. This is the single gating experiment for the whole neuro-symbolic thread.
+- [ ] DEFERRED to the end (decision 2026-07-17): 3 to 5 paired seeds (baseline and RuleTrust
+      mode=score at the same seed) on fb237_v1, for an error bar. Runs once on the locked model, not
+      now, since the RuleTrust design is still open. Still the gating experiment for any metric claim
+      on the neuro-symbolic thread; just not forced yet. Launcher already exists.
 - [ ] Negative control mode=adjacency (must equal baseline; if it improves, our inertness measurement
       is wrong).
 - [ ] Weaker miner `--rule-no-inverse` (forward-only length-2), confidence threshold sweep {0.01, 0.1,
@@ -642,20 +655,35 @@ where the field is emptier. The fresh pre-submission sweep (Phase E) is where th
 
 ---
 
-## 10. Immediate next three actions (updated 2026-07-17)
+## 10. Immediate next actions (updated 2026-07-17, evening)
 
-1. When lab GPU SSH lands: launch the RuleTrust seed sweep (3 to 5 seeds each of baseline and
-   RuleTrust mode=score on fb237_v1) and queue FB15k-237 v2 to v4 at true paper batch 32. Gate B
-   closes here. (Blocker.)
-2. Until then, CPU work: the D2 decisive cheap test (pattern-based claim extractor; 718 auditable
+Two decisions reshaped this list today: seeds are deferred to the end (run once on the locked model,
+not now, since the RuleTrust design is still open), and the local GPU came free, so NELL reproduction
+is running now instead of waiting for the lab machine.
+
+Running now (local RTX 5070 Ti, detached, PID 516):
+- NELL v1-v4 reproduction at S2DN defaults (dim 32, lr 0.01, batch 16, hop 3), the official recipe
+  that needs no appendix override. Sequential, about 10 to 14 hours. Log:
+  `logs/s2dn_reproduction/nell_all_detached.log`. This closes the last piece of Phase A that fits on
+  16 GB (FB15k-237 v2-v4 still wait for the 96 GB machine). Confirms mentor answer 2 (reproduce all
+  three datasets).
+
+Next, in order:
+1. Record NELL results into the ledger and Section 0b as each split lands; pull S2DN's NELL paper
+   targets to judge the reproduction.
+2. CPU work available now: the D2 decisive cheap test (pattern-based claim extractor; 718 auditable
    contaminated vs 718 degree-matched clean; does the claim-level score beat the neighbourhood
    detector alone?), and the realistic-fabrication injection set spec.
 3. Resolve the converter's 2 percent out-of-vocabulary test-triple quirk (drop and document, or
-   extend support), so Phase C is launch-ready the moment Gate B resolves.
+   extend support), so Phase C is launch-ready.
+4. When the 96 GB lab GPU SSH lands: FB15k-237 v2-v4 at true paper batch 32, and (once the RuleTrust
+   design is locked) the deferred paired-seed sweep to close Gate B.
 
-Superseded but kept for the record: the pre-2026-07-17 action list queued FB15k-237 v2 at batch 16 on
-the local 16 GB GPU; the 96 GB lab GPU makes batch 32 the preferred path, with batch 16 as
-contingency.
+Seeds are no longer listed as the immediate blocker: deferred by decision, run last on the final
+model. Gate B still governs any metric claim (Section 2, Phase B), it is just not being forced now.
+
+Superseded but kept for the record: the earlier 2026-07-17 list treated the seed sweep as the
+immediate blocker and queued FB15k-237 v2 at batch 16 on the local GPU.
 
 Open questions: ANSWERED 2026-07-17. Questions kept for the record, answers inline.
 
