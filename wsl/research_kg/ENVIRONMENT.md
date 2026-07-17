@@ -13,6 +13,15 @@ export RESEARCH_KG_ROOT=/path/to/research_kg   # dir containing DBP5L/, logs/
 
 Applies to: `train_dbp5l_lora.py`, `eval_dbp5l.py`, `eval_dbp5l_anchors.py`, `detector_experiment.py`.
 
+## Code source-of-truth workflow (Phase 0)
+The git repo is canonical. The live WSL runner uses **symlinks** into it, so editing a
+repo file changes what actually runs — no copy step, no drift.
+- One-time / idempotent setup: `bash setup_wsl_symlinks.sh` (from repo copy, run in WSL).
+- Symlinks: `~/research_kg/{train_dbp5l_lora,eval_dbp5l,eval_dbp5l_anchors,detector_experiment,bootstrap_sig}.py`
+  + run wrappers + README → `/mnt/c/.../wsl/research_kg/`.
+- Data/venvs/checkpoints/token_cache stay in `~/research_kg` (gitignored).
+- Verified: symlinked modules import in the venv and resolve data via default `RESEARCH_KG_ROOT`.
+
 ## Text branch (BGE-M3 / LoRA / mBERT / XLM-R)
 - venv: `~/research_kg/RAA-KGC/SimKGC/venv`
 - Python 3.10.20
