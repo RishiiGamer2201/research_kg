@@ -24,6 +24,11 @@ Folder: [pivot/](pivot/)
 | [pivot/related_work.md](pivot/related_work.md) | CANONICAL literature map (SIGIR, KDD, WSDM, neighbours, 2024 to 2026): gap map, competitor matrix, venue positioning |
 | [pivot/mentor_plan_research_2026-07-08.md](pivot/mentor_plan_research_2026-07-08.md) | Mentor ladder plan: S2DN/GOLD/LLM_sim paper summaries, verified S2DN targets, topic analysis |
 | [pivot/IMPLEMENTATION_PLAN_S2DN_LADDER.md](pivot/IMPLEMENTATION_PLAN_S2DN_LADDER.md) | Execution plan with checkboxes: reproduce S2DN, RuleTrust-S2DN, multilingual, self-healing |
+| [pivot/UNIFIED_PATHWAY.md](pivot/UNIFIED_PATHWAY.md) | PLAN OF RECORD (2026-07-14): merges the S2DN ladder with the external gap plan into one pathway, three products, phase gates |
+| [pivot/external_gap_assessment_review.md](pivot/external_gap_assessment_review.md) | Capture and critique of the external `Claude KG.pdf` gap assessment: competitor map, venue timing, the 57 percent soft spot |
+| [pivot/sota_benchmark_survey_2026-07-17.md](pivot/sota_benchmark_survey_2026-07-17.md) | Current SOTA across inductive/multilingual/transductive KGC (2024-2026); replaces the stale SS-AGA anchor; finds S2DN is not the inductive SOTA |
+| [pivot/D2_rule_text_bridge_design.md](pivot/D2_rule_text_bridge_design.md) | Measured design of the rule-to-text contamination bridge; cross-lingual transfer measured dead on DBP-5L |
+| [pivot/s2dn_architecture_weaknesses.md](pivot/s2dn_architecture_weaknesses.md) | Mentor task: S2DN's 12 architectural and empirical weaknesses, weakness-to-opportunity map, 96 GB GPU test plan |
 | pivot/archive/ | The two source drafts that were merged into related_work.md |
 
 ## Design decisions of the original project
