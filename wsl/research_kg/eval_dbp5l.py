@@ -28,6 +28,7 @@ Usage:
 import os
 import json
 import glob
+import time
 import argparse
 import logging
 from collections import defaultdict
@@ -37,6 +38,8 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 from transformers import AutoTokenizer, AutoModel
 import torch.nn as nn
+
+import run_manifest as rm  # P0.2 immutable run manifests
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s %(levelname)s] %(message)s',
                     datefmt='%H:%M:%S')
@@ -453,6 +456,24 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
     with open(results_path, 'w') as f:
         json.dump(save_data, f, indent=2)
     logger.info(f'Results saved to: {results_path}')
+
+    # ── P0.2: immutable per-eval manifest (candidate/filter hashes added in P0.3) ──
+    # Fresh timestamped dir so re-evaluating the same checkpoint never clobbers a manifest.
+    try:
+        eval_run_dir = os.path.join(os.path.dirname(results_path), 'evals',
+                                    time.strftime('%Y%m%d_%H%M%S', time.gmtime()))
+        rm.start_run(eval_run_dir, kind='eval', inputs={
+            'checkpoint': checkpoint_path,
+            'descriptions': desc_path,
+            'relation_names': rel_names_path,
+            'entities': f'{PROCESSED}/entities.json',
+        }, model_name=model_name, extra={'max_length': max_length, 'results_path': results_path})
+        rm.finish_run(eval_run_dir, 'complete',
+                      metrics=save_data['within_language']['overall'],
+                      checkpoint_path=checkpoint_path)
+        logger.info(f'Eval manifest: {eval_run_dir}/manifest.json')
+    except Exception as e:
+        logger.warning(f'Eval manifest write failed (non-fatal): {e}')
 
     if rank_rows is not None:
         with open(dump_ranks, 'w') as f:

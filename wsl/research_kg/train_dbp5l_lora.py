@@ -41,6 +41,8 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModel, get_linear_schedule_with_warmup
 from torch.optim import AdamW
 
+import run_manifest as rm  # P0.2 immutable run manifests
+
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s %(levelname)s] %(message)s',
                     datefmt='%H:%M:%S')
 logger = logging.getLogger(__name__)
@@ -341,6 +343,23 @@ def train(args):
         anchors_by_rel = json.load(f)
     logger.info(f'Loaded {len(entity_texts)} entities, {len(anchors_by_rel)} relation anchor groups')
 
+    # ── P0.2: pin this run to immutable code/data/env state ───────────────────
+    # Resume reuses an existing run dir (and its manifest); only fresh runs create one.
+    if not args.resume:
+        rm.start_run(
+            run_dir, kind='train',
+            inputs={
+                'train_split': f'{PROCESSED}/train.json',
+                'valid_split': f'{PROCESSED}/valid.json',
+                'descriptions': desc_path,
+                'relation_names': rel_names_path,
+                'anchors_by_rel': f'{PROCESSED}/anchors_by_rel.json',
+            },
+            seed=args.seed, model_name=args.model_name,
+            extra={'args': vars(args), 'run_name': run_name, 'max_length': args.max_length},
+        )
+        logger.info(f'  Wrote run manifest: {run_dir}/manifest.json')
+
     # Model
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = BGE_M3_LoRA_KGC(
@@ -609,6 +628,12 @@ def train(args):
             logger.info(f'  [HN] Cache on GPU ({entity_cache_gpu.element_size()*entity_cache_gpu.nelement()/1e6:.0f} MB)')
 
     logger.info(f'Done. Best valid acc@1: {best_acc1:.2f}%  Checkpoints: {run_dir}')
+
+    # ── P0.2: finalize manifest (status=complete) with headline metric + ckpt hash ──
+    if rm.load_manifest(run_dir) is not None:
+        rm.finish_run(run_dir, status='complete',
+                      metrics={'best_valid_acc1': best_acc1, 'epochs_run': len(results)},
+                      checkpoint_path=f'{run_dir}/best_model.pt')
 
 
 if __name__ == '__main__':

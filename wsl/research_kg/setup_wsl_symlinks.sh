@@ -6,7 +6,7 @@
 set -e
 REPO="/mnt/c/developer/research_ai/research_kg/mkgc-multilingual-inductive/wsl/research_kg"
 WSL="$HOME/research_kg"
-FILES="train_dbp5l_lora.py eval_dbp5l.py eval_dbp5l_anchors.py detector_experiment.py bootstrap_sig.py run_clean_retrain.sh run_baselines.sh run_seeds.sh run_seed777.sh README.md"
+FILES="train_dbp5l_lora.py eval_dbp5l.py eval_dbp5l_anchors.py detector_experiment.py bootstrap_sig.py run_manifest.py run_clean_retrain.sh run_baselines.sh run_seeds.sh run_seed777.sh README.md"
 
 BK="$WSL/archive/pre_symlink_$(date +%Y-%m-%d)"
 mkdir -p "$BK"

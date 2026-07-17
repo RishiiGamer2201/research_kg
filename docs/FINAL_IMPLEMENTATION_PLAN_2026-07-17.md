@@ -49,6 +49,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-014 | 2026-07-12 | Inconclusive metric, valid mechanism | Substrate | RuleTrust-S2DN, FB15k-237 v1, one seed | MRR 53.19; H@1 44.15; H@10 71.22; learned scale 3.90 | Only 205 test triples and one seed | Rules carry usable signal, but no defensible ranking gain is established | [RuleTrust ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md) |
 | R-015 | 2026-07-12 | Valid control, inconclusive comparison | Substrate | Shuffled RuleTrust control | MRR 51.03; H@10 70.00; learned scale 0.12 | Metric swing exceeded the apparent real-rule effect | Mechanism check passes because the model rejects shuffled rules; multi-seed paired evaluation is required | [RuleTrust ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md) |
 | R-016 | 2026-07-17 | Valid infra | Phase 0 | P0.1 source unification: copy WSL-only active code into tracked repo; add `RESEARCH_KG_ROOT` override; capture env | 5 root scripts + 4 wrappers + README committed; 4 scripts de-hardcoded; env frozen (py3.10.20/torch2.11+cu128/transformers5.12.1/peft0.19.1) | text venv lacks FlagEmbedding/DGL (by design — BGE-M3 via transformers); 3 divergent S2DN venvs, canonical one not yet frozen | Repo now carries the active pipeline; end-to-end clean-clone smoke deferred to P0.5 | `wsl/research_kg/ENVIRONMENT.md`, `requirements.simkgc-venv.txt` |
+| R-017 | 2026-07-17 | Valid infra | Phase 0 | P0.2 immutable run manifests: `run_manifest.py` (stdlib-only) wired into trainer + evaluator | Self-check passes (byte-flip changes hash; overwrite refused). Live test hashed real DBP5L splits/descriptions, captured torch/GPU, resolved BGE-M3 cache revision `9a0624b8…`; status running→complete | candidate-set & filter hashes not yet included (need persisted candidates → P0.3); crash leaves status `running` rather than explicit `failed` | Every train/eval run is now attributable; accidental cross-run comparison blocked by hash mismatch | `run_manifest.py`, `MANIFEST_SCHEMA.md` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -184,10 +185,10 @@ These boxes record completed work, not final-paper validity.
 
 ### P0.2 Implement immutable run manifests
 
-- [ ] Generate a unique run ID before training.
-- [ ] Persist `git_commit`, dirty-tree flag, exact command, UTC start/end time, hostname/GPU, random seeds, model revision, tokenizer revision, split hash, description hash, relation-map hash, candidate-set hash, filter hash, and checkpoint hash.
-- [ ] Write results atomically to a new run directory; refuse to overwrite an existing result.
-- [ ] Add `status = running|complete|failed|invalidated` and `invalidates_run_id` fields.
+- [x] Generate a unique run ID before training. *(`run_manifest.start_run` → `YYYYMMDD_HHMMSS_<8hex>` UTC.)*
+- [x] Persist `git_commit`, dirty-tree flag, exact command, UTC start/end time, hostname/GPU, random seeds, model revision, tokenizer revision, split hash, description hash, relation-map hash, candidate-set hash, filter hash, and checkpoint hash. *(All captured; checkpoint hash at finish; BGE-M3 model_revision resolved from HF cache. **candidate-set & filter hashes deferred to P0.3** — added once the evaluator persists an ordered candidate list + explicit filter policy.)*
+- [x] Write results atomically to a new run directory; refuse to overwrite an existing result. *(`_atomic_write` via `os.replace`; `start_run` refuses a running/complete manifest.)*
+- [x] Add `status = running|complete|failed|invalidated` and `invalidates_run_id` fields. *(Present; crash leaves `running` = incomplete.)*
 
 Use SHA-256 for an artifact $a$:
 
