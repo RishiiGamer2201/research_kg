@@ -65,8 +65,28 @@ def main():
         for k, v in raw.items():
             rel_names[int(k)] = str(v).strip().replace("\t", "_").replace(" ", "_")
 
+    # §4.8 fix: relation symbols MUST stay injective. Using the sanitized display name
+    # alone merged distinct relation IDs that share a name (EN: 166 IDs -> 83 name groups,
+    # 37,039 triples). Prefix the numeric ID so the symbol is unique per relation.
     def rel_name(r):
-        return rel_names.get(r, f"R{r}")
+        base = rel_names.get(r, "")
+        return f"R{r}__{base}" if base else f"R{r}"
+
+    # Detect & report display-name collisions instead of silently merging them.
+    from collections import defaultdict
+    name_groups = defaultdict(list)
+    for rid, nm in rel_names.items():
+        name_groups[nm].append(rid)
+    collisions = {nm: sorted(ids) for nm, ids in name_groups.items() if len(ids) > 1}
+    if collisions:
+        n_ids = sum(len(v) for v in collisions.values())
+        print(f"[relations] {len(collisions)} display-name collision group(s) covering "
+              f"{n_ids} relation IDs; injective 'R{{id}}__name' keeps them distinct:")
+        for nm, ids in sorted(collisions.items())[:10]:
+            print(f"  '{nm}' <- ids {ids}")
+    # Injectivity guarantee: distinct source IDs -> distinct symbols.
+    _syms = {rel_name(r) for r in rel_names}
+    assert len(_syms) == len(rel_names), "relation serialization is not injective"
 
     failures = 0
     for lang in LANGS:

@@ -34,4 +34,9 @@ Running log. Newest entries at top of each section. Absolute dates.
   - Candidate universe persisted to `candidates.json` + hashed; eval manifest now pins candidates + all splits + support files (completes P0.2 candidate/filter-hash deferral).
   - Already-correct (verified): max_length auto-read from ckpt; filter map = train+valid+test+support.
   - DEFERRED: head-prediction eval → P1.6 (evaluator is tail-only `head[SEP]rel→tail`; needs reciprocal training). Repeat-determinism assertion → P0.5 (eval has no RNG, deterministic by construction).
-- **NEXT: P0.4** relation identity: injective `R{id}__name` serialization, detect/report name collisions (EN: 166 IDs→83 collision groups per §4.8), rule-cache keys include dataset/fold/relation-map/target-edge, remove target edge before mining. Then P0.5 reproduce baseline (also clears P0.3 determinism + P0.2 failed-status), Gate G0.
+- **P0.4 MOSTLY DONE (ledger R-019):**
+  - GraIL converter: `rel_name(r)=R{r}__name` (injective) + collision report (**93 groups / 186 IDs** real, e.g. `composer`←[2,653]) + injectivity assertion. `grail_format/` regenerated un-merged. relation_names.json has 960 entries.
+  - Rule cache: `rule_miner.rule_signature(...)` keys on dataset+train+params+relation2id+target_policy; `ensure_rule_cache` validates signature, re-mines stale. Removed redundant fixed-path pre-set in `train.py:238`. Self-check `python S2DN/SDN/utils/rule_miner.py`.
+  - **Process fix:** `scripts/` was NOT symlinked → WSL ran stale converter. Now `setup_wsl_symlinks.sh` symlinks whole `scripts/` dir. Lesson: any code edited in repo must be symlinked into WSL to take effect.
+  - DEFERRED: target-edge removal before mining/scoring → P2.6 (per-query RuleTrust scoring, needs dgl venv + §4.6 gradient audit); policy in cache signature already.
+- **NEXT: P0.5** reproduce one baseline end-to-end: smoke train, one full historical BGE config on frozen split, compare new evaluator vs recorded ranks (explain diffs incl. tie-averaging), one S2DN smoke. Clears P0.3 repeat-determinism + confirms P0.1 clean-launch. Then Gate G0 (push to main).

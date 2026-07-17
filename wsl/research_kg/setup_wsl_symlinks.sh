@@ -16,3 +16,11 @@ for f in $FILES; do
   ln -s "$REPO/$f" "$WSL/$f"
 done
 echo "Symlinked $(echo $FILES | wc -w) files from repo -> $WSL"
+
+# scripts/ (data_prep + analysis) is also canonical in the repo. Symlink the whole dir
+# so edits to build/convert/analysis scripts take effect in WSL runs.
+if [ ! -L "$WSL/scripts" ]; then
+  if [ -d "$WSL/scripts" ]; then mv "$WSL/scripts" "$BK/scripts_dir"; fi
+  ln -s "$REPO/scripts" "$WSL/scripts"
+fi
+echo "Symlinked scripts/ dir from repo -> $WSL/scripts"

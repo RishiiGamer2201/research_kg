@@ -18,6 +18,7 @@ Rule dict format (v2):
 """
 import json
 import os
+import hashlib
 from collections import defaultdict
 
 
@@ -127,37 +128,113 @@ def mine_length2_rules(train_path, relation2id, min_support=2, conf_threshold=0.
                       conf_threshold=conf_threshold, max_len=2, use_inverse=False)
 
 
-def default_rule_cache_path(main_dir, dataset):
-    # v2: rule format changed (literals carry an inverse flag). A distinct filename
-    # prevents a stale v1 cache from being loaded silently.
-    return os.path.join(main_dir, "data", dataset, "ruletrust_rules_v2.json")
+def rule_signature(dataset, train_file, min_support, conf_threshold, max_len,
+                   use_inverse, relation2id, target_policy):
+    """P0.4: a cache key over everything that changes the mined rules — dataset/fold,
+    train file, mining params, the relation map, and the target-edge policy. Two runs
+    with different settings get different signatures, so a stale cache is never reused."""
+    blob = json.dumps({
+        "dataset": dataset, "train_file": train_file,
+        "min_support": min_support, "conf_threshold": conf_threshold,
+        "max_len": max_len, "use_inverse": use_inverse,
+        "relation2id": relation2id, "target_policy": target_policy,
+    }, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()[:12]
+
+
+def default_rule_cache_path(main_dir, dataset, sig=None):
+    # v2: rule format carries an inverse flag. The signature suffix keys the cache to the
+    # exact mining settings + relation map + target policy so different runs never collide.
+    name = f"ruletrust_rules_v2_{sig}.json" if sig else "ruletrust_rules_v2.json"
+    return os.path.join(main_dir, "data", dataset, name)
 
 
 def ensure_rule_cache(params, relation2id):
-    cache_path = params.rule_cache or default_rule_cache_path(params.main_dir, params.dataset)
+    min_support = params.rule_min_support
+    conf_threshold = params.rule_conf_threshold
+    max_len = getattr(params, "rule_max_len", 2)
+    use_inverse = getattr(params, "rule_use_inverse", True)
+    # target-edge policy: the query's own edge must be excluded when rules score it.
+    # Removal happens in the RuleTrust scorer (P2.6); recorded here so caches invalidate
+    # if the policy changes. Default 'none' = global train-graph mining (current behaviour).
+    target_policy = getattr(params, "rule_target_policy", "none")
+    train_file = params.file_paths["train"]
+    sig = rule_signature(params.dataset, train_file, min_support, conf_threshold,
+                         max_len, use_inverse, relation2id, target_policy)
+    cache_path = params.rule_cache or default_rule_cache_path(params.main_dir, params.dataset, sig)
+
     if os.path.exists(cache_path):
-        return cache_path
+        try:
+            payload = json.load(open(cache_path))
+            if payload.get("signature") == sig:
+                return cache_path
+            # signature mismatch -> settings/relation-map/train changed: reject stale, re-mine.
+        except Exception:
+            pass  # unreadable cache -> re-mine
 
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
     rules = mine_rules(
-        params.file_paths["train"],
-        relation2id,
-        min_support=params.rule_min_support,
-        conf_threshold=params.rule_conf_threshold,
-        max_len=getattr(params, "rule_max_len", 2),
-        use_inverse=getattr(params, "rule_use_inverse", True),
+        train_file, relation2id,
+        min_support=min_support, conf_threshold=conf_threshold,
+        max_len=max_len, use_inverse=use_inverse,
     )
     payload = {
         "version": 2,
+        "signature": sig,
         "dataset": params.dataset,
-        "train_file": params.file_paths["train"],
-        "min_support": params.rule_min_support,
-        "conf_threshold": params.rule_conf_threshold,
-        "max_len": getattr(params, "rule_max_len", 2),
-        "use_inverse": getattr(params, "rule_use_inverse", True),
+        "train_file": train_file,
+        "min_support": min_support,
+        "conf_threshold": conf_threshold,
+        "max_len": max_len,
+        "use_inverse": use_inverse,
+        "target_policy": target_policy,
         "relation2id": relation2id,
         "rules": rules,
     }
     with open(cache_path, "w") as f:
         json.dump(payload, f, indent=2, sort_keys=True)
     return cache_path
+
+
+def _selfcheck():
+    """P0.4 runnable check: stale rule caches are rejected on any setting change."""
+    import tempfile, shutil
+    from types import SimpleNamespace
+    d = tempfile.mkdtemp(prefix="rulecache_test_")
+    try:
+        train = os.path.join(d, "train.txt")
+        with open(train, "w") as f:
+            f.write("a born_in b\nb located_in c\na born_in c\n")
+        rel2id = {"born_in": 0, "located_in": 1}
+        def mk(**kw):
+            base = dict(main_dir=d, dataset="toy", rule_cache=None,
+                        file_paths={"train": train}, rule_min_support=1,
+                        rule_conf_threshold=0.0, rule_max_len=2, rule_use_inverse=True)
+            base.update(kw)
+            return SimpleNamespace(**base)
+
+        p1 = ensure_rule_cache(mk(), rel2id)
+        s1 = json.load(open(p1))["signature"]
+        # unchanged settings -> same cache path reused
+        assert ensure_rule_cache(mk(), rel2id) == p1
+
+        # change a mining param -> different signature + path (old cache NOT reused)
+        p2 = ensure_rule_cache(mk(rule_min_support=2), rel2id)
+        assert p2 != p1, "min_support change must produce a new cache"
+
+        # change the relation map -> different signature
+        p3 = ensure_rule_cache(mk(), {"born_in": 5, "located_in": 6})
+        assert p3 != p1, "relation-map change must produce a new cache"
+
+        # corrupt signature in a cache -> rejected and re-mined
+        payload = json.load(open(p1)); payload["signature"] = "deadbeef"; payload["rules"] = []
+        json.dump(payload, open(p1, "w"))
+        ensure_rule_cache(mk(), rel2id)
+        assert json.load(open(p1))["signature"] == s1, "stale/corrupt cache must be rebuilt"
+        print("rule_miner cache self-check OK (stale caches rejected)")
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    _selfcheck()

@@ -8,7 +8,7 @@ import numpy as np
 from subgraph_extraction.datasets import SubgraphDataset, generate_subgraph_datasets
 from utils.initialization_utils import initialize_experiment, initialize_model
 from utils.graph_utils import collate_dgl, move_batch_to_device_dgl
-from utils.rule_miner import default_rule_cache_path, ensure_rule_cache
+from utils.rule_miner import ensure_rule_cache
 
 from model.dgl.graph_classifier import GraphClassifier as dgl_model
 
@@ -235,8 +235,10 @@ if __name__ == '__main__':
             'train': os.path.join(params.main_dir, 'data/{}/{}.txt'.format(params.dataset, params.train_file)),
             'valid': os.path.join(params.main_dir, 'data/{}/{}.txt'.format(params.dataset, params.valid_file))
         }
-        if params.use_rule_trust and not params.rule_cache:
-            params.rule_cache = default_rule_cache_path(params.main_dir, params.dataset)
+        # P0.4: do NOT pre-set a fixed cache path here — relation2id isn't known yet, so
+        # a fixed name would bypass the signature key. ensure_rule_cache() (called once
+        # relation2id exists) computes the signature-keyed path and sets params.rule_cache.
+        # An explicit --rule-cache override still wins (ensure_rule_cache respects it).
 
         if not params.disable_cuda and torch.cuda.is_available():
             params.device = torch.device('cuda:%d' % params.gpu)
