@@ -50,6 +50,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-015 | 2026-07-12 | Valid control, inconclusive comparison | Substrate | Shuffled RuleTrust control | MRR 51.03; H@10 70.00; learned scale 0.12 | Metric swing exceeded the apparent real-rule effect | Mechanism check passes because the model rejects shuffled rules; multi-seed paired evaluation is required | [RuleTrust ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md) |
 | R-016 | 2026-07-17 | Valid infra | Phase 0 | P0.1 source unification: copy WSL-only active code into tracked repo; add `RESEARCH_KG_ROOT` override; capture env | 5 root scripts + 4 wrappers + README committed; 4 scripts de-hardcoded; env frozen (py3.10.20/torch2.11+cu128/transformers5.12.1/peft0.19.1) | text venv lacks FlagEmbedding/DGL (by design — BGE-M3 via transformers); 3 divergent S2DN venvs, canonical one not yet frozen | Repo now carries the active pipeline; end-to-end clean-clone smoke deferred to P0.5 | `wsl/research_kg/ENVIRONMENT.md`, `requirements.simkgc-venv.txt` |
 | R-017 | 2026-07-17 | Valid infra | Phase 0 | P0.2 immutable run manifests: `run_manifest.py` (stdlib-only) wired into trainer + evaluator | Self-check passes (byte-flip changes hash; overwrite refused). Live test hashed real DBP5L splits/descriptions, captured torch/GPU, resolved BGE-M3 cache revision `9a0624b8…`; status running→complete | candidate-set & filter hashes not yet included (need persisted candidates → P0.3); crash leaves status `running` rather than explicit `failed` | Every train/eval run is now attributable; accidental cross-run comparison blocked by hash mismatch | `run_manifest.py`, `MANIFEST_SCHEMA.md` |
+| R-018 | 2026-07-17 | Valid infra + correction | Phase 0 | P0.3 deterministic eval: fix tie handling to average tied ranks; persist+hash ordered candidate universe; pin filter source files in eval manifest | Tie self-check passes (`--selftest`) in WSL venv. max_length auto-read and full known-facts filter confirmed already-correct | **Correction:** prior filtered ranks used best-case tie position (`>score`+1); future evals use averaged ties. Historical R-005/006 numbers stay valid-as-recorded (float-cosine exact ties rare, impact expected tiny) but are re-measured under the new evaluator in P0.5 | Metric attribution now deterministic; head-prediction eval deferred to P1.6 (needs reciprocal training), repeat-determinism assertion deferred to P0.5 | `eval_dbp5l.py` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -202,12 +203,12 @@ $$
 
 ### P0.3 Lock deterministic evaluation
 
-- [ ] Pass `max_length` from checkpoint/config rather than hardcoding it.
-- [ ] Persist candidate IDs and their order; do not reconstruct candidates from unordered containers.
-- [ ] Add train, validation, test, and support triples to the filtered-known-fact map.
-- [ ] Verify reciprocal head and tail query templates separately.
-- [ ] Average tied ranks and test with a constructed equal-score case.
-- [ ] Assert identical metrics across two consecutive evaluations of the same checkpoint.
+- [x] Pass `max_length` from checkpoint/config rather than hardcoding it. *(Already auto-read from ckpt args; CLI override warns. Verified `eval_dbp5l.py:116,218`.)*
+- [x] Persist candidate IDs and their order; do not reconstruct candidates from unordered containers. *(Ordered universe = `sorted(entity_texts.keys())`, now written to `candidates.json` per eval and SHA-256'd in the manifest — completes the P0.2 candidate/filter-hash deferral; support + all splits pinned as inputs.)*
+- [x] Add train, validation, test, and support triples to the filtered-known-fact map. *(Already done — verified `eval_dbp5l.py:276-310`; support edges mapped to global IDs.)*
+- [ ] Verify reciprocal head and tail query templates separately. **DEFERRED → P1.6:** evaluator is tail-only (`head [SEP] rel → tail`). Reciprocal head prediction needs reciprocal *training* (direction marker), so it lands with the benchmark tracks, not as a half-feature in P0.
+- [x] Average tied ranks and test with a constructed equal-score case. *(Fixed the best-case tie bug at the shared `compute_filtered_metrics`; `rank = higher + (ties+1)/2`. Runnable check: `eval_dbp5l.py --selftest`.)*
+- [ ] Assert identical metrics across two consecutive evaluations of the same checkpoint. **DEFERRED → P0.5:** eval path has no RNG (`model.eval()`, sorted candidates, no sampling) so determinism holds by construction; will assert empirically when reproducing a baseline.
 
 For query $(h,r,?)$, the filtered candidate set is:
 

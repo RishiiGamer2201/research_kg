@@ -26,6 +26,7 @@ Usage:
 """
 
 import os
+import sys
 import json
 import glob
 import time
@@ -178,8 +179,12 @@ def compute_filtered_metrics(scores, true_tail_idx, filter_indices):
         if idx != true_tail_idx:
             scores_filtered[idx] = -float('inf')
 
-    # Rank of the true tail (1-indexed)
-    rank = (scores_filtered > true_score).sum().item() + 1
+    # Average tied ranks (P0.3): candidates tied at true_score occupy positions
+    # higher+1 .. higher+ties; the true entity's expected rank is that block's mean.
+    # Never take the most-favourable tied position (`> true_score` + 1 = best case).
+    higher = (scores_filtered > true_score).sum().item()
+    ties   = (scores_filtered == true_score).sum().item()  # includes the true entity itself
+    rank   = higher + (ties + 1) / 2.0
 
     return {
         'rank': rank,
@@ -188,6 +193,26 @@ def compute_filtered_metrics(scores, true_tail_idx, filter_indices):
         'h3':  1 if rank <= 3 else 0,
         'h10': 1 if rank <= 10 else 0,
     }
+
+
+def _selfcheck():
+    """P0.3 runnable check: filtered ranking averages tied ranks (not best-case)."""
+    import torch as _t
+    # 5 candidates; true is idx 2. No ties, one entity strictly higher -> rank 2.
+    s = _t.tensor([0.1, 0.9, 0.5, 0.2, 0.3])
+    m = compute_filtered_metrics(s, 2, [2])
+    assert abs(m['rank'] - 2.0) < 1e-9, m['rank']
+    # Three-way tie at the true score (idx 1,2,4 all == 0.5), one strictly higher (idx 0=0.9):
+    # block spans positions 2,3,4 -> averaged rank = 1 + (3+1)/2 = 3.0
+    s = _t.tensor([0.9, 0.5, 0.5, 0.2, 0.5])
+    m = compute_filtered_metrics(s, 2, [2])
+    assert abs(m['rank'] - 3.0) < 1e-9, m['rank']
+    assert m['h1'] == 0 and m['h3'] == 1, m
+    # Filtering another true tail (idx 0) out removes the only higher score -> tie block at top,
+    # averaged rank = 0 + (3+1)/2 = 2.0
+    m = compute_filtered_metrics(s, 2, [0, 2])
+    assert abs(m['rank'] - 2.0) < 1e-9, m['rank']
+    print('eval_dbp5l tie self-check OK (average-tied-ranks)')
 
 
 def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=False, dump_ranks=None):
@@ -457,17 +482,36 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
         json.dump(save_data, f, indent=2)
     logger.info(f'Results saved to: {results_path}')
 
-    # ── P0.2: immutable per-eval manifest (candidate/filter hashes added in P0.3) ──
+    # ── P0.2/P0.3: immutable per-eval manifest with persisted candidate order ──
     # Fresh timestamped dir so re-evaluating the same checkpoint never clobbers a manifest.
     try:
         eval_run_dir = os.path.join(os.path.dirname(results_path), 'evals',
                                     time.strftime('%Y%m%d_%H%M%S', time.gmtime()))
-        rm.start_run(eval_run_dir, kind='eval', inputs={
+        os.makedirs(eval_run_dir, exist_ok=True)
+        # Persist the ordered candidate universe so the manifest hashes the exact list
+        # (not just a count) — candidates are reproduced from sorted(entity_texts) but pinned here.
+        cand_path = os.path.join(eval_run_dir, 'candidates.json')
+        with open(cand_path, 'w') as f:
+            json.dump(all_entity_ids, f)
+        inputs = {
             'checkpoint': checkpoint_path,
             'descriptions': desc_path,
             'relation_names': rel_names_path,
             'entities': f'{PROCESSED}/entities.json',
-        }, model_name=model_name, extra={'max_length': max_length, 'results_path': results_path})
+            'train_split': f'{PROCESSED}/train.json',
+            'valid_split': f'{PROCESSED}/valid.json',
+            'test_split': f'{PROCESSED}/test.json',
+            'candidates': cand_path,
+        }
+        # support edges pin the filter's held-out known facts (per-language)
+        for lang in ['en', 'fr', 'es', 'ja', 'el']:
+            sp = os.path.join(_ROOT, f'DBP5L/ind/{lang}/support.txt')
+            if os.path.exists(sp):
+                inputs[f'support_{lang}'] = sp
+        rm.start_run(eval_run_dir, kind='eval', inputs=inputs, model_name=model_name,
+                     extra={'max_length': max_length, 'results_path': results_path,
+                            'candidate_mode': 'cross-lingual(all) + within-language; sorted(entity_texts.keys())',
+                            'filter_policy': 'known-facts: train+valid+test+support; filtered; average-tied-ranks'})
         rm.finish_run(eval_run_dir, 'complete',
                       metrics=save_data['within_language']['overall'],
                       checkpoint_path=checkpoint_path)
@@ -501,7 +545,12 @@ if __name__ == '__main__':
     p.add_argument('--desc-path', default=None,
                    help='Override the entity descriptions file (for description ablations, '
                         'e.g. the no-LLM-backfill variant).')
+    p.add_argument('--selftest', action='store_true',
+                   help='Run the tie-handling self-check and exit (no checkpoint needed).')
     args = p.parse_args()
+    if args.selftest:
+        _selfcheck()
+        sys.exit(0)
     if args.desc_path:
         DESC_PATH_OVERRIDE = args.desc_path
 
