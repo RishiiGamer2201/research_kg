@@ -48,6 +48,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-013 | 2026-07-10 | Valid reproduction | Substrate | S2DN FB15k-237 v1, corrected paper parameters | MRR 53.13; H@1 44.63; H@5 61.22; H@10 67.80 | Release hardcoded a learning rate that overrode the CLI in an earlier invalid run | Verified logged parameters are mandatory; reproduction exceeds the paper's v1 result slightly | [RuleTrust ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md) |
 | R-014 | 2026-07-12 | Inconclusive metric, valid mechanism | Substrate | RuleTrust-S2DN, FB15k-237 v1, one seed | MRR 53.19; H@1 44.15; H@10 71.22; learned scale 3.90 | Only 205 test triples and one seed | Rules carry usable signal, but no defensible ranking gain is established | [RuleTrust ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md) |
 | R-015 | 2026-07-12 | Valid control, inconclusive comparison | Substrate | Shuffled RuleTrust control | MRR 51.03; H@10 70.00; learned scale 0.12 | Metric swing exceeded the apparent real-rule effect | Mechanism check passes because the model rejects shuffled rules; multi-seed paired evaluation is required | [RuleTrust ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md) |
+| R-016 | 2026-07-17 | Valid infra | Phase 0 | P0.1 source unification: copy WSL-only active code into tracked repo; add `RESEARCH_KG_ROOT` override; capture env | 5 root scripts + 4 wrappers + README committed; 4 scripts de-hardcoded; env frozen (py3.10.20/torch2.11+cu128/transformers5.12.1/peft0.19.1) | text venv lacks FlagEmbedding/DGL (by design — BGE-M3 via transformers); 3 divergent S2DN venvs, canonical one not yet frozen | Repo now carries the active pipeline; end-to-end clean-clone smoke deferred to P0.5 | `wsl/research_kg/ENVIRONMENT.md`, `requirements.simkgc-venv.txt` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -172,10 +173,10 @@ These boxes record completed work, not final-paper validity.
 
 ### P0.1 Unify the active Windows and WSL source trees
 
-- [ ] Copy or commit every active trainer, evaluator, detector, bootstrap, and launcher currently present only in WSL.
-- [ ] Establish one canonical repository-relative path for code and one for large local artifacts.
-- [ ] Remove machine-specific absolute paths from configs; resolve data/checkpoint roots through CLI arguments or a versioned local config template.
-- [ ] Record Python, CUDA, PyTorch, Transformers, PEFT, FlagEmbedding, DGL, and compiler versions.
+- [x] Copy or commit every active trainer, evaluator, detector, bootstrap, and launcher currently present only in WSL. *(train_dbp5l_lora, eval_dbp5l, eval_dbp5l_anchors, detector_experiment, bootstrap_sig + 4 run wrappers + WSL README → `wsl/research_kg/`.)*
+- [x] Establish one canonical repository-relative path for code and one for large local artifacts. *(Code canonical: `wsl/research_kg/`. Large artifacts stay in WSL under `RESEARCH_KG_ROOT`, gitignored.)*
+- [x] Remove machine-specific absolute paths from configs; resolve data/checkpoint roots through CLI arguments or a versioned local config template. *(`RESEARCH_KG_ROOT` env var, default `~/research_kg`; all 4 root scripts updated + byte-compile pass.)*
+- [x] Record Python, CUDA, PyTorch, Transformers, PEFT, FlagEmbedding, DGL, and compiler versions. *(`wsl/research_kg/ENVIRONMENT.md` + `requirements.simkgc-venv.txt`. FlagEmbedding/DGL absent in text env by design; S2DN venv freeze deferred to P0.5.)*
 
 **Acceptance:** a clean clone plus documented data placement can launch one smoke train and one full evaluator without editing source.
 
