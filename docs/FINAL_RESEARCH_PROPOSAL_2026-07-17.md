@@ -1,27 +1,29 @@
-# Final Research Proposal: TrustMKGC
+# Final Research Proposal: SelfHeal-MKGC
 
-**Working title:** *TrustMKGC: Reliability-Aware Multilingual Entity-Inductive Knowledge Graph Completion under Missing and Corrupted Evidence*
+**Working title:** *SelfHeal-MKGC: Evidence-Budgeted Multilingual Inductive Knowledge Graph Completion with Detection, Verified Repair, and Downstream Recovery*
 
 **Date:** 17 July 2026
 
-**Status:** proposed replacement for the current three-product execution ladder
+**Status:** unified benchmark, method, and self-healing paper plan
 **Audit scope:** the committed Windows snapshot, the live WSL training tree, `origin/main` at commit `1d7e0e3`, experiment logs, preprocessing/evaluation code, and primary research literature through 17 July 2026.
 
 ## 1. Decision
 
-The research direction is worth continuing, but the current plan is **not yet a safe final paper plan**.
+The project will target **one unified self-healing paper** rather than separate primary and follow-up papers. The paper will connect benchmark construction, reliability-aware KGC, contamination detection, verified repair, and downstream evaluation through one falsifiable question:
 
-- As a research programme, it is strong: it has a useful multilingual substrate, substantial implementation work, careful failure logs, negative controls, and an interesting observation about unreliable generated descriptions.
-- As one submission, it is too broad: it combines an S2DN reproduction study, a RuleTrust methods paper, a multilingual benchmark paper, a contamination detector, a repair system, and downstream QA/RAG evaluation.
-- Several current headline claims are not publication-ready because of split leakage, incompatible evaluation protocols, unclean training descriptions, mutable result provenance, and missing code in the GitHub snapshot.
+> Can a multilingual inductive KGC system identify when its available evidence is unreliable, abstain or quarantine unsafe evidence, repair it from verified sources, and recover KGC and factual-QA performance without damaging clean cases?
 
-My recommendation is to make **one benchmark-first primary paper** and treat end-to-end self-healing as a later paper:
+The unified scope is ambitious but coherent if every component serves this closed loop:
 
-1. **Primary paper:** DBP5L-Ind v2 plus a reliability-aware, evidence-budgeted KGC method.
-2. **Follow-up paper:** verified detection, repair, and downstream evaluation of naturally occurring or realistically annotated multilingual KB contamination.
-3. **RuleTrust:** a conditional feature/ablation only. It must not block the benchmark or primary paper.
+1. **DBP5L-Ind v2** supplies concept-disjoint entities, explicit evidence budgets, clean text, and held-out corruption tracks.
+2. **BGE-M3/LoRA experimentation** establishes a strong text baseline and tests Semantic Smoothing, RuleTrust, and their combination.
+3. **TrustRouter** chooses among text, structure, rules, and fallback evidence while producing calibrated uncertainty.
+4. **Self-healing** converts detection into action: abstain, quarantine, retrieve a verified replacement, validate it, accept or reject the repair, and re-evaluate the affected tasks.
+5. **Downstream evaluation** measures whether accepted repairs improve both KGC and one focused factual QA/RAG task.
 
-In short: **keep the problem, rebuild the scientific foundation, narrow the novelty claim, and change the execution order.**
+Several current headline results remain provisional because of split leakage, incompatible protocols, unclean descriptions, and incomplete provenance. The paper therefore keeps a benchmark-first execution order, but the final submission must include the complete detect → decide → repair → verify → re-evaluate loop.
+
+Semantic Smoothing and RuleTrust are promoted from parked ideas to **gated experimental branches**. They will be tested separately and together inside the BGE-M3/LoRA pipeline. They become main-paper method contributions only if multi-seed experiments show gains beyond tuned controls; otherwise they remain informative ablations.
 
 ## 2. What the current plan proposes
 
@@ -31,7 +33,7 @@ The current plan of record is [`pivot/UNIFIED_PATHWAY.md`](pivot/UNIFIED_PATHWAY
 - **P2 — self-healing multilingual KBs:** detect fabricated entity descriptions from text–structure disagreement, quarantine or repair them, and measure downstream effects.
 - **P3 — RuleTrust-S2DN:** add mined Horn-rule evidence to S2DN if paired experiments establish a genuine gain.
 
-The planned ladder is S2DN reproduction → English neuro-symbolic modification → multilingual conversion → self-healing → paper packaging. The plan itself acknowledges that this full ladder is not finishable as one realistic submission unit, and it contains an ordering contradiction: one section says to close RuleTrust seeds first, while the later status section defers seeds until the end.
+The old ladder is S2DN reproduction → English neuro-symbolic modification → multilingual conversion → self-healing → paper packaging. This proposal replaces that product sequence with one dependency-driven pipeline: repair the benchmark → lock clean BGE/structural baselines → screen Semantic Smoothing and RuleTrust → train reliability routing → detect and quarantine corruption → perform verified repair → measure KGC and factual-QA recovery. S2DN reproduction is supporting evidence, not a separate product that blocks the multilingual paper.
 
 ## 3. What is already good
 
@@ -122,17 +124,17 @@ The broad topic is timely, but several proposed components are occupied:
 
 ### Defensible novelty
 
-The strongest claim supported by the gap analysis is:
+The strongest unified claim to test is:
 
-> **A leakage-controlled, concept-disjoint multilingual entity-inductive KGC benchmark with explicit evidence budgets, together with counterfactual evidence routing and calibrated abstention under missing and corrupted text.**
+> **A leakage-controlled, concept-disjoint multilingual inductive KGC system that operates under explicit evidence budgets, detects unreliable evidence, selects or abstains through calibrated routing, repairs quarantined descriptions from verified sources, and demonstrates recovery in KGC and factual QA.**
 
-This is narrower and stronger than claiming generic multilingual KGC, generic text–structure fusion, or generic self-healing. The paper should use “to our knowledge, after a documented search” and define the exact scope rather than claim an absolute first.
+The novelty is the evaluated closed loop rather than any isolated component. BGE-M3, LoRA, Semantic Smoothing, Horn rules, routing, retrieval, and QA are established ideas individually. The proposed contribution is their controlled use in a multilingual concept-inductive setting, with verification and downstream recovery determining whether a repair is accepted. The paper should use “to our knowledge, after a documented search” and define this exact scope rather than claim an absolute first.
 
 ## 6. Final proposal
 
 ### 6.1 Abstract
 
-Multilingual knowledge graphs are unevenly populated: newly emerging entities may have no learned embedding, few structural edges, incomplete cross-language alignments, and missing or unreliable textual descriptions. Existing multilingual KGC benchmarks are largely transductive and alignment-oriented, while common inductive benchmarks can contain structural shortcuts and often use sampled-negative evaluation. This makes it unclear whether a method genuinely transfers to unseen real-world concepts, which evidence source it relies on, or whether it can recognize when that evidence is unreliable. We propose **DBP5L-Ind v2**, a concept-disjoint multilingual entity-inductive benchmark derived from DBP-5L. It groups aligned identifiers before splitting, provides inductive validation and three official folds, exposes nested 0/1/3/5-edge support budgets, fixes text provenance to the training snapshot, and evaluates filtered full-candidate head and tail prediction. It also supplies held-out missing-text and realistically corrupted-text tracks. On this benchmark we study **TrustRouter**, a lightweight reliability-aware mixture of a multilingual text retriever, a structural inductive reasoner, and an optional relation-prototype/symbolic expert. Counterfactual evidence dropout trains the router to adapt when text, graph support, or cross-language evidence is absent or corrupted; calibrated confidence enables selective abstention or text quarantine. Evaluation emphasizes macro-language performance, robustness, calibration, and risk–coverage in addition to MRR and Hits@k, with external validation on PediaTypes and human-curated multilingual text resources. The intended contribution is not another generic fusion model, but a reproducible benchmark and decision framework for knowing which evidence to trust for unseen multilingual entities.
+Multilingual knowledge graphs are unevenly populated: newly emerging entities may have no learned embedding, few structural edges, incomplete alignments, and missing or unreliable textual descriptions. Existing multilingual KGC benchmarks are largely transductive, while common inductive benchmarks may contain structural shortcuts and rarely test whether a system can recognize, repair, and recover from corrupted evidence. We propose **DBP5L-Ind v2**, a concept-disjoint multilingual entity-inductive benchmark with inductive validation, three fixed folds, nested 0/1/3/5-edge support budgets, snapshot-safe text, full-candidate head/tail evaluation, and held-out missing and realistically corrupted evidence. We first build a BGE-M3/LoRA text expert and test two gated extensions: similarity-guided **Semantic Smoothing** and symbolic **RuleTrust**, individually and jointly. A calibrated **TrustRouter** then combines text, structure, prototypes, and rule evidence under counterfactual evidence dropout. When confidence is low, the system abstains or quarantines the description; a self-healing controller retrieves candidate replacements from approved sources, verifies graph-text and source consistency, accepts only threshold-qualified repairs, and otherwise rolls back or requests review. The complete loop is evaluated by KGC recovery, calibration and risk–coverage, repair precision, clean-case preservation, and one focused factual QA/RAG task, with external validation on an additional multilingual resource. The intended contribution is an evidence-budgeted multilingual KGC benchmark and a verified detect → repair → re-evaluate system, not merely another generic fusion model.
 
 ### 6.2 Meaning of the problem
 
@@ -140,10 +142,12 @@ Multilingual knowledge graphs are unevenly populated: newly emerging entities ma
 
 A normal KGC system learns a vector for every entity it sees during training. That assumption fails when a new person, place, organization, work, or product enters a multilingual graph. The new entity may have only a name, a few links, a description copied from another language, or an automatically generated description containing plausible but false facts.
 
-The system therefore has two coupled tasks:
+The system therefore has four coupled tasks:
 
 1. **Complete the graph:** predict the missing head or tail entity.
 2. **Know what to trust:** decide whether text, local graph structure, cross-language evidence, or relation prototypes are reliable for this query—and abstain when none is reliable.
+3. **Repair unreliable evidence:** quarantine a suspect description, retrieve a candidate replacement from approved sources, and verify it before changing the KB.
+4. **Prove recovery:** show that an accepted repair improves KGC and factual QA/RAG while leaving clean cases unchanged.
 
 The key distinction is between an unseen **identifier** and an unseen **concept**. If Japanese ID `ja:123` is held out but aligned English ID `en:456` remains in training, the real-world concept is not truly unseen. The primary track must hold out the entire aligned concept cluster.
 
@@ -156,7 +160,7 @@ For each language \(\ell\), let \(G^\ell_{train}\) be the training graph. Aligne
 - optional cross-language evidence \(A_e\), absent in the primary alignment-free track;
 - a candidate set containing all eligible entities in the evaluation universe.
 
-The model outputs a candidate score and a calibrated trust/abstention score. It should remain accurate when evidence is clean, degrade gracefully when evidence is removed or corrupted, and identify high-risk predictions.
+The model outputs a candidate score and a calibrated trust/abstention score. For quarantined text it also outputs a repair decision with provenance, verification evidence, and an accept/reject/rollback state. It should remain accurate when evidence is clean, degrade gracefully when evidence is removed or corrupted, and improve after verified repair without modifying clean evidence unnecessarily.
 
 ### 6.3 Research questions and hypotheses
 
@@ -175,6 +179,14 @@ The model outputs a candidate score and a calibrated trust/abstention score. It 
 **RQ4 — Selective prediction.** Can the system identify risky evidence and predictions well enough to abstain or quarantine text?
 
 **H4:** TrustRouter will improve AUPRC, calibration, and risk–coverage over raw graph–text cosine and entropy-only baselines on held-out hard corruptions.
+
+**RQ5 — BGE-M3 method extensions.** Can Semantic Smoothing and RuleTrust improve a BGE-M3/LoRA bi-encoder under clean, sparse, and corrupted evidence?
+
+**H5:** Similarity-guided smoothing will help sparse and semantically related relations, while rule confidence will help high-precision rule-covered queries; the combined model will help only when the two signals are calibrated and gated rather than applied uniformly.
+
+**RQ6 — Closed-loop self-healing.** Can the system detect, repair, verify, and recover from multilingual description contamination without damaging clean entities?
+
+**H6:** Verified repair will increase post-corruption KGC MRR and factual-QA accuracy over quarantine-only and unverified generation, while keeping the false-repair rate and clean-case regression below validation-set thresholds.
 
 ### 6.4 Solution
 
@@ -204,7 +216,7 @@ Before new training:
 8. **Shortcut and leakage audit:** assert entity/concept disjointness, alignment disjointness, relation coverage, support/evaluation separation, answer-string leakage, duplicate facts, temporal provenance, degree balance, and PPR performance.
 9. **Evaluation universe:** define clearly whether all 56,589 official entities or only graph-active entities are candidates; report both only if each has a clear use case.
 
-#### Work package 2 — Baseline matrix
+#### Work package 2A — Baseline matrix
 
 Use the identical splits and evaluator for every method:
 
@@ -216,6 +228,40 @@ Use the identical splits and evaluator for every method:
 - **Ceilings:** transductive DBP-5L systems and oracle alignment may be reported as diagnostic ceilings, never as directly comparable inductive results.
 
 The oracle expert selector is important: if it shows little complementarity, a learned router is unlikely to be worth building.
+
+#### Work package 2B — BGE-M3/LoRA experimental ladder
+
+The clean BGE-M3/LoRA model is the anchor baseline. New mechanisms must be introduced one at a time, with identical data, candidates, seeds, and evaluation:
+
+| Experiment | Change from clean BGE-M3/LoRA | Main purpose |
+|---|---|---|
+| B0 | Clean BGE-M3 + LoRA + standard contrastive objective | Locked baseline |
+| B1 | CRR versus InfoNCE and calibrated hard-negative variants | Objective control |
+| B2 | Relation-aware description/query templates and prototype anchors | Strong text control |
+| B3 | Semantic Smoothing only | Test soft semantic supervision |
+| B4 | RuleTrust loss weighting only | Test rule confidence during training |
+| B5 | RuleTrust score adapter only | Test symbolic evidence at ranking time |
+| B6 | Semantic Smoothing + RuleTrust | Test complementarity or interference |
+| B7 | Evidence dropout + corruption-aware training | Prepare the expert for routing and healing |
+
+**Semantic Smoothing for BGE-M3.** Because BGE-M3 is a text bi-encoder rather than S2DN's relation GNN, the S2DN layer should not be copied literally. Implement three controlled variants:
+
+1. **Soft-target smoothing:** distribute a small target mass to semantically related valid entities or relations using frozen description/relation similarity, excluding known false candidates.
+2. **Relation-prototype consistency:** encourage queries for related relations to remain close to their train-only relation prototypes while preserving a margin between incompatible relations.
+3. **Cross-view consistency:** require the text embedding to agree with a structural/prototype view when that view is available and trusted.
+
+The smoothing coefficient must be tuned on inductive validation. Similarity neighbors and prototypes must be built from training evidence only, and false-negative filtering must be applied before soft targets are formed.
+
+**RuleTrust for BGE-M3.** Test symbolic rules through mechanisms compatible with the bi-encoder:
+
+1. **Example weighting:** multiply the ranking loss by a calibrated function of rule confidence and support.
+2. **Adaptive margin:** require a larger positive/negative margin when high-confidence rules support the positive or contradict the negative.
+3. **Score adapter:** add a normalized rule score through a learnable scalar initialized to zero, mirroring the controlled S2DN pilot.
+4. **Rule feature token/adapter:** inject a compact relation-rule feature into the query adapter without converting entity IDs into memorized embeddings.
+
+Rules must be mined from training triples only, relation IDs must remain injective, and the target edge must be removed when computing support. Required controls are shuffled rules, confidence-matched random rules, zero rule weight, coverage buckets, and no-inverse rules.
+
+**Selection rule.** Screen variants with one seed, then run at least three paired seeds for B0, the best smoothing model, the best RuleTrust model, and their combination. A component survives only if it improves clean or robust macro-MRR with a paired confidence interval, or materially improves calibration/repair coverage without an unacceptable clean-performance cost. Otherwise it remains a negative ablation.
 
 #### Work package 3 — TrustRouter
 
@@ -242,11 +288,9 @@ The system produces both a link prediction and \(p_{trust}\). Below a validation
 2. fall back to graph/name evidence;
 3. abstain and request review.
 
-Automatic text correction is outside the primary claim. It becomes a follow-up only after detection and quarantine work on held-out realistic data.
+Automatic text correction is part of the unified paper, but it is activated only after the detector and quarantine thresholds pass on held-out realistic validation data. RuleTrust and Semantic Smoothing may enter the final BGE expert or router features only after deterministic multi-seed validation.
 
-RuleTrust can enter only as an optional expert or reliability feature after its cache, deterministic evaluation, open-world interpretation, and multi-seed effect are validated.
-
-#### Work package 4 — Realistic missing/corrupted evidence
+#### Work package 4 — Realistic missing/corrupted evidence and closed-loop self-healing
 
 Use separate difficulty levels:
 
@@ -258,6 +302,18 @@ Use separate difficulty levels:
 6. **Observed-source sample:** a source-verifiable sample of naturally missing, outdated, mistranslated, or incorrect multilingual descriptions.
 
 Thresholds must be selected on validation data and evaluated on a disjoint test set. The minimum credible annotation target is 500 cases stratified across five languages; the preferred target is 1,000, with two annotators and adjudication. If bilingual verification is unavailable, narrow the claim rather than call model-generated project artifacts “in the wild.”
+
+The self-healing controller then executes a logged state machine:
+
+1. **Detect:** estimate contamination probability and prediction uncertainty.
+2. **Decide:** keep, down-weight, quarantine, or abstain.
+3. **Retrieve:** obtain candidate descriptions from an allowlist such as a fixed Wikipedia/Wikidata snapshot or another licensed authoritative source.
+4. **Verify:** check source provenance, entity identity, claim-level consistency with trusted graph facts, cross-source agreement, and language quality.
+5. **Repair:** accept only if the candidate passes a validation-calibrated threshold; otherwise retain quarantine or request review.
+6. **Re-evaluate:** rerun affected KGC queries and a fixed factual QA/RAG set.
+7. **Rollback:** reject the repair if clean controls regress, provenance is missing, or the repair fails downstream verification.
+
+Compare verified retrieval against no repair, quarantine-only, name-only fallback, nearest-language transfer, and unconstrained LLM generation. Every repair must preserve the original text, replacement text, source URL/snapshot ID, verifier scores, decision, and rollback history.
 
 ### 6.5 Evaluation protocol
 
@@ -281,6 +337,16 @@ Thresholds must be selected on validation data and evaluated on a disjoint test 
 - Clean-performance cost of robustness.
 - Detection→quarantine→KGC change, with the same checkpoint and candidate protocol.
 
+#### Repair and downstream recovery
+
+- Repair precision, recall, acceptance rate, false-repair rate, and human-adjudicated factual correctness.
+- Provenance coverage and verifier agreement for accepted repairs.
+- KGC recovery: corrupted → quarantined → repaired MRR and Hits@k on the same queries.
+- Clean preservation: change in KGC and detector behavior for untouched clean entities.
+- Factual QA/RAG exact match or F1, citation correctness, and unsupported-answer rate before corruption, after corruption, after quarantine, and after verified repair.
+- Repair efficiency: GPU time, retrieval calls, verifier calls, and human-review rate per accepted repair.
+- Rollback rate and reasons.
+
 #### External validation
 
 - **PediaTypes:** multilingual DBpedia transfer with unseen nodes and relations; useful for external structural generalization.
@@ -293,9 +359,11 @@ Thresholds must be selected on validation data and evaluated on a disjoint test 
 The proposed contributions are:
 
 1. **DBP5L-Ind v2:** a concept-cluster-disjoint multilingual entity-inductive benchmark with matched inductive validation, fixed folds, explicit evidence budgets, train-time text provenance, alignment-free/oracle tracks, shortcut audits, and full head/tail ranking.
-2. **Counterfactual evidence-budget routing:** a query-specific mechanism trained to change expert reliance when text, structure, alignments, or prototypes are removed or corrupted.
-3. **Calibrated selective KGC:** reliability estimation, abstention, and text quarantine evaluated jointly with link prediction rather than reporting only a detector AUC.
-4. **A multilingual robustness analysis:** clean, missing, and realistically corrupted evidence across five unequal-resource languages, with macro/worst-language reporting and external validation.
+2. **A controlled BGE-M3/LoRA extension study:** Semantic Smoothing and RuleTrust adapted to a multilingual text bi-encoder and evaluated separately, jointly, and under missing/corrupted evidence.
+3. **Counterfactual evidence-budget routing:** a query-specific mechanism trained to change expert reliance when text, structure, alignments, prototypes, or rules are removed or corrupted.
+4. **Calibrated selective KGC:** reliability estimation, abstention, and text quarantine evaluated jointly with link prediction rather than reporting only a detector AUC.
+5. **Verified self-healing:** a provenance-preserving detect → decide → retrieve → verify → repair → re-evaluate → rollback loop.
+6. **Downstream recovery evidence:** multilingual KGC and focused factual QA/RAG measured before corruption, after corruption, after quarantine, and after verified repair.
 
 Claims that should **not** be made:
 
@@ -303,7 +371,8 @@ Claims that should **not** be made:
 - BGE-M3, LoRA, CRR, hard negatives, anchors, generic fusion, or generic MoE as novel;
 - 2,359 LLM hallucinations or a 70% global contamination rate;
 - “in-the-wild” detection based only on project-generated descriptions;
-- “self-healing” before a validated detection→decision→repair→re-evaluation loop exists;
+- superiority of Semantic Smoothing or RuleTrust without paired multi-seed controls;
+- “self-healing” unless the complete validated loop improves downstream performance and preserves clean cases;
 - superiority based on comparing full ranking with 50 sampled negatives.
 
 ### 6.7 Datasets
@@ -315,6 +384,7 @@ Claims that should **not** be made:
 | **PediaTypes EN↔FR/DE** | External multilingual fully inductive validation | Use its published protocol and report sampled/full-ranking differences |
 | **Wikidata5M-Ind** | External text-inductive validation | Do not compare raw MRR across different candidate universes |
 | **WikiKGE-10 / WikiKGE10++** | External multilingual text-quality evidence | Use human-curated names/descriptions to validate quality signals |
+| **Verified repair and QA set** | Closed-loop evaluation | Build from source-verifiable natural/realistic corruptions; freeze questions, evidence, gold answers, and citations before repair |
 | **WN18RR / FB15k-237 / NELL inductive splits** | Structural implementation checks | Persist candidates and separate these results from DBP-5L claims |
 | **1,042 generated descriptions** | Corruption research material | Exclude from clean training; label source/model/prompt; verify a stratified subset |
 
@@ -337,20 +407,22 @@ DBP-5L’s published per-language graph sizes are approximately 80,167 triples f
 | Corrected clean BGE-M3, 3 seeds | 30 | RTX 5070 Ti |
 | mBERT + XLM-R, 3 seeds | 20–30 | RTX 5070 Ti |
 | Core objective/text/evidence ablations | 30–50 | RTX 5070 Ti |
+| Semantic Smoothing and RuleTrust one-seed screening | 40–70 | RTX 5070 Ti |
+| Paired confirmation of BGE variants, 3 seeds | 40–80 | RTX 5070 Ti / 96 GB GPU |
 | One or two structural baselines on corrected splits | 40–80 | 96 GB GPU preferred |
 | Static fusion, oracle selector, TrustRouter, calibration | 40–70 | Either GPU |
+| Detection, repair verification, and factual QA/RAG | 30–60 | Either GPU + CPU |
 | Evaluation, bootstrap, robustness curves | 5–15 | GPU + CPU |
-| **Primary paper total** | **165–275** | staged across both GPUs |
-| Optional S2DN/RuleTrust validation | +50–100 | 96 GB GPU |
+| **Unified paper total** | **275–485** | staged across both GPUs |
 
-These are engineering estimates and should be recalibrated after one profiled English run. A safe upper allocation is **350–400 GPU-hours**, but one-seed screening should eliminate weak configurations before three-seed confirmation.
+These are engineering estimates and should be recalibrated after one profiled English run. A safe upper allocation is **500–600 GPU-hours**, but one-seed screening must eliminate weak BGE variants before three-seed confirmation. Only the baseline and surviving Semantic Smoothing/RuleTrust configurations receive full multi-fold, multi-seed evaluation.
 
 #### CPU, RAM, disk, and human resources
 
 - **CPU:** 16–32 cores for split construction, graph partitioning, PPR audits, subgraph extraction, and bootstrap analysis.
 - **RAM:** 32 GB minimum; 64 GB recommended. The current WSL 15 GB allocation may bottleneck structural preprocessing.
 - **Storage:** reserve 150 GB for data, caches, manifests, rank dumps, and checkpoints. Save LoRA adapters rather than 1.14 GB copies of the frozen encoder.
-- **Annotation:** approximately 50–170 annotator-hours for 500–1,000 twice-labeled multilingual cases, depending on verification difficulty and adjudication.
+- **Annotation:** approximately 100–250 annotator-hours for 500–1,000 twice-labeled multilingual corruption/repair cases plus a focused factual-QA set, depending on verification difficulty and adjudication.
 - **Model scale:** no multi-billion-parameter MoE is required. The proposed gate is lightweight; frozen/cached expert embeddings should be used wherever possible.
 
 ### 6.9 Execution plan and go/no-go gates
@@ -371,48 +443,58 @@ These are engineering estimates and should be recalibrated after one profiled En
 
 **Gate G1:** no concept/alignment leakage; all assertions pass; PPR is reported and does not explain the benchmark; full head/tail evaluation is deterministic.
 
-#### Phase 2 — Clean baseline suite (3–5 weeks)
+#### Phase 2 — Clean baselines and BGE experimentation (4–7 weeks)
 
-- Run lexical/PPR, mBERT, XLM-R, BGE-M3, one structural KGFM, relation-anchor, and static-fusion baselines.
-- Use one seed for screening, then three seeds for the locked core matrix.
+- Run lexical/PPR, mBERT, XLM-R, clean BGE-M3/LoRA, one structural KGFM, relation-anchor, and static-fusion baselines.
+- Screen BGE objective, hard-negative, relation-template, and prototype variants.
+- Test Semantic Smoothing, RuleTrust loss weighting, RuleTrust score adaptation, and their combination.
+- Use one seed for screening, then at least three paired seeds for the locked baseline and surviving variants.
 
-**Gate G2:** clean three-seed baselines and an oracle expert-selection analysis exist. If oracle selection adds little, submit a benchmark/resource paper and stop method expansion.
+**Gate G2:** the clean BGE baseline is reproducible; every surviving extension beats its matched control in clean or robust macro-MRR/calibration with a paired confidence interval; shuffled/zero-weight controls pass. Weak variants are removed rather than accumulated.
 
-#### Phase 3 — Reliability and routing (3–5 weeks)
+#### Phase 3 — Reliability, routing, and corruption benchmark (3–5 weeks)
 
-- Build held-out missing/hard-corruption data.
+- Build held-out missing, natural, and realistically corrupted evidence with multilingual annotation.
 - Train TrustRouter with counterfactual evidence dropout.
-- Evaluate calibration, risk–coverage, and robust macro-MRR.
+- Evaluate calibration, risk–coverage, robust macro-MRR, and quarantine decisions.
 
-**Gate G3:** TrustRouter beats the best single expert and tuned static fusion with a paired 95% confidence interval under corruption, while clean MRR drops by no more than 0.5 absolute points.
+**Gate G3:** TrustRouter beats the best single expert and tuned static fusion under corruption, while clean MRR drops by no more than 0.5 absolute points and detector thresholds remain fixed from validation.
 
-#### Phase 4 — External replication and writing (2–4 weeks)
+#### Phase 4 — Verified self-healing loop (3–5 weeks)
 
-- Validate on PediaTypes and at least one text-inductive/text-quality external resource.
-- Freeze tables, claims, model/data cards, and reproducibility package.
+- Implement source-allowlisted retrieval, provenance capture, graph-text verification, accept/reject thresholds, and rollback.
+- Compare no repair, quarantine-only, name-only, cross-language transfer, unconstrained generation, and verified retrieval.
+- Re-evaluate KGC after every intervention and audit false repairs on clean controls.
 
-**Gate G4:** the main conclusion holds outside the new DBP-5L split. If it does not, narrow the paper to the benchmark and diagnostic findings.
+**Gate G4:** accepted repairs are source-verifiable, improve post-corruption KGC over quarantine-only with paired confidence intervals, and do not cause a statistically meaningful clean-case regression. If this gate fails, the system may be called self-auditing but not self-healing.
 
-#### Follow-up only — self-healing
+#### Phase 5 — Downstream recovery, external validation, and writing (3–5 weeks)
 
-Add automatic correction and downstream QA/RAG only after a detector identifies real/realistic errors, a repair is externally verified, and the repaired KB improves KGC or factual QA without damaging clean cases. Related work already shows multilingual machine-generated Wikipedia text is difficult to detect in realistic settings ([WETBench](https://aclanthology.org/2025.wikinlp-1.6/)) and KG denoising can improve downstream QA ([GOLD](https://aclanthology.org/2023.findings-emnlp.232/)); this raises the evidence standard for a self-healing claim.
+- Build one focused multilingual factual QA/RAG evaluation tied to the affected entities and relations.
+- Measure before corruption, after corruption, after quarantine, and after verified repair.
+- Validate the main reliability or repair conclusion on PediaTypes and/or one human-curated multilingual text resource.
+- Freeze tables, claims, model/data cards, repair logs, and the reproducibility package.
+
+**Gate G5:** verified repair improves factual QA/RAG over both corrupted and quarantine-only conditions, preserves citation correctness and clean controls, and at least one main conclusion holds outside DBP5L-Ind v2.
 
 ## 7. What to keep, park, and stop claiming now
 
-### Keep and repair
+### Keep, repair, and extend
 
 - BGE-M3/LoRA training pipeline and full evaluator.
 - mBERT baseline and clean description source work.
 - S2DN reproduction as an implementation appendix or structural baseline.
-- Rule mining as an optional reliability feature.
+- Rule mining as both a BGE training/ranking feature and an optional router expert.
+- Semantic Smoothing adapted to BGE-M3 through soft targets, prototypes, or cross-view consistency.
 - The contamination observation as motivation and a hypothesis.
+- Detection, quarantine, source-verified repair, rollback, and one downstream factual QA/RAG task as one closed loop.
 - The failure ledger, provided it is tied to immutable runs.
 
 ### Park from the primary critical path
 
 - Finishing every S2DN split before multilingual work.
-- Semantic Smoothing and RuleTrust as mandatory architecture contributions.
-- Full downstream RAG/QA generation before KGC and reliability evaluation are valid.
+- More than one downstream QA/RAG benchmark before the focused task is valid.
+- Large generative repair models when verified retrieval or name-only fallback is sufficient.
 - Automatic repair of zero-edge entities without external evidence.
 
 ### Retract or relabel until proven
@@ -421,21 +503,24 @@ Add automatic correction and downstream QA/RAG only after a detector identifies 
 - Relabel AUC 0.995 as **random-swap sanity benchmark**.
 - Relabel +1.95 JA as **one-checkpoint evaluation-time text replacement**, not repair causality.
 - Replace “first multilingual inductive benchmark” with a precise, qualified scope after the PediaTypes comparison.
-- Replace “self-healing” with **reliability-aware detection/quarantine** until the closed loop is demonstrated.
+- Treat Semantic Smoothing and RuleTrust as proposed BGE experiments until paired controls demonstrate value.
+- Use “self-healing” as the target system name, but make the final scientific claim conditional on passing Gates G4 and G5.
 
 ## 8. Final recommendation
 
-The current project should proceed, but its primary scientific object must become **DBP5L-Ind v2 and trustworthy evidence use for unseen multilingual concepts**. This preserves the strongest existing work while removing the most fragile claims.
+The project should proceed as **one unified paper on evidence-budgeted, self-healing multilingual inductive KGC**. DBP5L-Ind v2 remains the scientific foundation; BGE-M3/LoRA experimentation supplies the main text method; TrustRouter supplies calibrated decisions; and the verified repair loop supplies the self-healing claim.
 
 The best paper story is:
 
 1. Existing evaluation cannot tell whether multilingual inductive systems truly generalize or which evidence they trust.
 2. DBP5L-Ind v2 fixes concept leakage, evidence budgets, text provenance, shortcut risk, and evaluation comparability.
-3. Strong text and structural experts fail in different evidence regimes.
-4. TrustRouter learns to route or abstain under controlled missing/corrupted evidence.
-5. The result is validated across languages, evidence budgets, and an external inductive resource.
+3. BGE-M3/LoRA is strengthened and stress-tested with controlled Semantic Smoothing and RuleTrust variants.
+4. TrustRouter detects unreliable evidence and chooses between use, fallback, quarantine, and abstention.
+5. The system retrieves and verifies replacement evidence, accepts or rolls back the repair, and measures KGC recovery.
+6. Accepted repairs improve one focused factual QA/RAG task without damaging clean cases.
+7. The result is validated across languages, evidence budgets, corruption types, and an external resource.
 
-If the router fails its gate, the benchmark and empirical diagnosis remain a coherent publishable unit. If the corruption and repair work later passes its stronger gate, it becomes a separate, better-supported self-healing paper rather than an overextended section of the first one.
+This remains one paper only if the closed loop passes the gates. The benchmark, BGE experiments, detector, and repair system must share the same entities, evidence states, evaluator, and central hypothesis; unrelated S2DN reproduction details belong in an appendix. If verified repair or downstream recovery fails, the submission must narrow its title and claims to reliability-aware/self-auditing KGC rather than presenting an incomplete loop as self-healing.
 
 ## 9. Previous work and results to date
 
@@ -580,7 +665,7 @@ The real-rule run raised Hits@10 by 3.42 and MRR by 0.06, while Hits@1 fell by 0
 
 ### 9.9 Semantic Smoothing status
 
-The original S2DN Semantic Smoothing module is present in the reproduced S2DN architecture. A new similarity-guided Semantic Smoothing modification was designed as a second research branch, but it has not been implemented and evaluated as a controlled contribution. It has also not yet been added to the BGE-M3/LoRA training pipeline. Any future use must first be compared against the clean BGE-M3/LoRA baseline, then tested alone, with RuleTrust alone, and with both combined.
+The original S2DN Semantic Smoothing module is present in the reproduced S2DN architecture. A new similarity-guided Semantic Smoothing modification was designed as a second research branch, but it has not yet been implemented and evaluated as a controlled contribution in BGE-M3/LoRA. The revised plan now makes this a formal BGE experiment through soft-target smoothing, relation-prototype consistency, and cross-view consistency. It will be tested against the clean baseline, alone, with RuleTrust alone, and with both combined. These remain proposed experiments—not completed results—and must pass the controls and selection rule in Work Package 2B.
 
 ### 9.10 Current evidence boundary
 
