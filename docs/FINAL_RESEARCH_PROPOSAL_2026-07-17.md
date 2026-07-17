@@ -159,11 +159,11 @@ The key distinction is between an unseen **identifier** and an unseen **concept*
 
 #### Formal task
 
-For each language \(\ell\), let \(G^\ell_{train}\) be the training graph. Aligned entity identifiers form concept clusters \(C\). For a test concept \(c\), the primary track requires \(c\cap G^\ell_{train}=\varnothing\) for every language. A query is either \((h,r,?)\) or \((?,r,t)\), with:
+For each language $\ell$, let $G^\ell_{\mathrm{train}}$ be the training graph. Aligned entity identifiers form concept clusters $C$. For a test concept $c$, the primary track requires $c\cap G^\ell_{\mathrm{train}}=\varnothing$ for every language. A query is either $(h,r,?)$ or $(?,r,t)$, with:
 
-- text evidence \(x_e\), which can be clean, missing, or corrupted;
-- a nested support set \(S_e^k\), where \(k\in\{0,1,3,5\}\);
-- optional cross-language evidence \(A_e\), absent in the primary alignment-free track;
+- text evidence $x_e$, which can be clean, missing, or corrupted;
+- a nested support set $S_e^k$, where $k\in\{0,1,3,5\}$;
+- optional cross-language evidence $A_e$, absent in the primary alignment-free track;
 - a candidate set containing all eligible entities in the evaluation universe.
 
 The model outputs a candidate score and a calibrated trust/abstention score. For quarantined text it also outputs a repair decision with provenance, verification evidence, and an accept/reject/rollback state. It should remain accurate when evidence is clean, degrade gracefully when evidence is removed or corrupted, and improve after verified repair without modifying clean evidence unnecessarily.
@@ -211,7 +211,7 @@ Before new training:
 1. **Concept clustering:** build connected components from alignment links and split clusters, not individual language IDs.
 2. **Strict partitions:** create disjoint training, validation, and test concept sets. Validation must be inductive and match the test distribution.
 3. **Three official folds:** publish three fixed split seeds/folds rather than regenerate splits per experiment.
-4. **Evidence budgets:** expose deterministic nested support sets \(S^0\subset S^1\subset S^3\subset S^5\). Enforce the cap after the global union, and remove every support edge from evaluation.
+4. **Evidence budgets:** expose deterministic nested support sets $S^0\subset S^1\subset S^3\subset S^5$. Enforce the cap after the global union, and remove every support edge from evaluation.
 5. **Tracks:**
    - **Concept-cold primary:** the aligned concept is unseen in every language.
    - **Language-cold diagnostic:** target-language ID unseen, but evidence may exist in another language.
@@ -288,18 +288,20 @@ The following experiments were selected from related inductive, transductive, mu
 | K11 | 1 | **Reciprocal and auxiliary relation/type prediction** | [Multi-task PLM KGC](https://aclanthology.org/2020.coling-main.153/) combines link, relation, and relevance objectives | Train head and tail directions jointly with relation and entity-type auxiliary heads; compare shared versus separate adapters | Does auxiliary relational supervision reduce lexical shortcutting? |
 | K12 | 2 | **Self-adversarial negative weighting** | [RotatE](https://openreview.net/forum?id=HkgEQnRqYQ) introduced self-adversarial negative sampling | Weight filtered negatives by current model hardness with a capped temperature and stop-gradient | Is this cheaper than a generator while matching dynamic-mining gains? |
 | K13 | 2 | **Full generative-negative model** | [Generative hard-negative mining](https://aclanthology.org/2023.findings-acl.362/) uses a sequence-to-sequence generator to produce diverse difficult negatives | Train only if K4 saturates; resolve generated strings to existing entity IDs and discard unresolved or potentially true candidates | Does a generator add useful hardness beyond retrieval-based mining? |
+| K14 | 0 | **Inductive cross-lingual relation-alignment contrastive learning** | [SimRMKGC](https://link.springer.com/article/10.1007/s10489-025-06782-x) makes relation alignment a central supervised-contrastive objective on transductive DBP-5L | Encode relation labels, train-only endpoint prototypes, and neighbourhood summaries with BGE-M3; mine positive relation pairs only from aligned training concepts; compare relation-alignment only, entity-alignment only, their fixed-weight combination, and gradient-balanced multi-task training | Does relation supervision transfer across languages to unseen concepts without requiring test-entity embeddings or oracle alignments? |
+| K15 | 1 | **Area-wise mixup hard negatives** | [SimRMKGC](https://link.springer.com/article/10.1007/s10489-025-06782-x) uses generated area-wise mixup hard negatives for relation alignment | Mix blocks or token-level vectors from two false-negative-filtered hard negatives, apply stop-gradient and L2 normalization, and exclude known facts, aligned concepts, rule-supported candidates, and type-compatible plausible positives | Do synthetic near-boundary negatives improve discrimination beyond K4 dynamic mining without moving training off the BGE embedding manifold? |
 
-**KGC experiment controls.** Every experiment uses the same DBP5L-Ind v2 fold, description snapshot, candidate set, filtering rules, and seed. Report gains by language, evidence budget, relation frequency, description source, and rule/type coverage. For any auxiliary target derived from structure, recompute it from training triples only. Do not run the full Cartesian product: K1–K6 are screened independently against B0, then at most the best four components enter a factorial combination study.
+**KGC experiment controls.** Every experiment uses the same DBP5L-Ind v2 fold, description snapshot, candidate set, filtering rules, and seed. Report gains by language, evidence budget, relation frequency, description source, and rule/type coverage. For any auxiliary target derived from structure, recompute it from training triples only. Relation-alignment experiments use only training-concept alignments in the primary track; test alignments are restricted to a separately labelled oracle diagnostic. Screen K1–K6 and K14 independently against B0, then screen K15 only against B0 and the best alignment model. At most four surviving components enter a factorial combination study.
 
 #### Work package 3 — TrustRouter
 
-Let each expert \(m\) produce score \(s_m(q,c)\). A lightweight gate computes weights:
+Let each expert $m$ produce score $s_m(q,c)$. A lightweight gate computes weights:
 
-\[
+$$
 s(q,c)=\sum_m w_m(z_q)s_m(q,c), \qquad \sum_m w_m(z_q)=1.
-\]
+$$
 
-The evidence vector \(z_q\) uses measurable availability and confidence rather than treating language identity as the main signal:
+The evidence vector $z_q$ uses measurable availability and confidence rather than treating language identity as the main signal:
 
 - support-edge count, path availability, and local degree;
 - description presence, source/provenance, length, and graph–text consistency;
@@ -310,7 +312,7 @@ The evidence vector \(z_q\) uses measurable availability and confidence rather t
 
 Training uses **counterfactual evidence dropout**: independently mask text, support edges, alignments, and prototypes; inject realistic text corruption; and require the gate to adapt. The objective combines ranking loss, evidence-consistency loss, and calibration/selective-risk loss.
 
-The system produces both a link prediction and \(p_{trust}\). Below a validation-calibrated threshold it may:
+The system produces both a link prediction and $p_{\mathrm{trust}}$. Below a validation-calibrated threshold it may:
 
 1. down-weight or quarantine the description;
 2. fall back to graph/name evidence;
@@ -358,6 +360,7 @@ Compare verified retrieval against no repair, quarantine-only, name-only fallbac
 | S9 | 1 | **Multilingual KG-grounded QA transfer** | [MultiHal](https://arxiv.org/abs/2505.14101) is a 2025 preprint with multilingual multi-hop KG paths for hallucination evaluation | Use it as external diagnostic evidence, not the primary benchmark. Compare plain QA, corrupted-KG RAG, quarantined-KG RAG, and repaired-KG RAG with fixed retrieval and generation settings. |
 | S10 | 1 | **Conformal escalation policy** | [Conformal KGE answer sets](https://aclanthology.org/2025.naacl-long.32/) and [KGE Calibrator](https://aclanthology.org/2025.emnlp-main.1522/) motivate explicit coverage-controlled uncertainty | Use relation/language/evidence-budget calibration to choose automatic accept, quarantine, or human review. Measure empirical coverage, repair set size, automation rate, and false-repair rate. |
 | S11 | 2 | **Judge disagreement as a training signal** | The [multilingual judge study](https://aclanthology.org/2025.findings-emnlp.587/) suggests disagreement itself is informative | Feed cross-model, cross-language, NLI, graph, and source disagreement to TrustRouter; test whether it predicts false repairs better than mean judge score. Do not add multi-agent generation unless this simple disagreement feature helps. |
+| S12 | 0 | **Reliability-aware relation-alignment verifier** | [SimRMKGC](https://link.springer.com/article/10.1007/s10489-025-06782-x) shows that relation alignment improves multilingual completion when alignment supervision is available | Use relation-prototype agreement as both a detector feature and a repair acceptance signal. Corrupt 5%, 10%, and 20% of mined relation pairs; compare unweighted, similarity-weighted, RuleTrust-weighted, calibrated rejection, and quarantine-then-realignment policies. A repair cannot be accepted from relation agreement alone; source and claim verification remain mandatory. |
 
 **Self-healing acceptance rule.** A proposed repair is accepted only when source provenance is valid, entity identity is resolved, atomic claims pass the selected verifier, the calibrated policy permits automatic action, and KGC/QA clean controls do not trigger rollback. LLM-as-a-judge is an experimental verifier and explanation generator, not ground truth. The primary test set remains human-adjudicated and hidden from prompt/example selection.
 
@@ -405,7 +408,7 @@ Compare verified retrieval against no repair, quarantine-only, name-only fallbac
 The proposed contributions are:
 
 1. **DBP5L-Ind v2:** a concept-cluster-disjoint multilingual entity-inductive benchmark with matched inductive validation, fixed folds, explicit evidence budgets, train-time text provenance, alignment-free/oracle tracks, shortcut audits, and full head/tail ranking.
-2. **A controlled BGE-M3/LoRA extension study:** Semantic Smoothing and RuleTrust adapted to a multilingual text bi-encoder and evaluated separately, jointly, and under missing/corrupted evidence.
+2. **A controlled BGE-M3/LoRA extension study:** Semantic Smoothing, RuleTrust, and leakage-safe cross-lingual relation-alignment contrastive learning adapted to a multilingual text bi-encoder and evaluated separately, jointly, and under missing/corrupted evidence.
 3. **Counterfactual evidence-budget routing:** a query-specific mechanism trained to change expert reliance when text, structure, alignments, prototypes, or rules are removed or corrupted.
 4. **Calibrated selective KGC:** reliability estimation, abstention, and text quarantine evaluated jointly with link prediction rather than reporting only a detector AUC.
 5. **Verified self-healing:** a provenance-preserving detect → decide → retrieve → verify → repair → re-evaluate → rollback loop.
@@ -426,6 +429,7 @@ Claims that should **not** be made:
 | Dataset/resource | Role | Required treatment |
 |---|---|---|
 | **DBP-5L** (EN, FR, ES, JA, EL) | Core source for DBP5L-Ind v2 | Rebuild concept-disjoint folds; preserve all relation IDs; version alignments and text provenance |
+| **E-PKG** (DE, EN, ES, FR, IT, JA) | Optional external transductive test for relation-alignment transfer | Use only for external KGC validation; do not use as the primary verified-repair benchmark because authoritative entity-level source provenance is not guaranteed |
 | **Current DBP-5L-Ind** | Diagnostic only | Do not use as final benchmark; retain to quantify how corrections change results |
 | **PediaTypes EN↔FR/DE** | External multilingual fully inductive validation | Use its published protocol and report sampled/full-ranking differences |
 | **Wikidata5M-Ind** | External text-inductive validation | Do not compare raw MRR across different candidate universes |
@@ -435,6 +439,8 @@ Claims that should **not** be made:
 | **1,042 generated descriptions** | Corruption research material | Exclude from clean training; label source/model/prompt; verify a stratified subset |
 
 DBP-5L’s published per-language graph sizes are approximately 80,167 triples for EN, 49,015 FR, 54,066 ES, 28,774 JA, and 13,839 EL ([SS-AGA dataset table](https://aclanthology.org/2022.acl-long.36.pdf)). The current local split contains 118,256 training triples, 13,137 validation triples, 54,473 inductive test triples, and 39,995 support edges across five languages. These local counts should be regenerated and hashed after the split redesign.
+
+**SimRMKGC resource audit.** SimRMKGC uses the standard transductive DBP-5L and E-PKG datasets, not DBP5L-Ind v2. The public [DBP-5L files](https://github.com/stasl0217/KEnS/tree/main/data) contain per-language entities, train/validation/test triples, seed entity alignments, and the relation vocabulary; the associated [KEnS repository](https://github.com/stasl0217/KEnS) is an older baseline, not SimRMKGC code. The public [E-PKG files](https://github.com/amzn/ss-aga-kgc/tree/main/EPKG_DATA) and [SS-AGA code](https://github.com/amzn/ss-aga-kgc) likewise predate SimRMKGC. The SimRMKGC paper's Data Availability statement links these datasets but no official implementation, and no public repository under the exact method name or title was found as of 17 July 2026. Therefore K14, K15, and S12 require a clean-room reimplementation of the verified mechanisms rather than importing an unverified third-party reproduction.
 
 ### 6.8 Compute required
 
@@ -497,6 +503,7 @@ These are engineering estimates and should be recalibrated after one profiled En
 - Screen BGE objective, hard-negative, relation-template, and prototype variants.
 - Evaluate BGE-M3 dense, sparse, multi-vector, and hybrid scoring before adding new encoders.
 - Screen structure-aware contrastive tasks, schema-guided negatives, false-negative-safe dynamic mining, calibration/conformal sets, and joint link-description completion.
+- Screen SimRMKGC-derived relation-alignment contrastive training; compare entity-only, relation-only, fixed joint, and gradient-balanced joint losses. After selecting the best alignment model, sweep 0/10/30/50/100% training-alignment availability and only then test area-wise mixup negatives.
 - Test Semantic Smoothing, RuleTrust loss weighting, RuleTrust score adaptation, and their combination.
 - Use one seed for screening, then at least three paired seeds for the locked baseline and surviving variants.
 
@@ -513,7 +520,7 @@ These are engineering estimates and should be recalibrated after one profiled En
 
 #### Phase 4 — Verified self-healing loop (3–5 weeks)
 
-- Implement the Priority-0 detector and verifier portfolio: multi-signal detection, atomic claims, source retrieval, minimal revision, multilingual source ensemble, LLM-judge calibration, and KGC↔KGE cycle consistency.
+- Implement the Priority-0 detector and verifier portfolio: multi-signal detection, atomic claims, source retrieval, minimal revision, multilingual source ensemble, LLM-judge calibration, KGC↔KGE cycle consistency, and reliability-aware relation-alignment verification.
 - Implement source-allowlisted retrieval, provenance capture, graph-text verification, accept/reject thresholds, and rollback.
 - Compare no repair, quarantine-only, name-only, cross-language transfer, unconstrained generation, and verified retrieval.
 - Re-evaluate KGC after every intervention and audit false repairs on clean controls.
