@@ -39,4 +39,11 @@ Running log. Newest entries at top of each section. Absolute dates.
   - Rule cache: `rule_miner.rule_signature(...)` keys on dataset+train+params+relation2id+target_policy; `ensure_rule_cache` validates signature, re-mines stale. Removed redundant fixed-path pre-set in `train.py:238`. Self-check `python S2DN/SDN/utils/rule_miner.py`.
   - **Process fix:** `scripts/` was NOT symlinked → WSL ran stale converter. Now `setup_wsl_symlinks.sh` symlinks whole `scripts/` dir. Lesson: any code edited in repo must be symlinked into WSL to take effect.
   - DEFERRED: target-edge removal before mining/scoring → P2.6 (per-query RuleTrust scoring, needs dgl venv + §4.6 gradient audit); policy in cache signature already.
-- **NEXT: P0.5** reproduce one baseline end-to-end: smoke train, one full historical BGE config on frozen split, compare new evaluator vs recorded ranks (explain diffs incl. tie-averaging), one S2DN smoke. Clears P0.3 repeat-determinism + confirms P0.1 clean-launch. Then Gate G0 (push to main).
+- **P0.5 IN PROGRESS (ledger R-020):**
+  - Zero-shot full eval on clean desc, run TWICE → **byte-identical, DETERMINISTIC: True** (within-lang MRR 1.44016 both). Settles P0.3 repeat-determinism.
+  - **Reproduces historical R-001 (zero-shot MRR 1.45) → got 1.44** (within 0.01; diff = tie-averaging + rounding). Rebuilt evaluator validated end-to-end on GPU.
+  - Eval manifest fully populated on real run: candidate_hash, all splits + per-language support hashes, git commit, model rev 9a0624b8. P0.2 candidate/filter deferral CLOSED.
+  - Eval throughput: ~56k entity encode ~55s; full 54,473-triple eval ~2 min (within+cross-lingual).
+  - RUNNING: 1-epoch smoke train (bge, ml64, clean desc) to validate train-side manifest + checkpoint hash.
+  - REMAINING before Gate G0: (a) full trained Run E retrain ~10 GPU-h [big background job]; (b) S2DN smoke [needs dgl venv]. Both scheduled, not blocking code correctness.
+- **HF note:** eval hits HF Hub for BGE-M3 metadata each load (online). Set `HF_HUB_OFFLINE=1` to avoid network (used in smoke train). Model cached rev 5617a9f6.. / 9a0624b8.. .

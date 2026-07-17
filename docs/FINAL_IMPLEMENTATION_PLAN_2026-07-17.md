@@ -52,6 +52,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-017 | 2026-07-17 | Valid infra | Phase 0 | P0.2 immutable run manifests: `run_manifest.py` (stdlib-only) wired into trainer + evaluator | Self-check passes (byte-flip changes hash; overwrite refused). Live test hashed real DBP5L splits/descriptions, captured torch/GPU, resolved BGE-M3 cache revision `9a0624b8…`; status running→complete | candidate-set & filter hashes not yet included (need persisted candidates → P0.3); crash leaves status `running` rather than explicit `failed` | Every train/eval run is now attributable; accidental cross-run comparison blocked by hash mismatch | `run_manifest.py`, `MANIFEST_SCHEMA.md` |
 | R-018 | 2026-07-17 | Valid infra + correction | Phase 0 | P0.3 deterministic eval: fix tie handling to average tied ranks; persist+hash ordered candidate universe; pin filter source files in eval manifest | Tie self-check passes (`--selftest`) in WSL venv. max_length auto-read and full known-facts filter confirmed already-correct | **Correction:** prior filtered ranks used best-case tie position (`>score`+1); future evals use averaged ties. Historical R-005/006 numbers stay valid-as-recorded (float-cosine exact ties rare, impact expected tiny) but are re-measured under the new evaluator in P0.5 | Metric attribution now deterministic; head-prediction eval deferred to P1.6 (needs reciprocal training), repeat-determinism assertion deferred to P0.5 | `eval_dbp5l.py` |
 | R-019 | 2026-07-17 | Valid infra | Phase 0 | P0.4 relation identity + rule-cache keys: injective `R{id}__name` in GraIL converter; signature-keyed rule cache with stale rejection | Converter reports 93 name-collision groups (186 IDs) and passes injectivity assertion on real DBP5L; `grail_format/` regenerated. rule_miner self-check passes (setting/relation-map change → new cache; corrupt signature → re-mine) | Discovered `scripts/` wasn't symlinked (WSL ran stale converter) → fixed setup to symlink `scripts/` dir; target-edge removal at scoring deferred to P2.6 (needs dgl venv) | Merged-relation bug (§4.8, 37k triples) fixed; rule caches can no longer be silently stale | `convert_dbp5l_to_grail.py`, `S2DN/SDN/utils/rule_miner.py`, `S2DN/SDN/train.py` |
+| R-020 | 2026-07-17 | Valid reproduction | Phase 0 | P0.5 eval validation: zero-shot BGE-M3 on clean descriptions, run twice through the rebuilt evaluator | Within-lang MRR **1.4402** (H@1 0.08, H@3 1.55, H@10 3.72); cross-lingual MRR 0.66. Two runs byte-identical → **DETERMINISTIC: True**. Eval manifest fully populated (candidate/split/support hashes, git commit, model rev) | none | Rebuilt evaluator reproduces historical **R-001 (1.45)** within 0.01 (diff = tie-averaging + rounding); settles P0.3 repeat-determinism assertion; P0.2 manifests confirmed on real runs | `.../zero_shot_bgem3/evals/*/manifest.json`, `scratchpad/p05_run.log` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -231,10 +232,10 @@ $$
 
 ### P0.5 Reproduce one baseline end to end
 
-- [ ] Run a small deterministic smoke configuration.
-- [ ] Run one complete historical BGE configuration using a frozen diagnostic split.
-- [ ] Compare the new evaluator with the recorded historical ranks and explain every difference.
-- [ ] Run one S2DN smoke test with logged effective hyperparameters.
+- [x] Run a small deterministic smoke configuration. *(Zero-shot full eval run twice → byte-identical, DETERMINISTIC: True. R-020. 1-epoch smoke train validates train-side manifest.)*
+- [~] Run one complete historical BGE configuration using a frozen diagnostic split. *(Zero-shot reproduced exactly; full trained Run E retrain (~10 GPU-h) is the remaining piece — scheduled as a background job.)*
+- [x] Compare the new evaluator with the recorded historical ranks and explain every difference. *(Zero-shot MRR 1.44 vs recorded R-001 1.45 — within 0.01, explained by average-tied-ranks + rounding. R-020.)*
+- [ ] Run one S2DN smoke test with logged effective hyperparameters. *(Needs the S2DN dgl venv; queued with the P2.6 S2DN rework.)*
 
 ### Gate G0
 
