@@ -29,6 +29,9 @@ Folder: [pivot/](pivot/)
 | [pivot/sota_benchmark_survey_2026-07-17.md](pivot/sota_benchmark_survey_2026-07-17.md) | Current SOTA across inductive/multilingual/transductive KGC (2024-2026); replaces the stale SS-AGA anchor; finds S2DN is not the inductive SOTA |
 | [pivot/D2_rule_text_bridge_design.md](pivot/D2_rule_text_bridge_design.md) | Measured design of the rule-to-text contamination bridge; cross-lingual transfer measured dead on DBP-5L |
 | [pivot/s2dn_architecture_weaknesses.md](pivot/s2dn_architecture_weaknesses.md) | Mentor task: S2DN's 12 architectural and empirical weaknesses, weakness-to-opportunity map, 96 GB GPU test plan |
+| [pivot/architecture_s2dn.md](pivot/architecture_s2dn.md) | Neutral architecture of S2DN: enclosing subgraph, Semantic Smoothing, Structure Refining, scoring |
+| [pivot/architecture_dbp.md](pivot/architecture_dbp.md) | Architecture of our DBP-5L substrate: BGE-M3 + LoRA + CRR + hard negatives; focused view (full depth in ARCHITECTURE.md) |
+| [pivot/differentiate.md](pivot/differentiate.md) | S2DN vs substrate differentiated on inductive + multilingual + KGC; structure channel vs text channel; why the project fuses both |
 | pivot/archive/ | The two source drafts that were merged into related_work.md |
 
 ## Design decisions of the original project
