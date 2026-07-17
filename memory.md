@@ -49,3 +49,8 @@ Running log. Newest entries at top of each section. Absolute dates.
   - REMAINING before Gate G0: (a) full trained Run E retrain ~10 GPU-h [big background job]; (b) S2DN structural smoke [needs dgl venv — one of S2DN/venv_s2dn*]. Both pure GPU-time, not code.
   - NOT pushed yet: holding Gate G0 push until structural baseline + full retrain done (or user says push text-side progress now). 10 commits local on main.
 - **HF note:** eval hits HF Hub for BGE-M3 metadata each load (online). Set `HF_HUB_OFFLINE=1` to avoid network (used in smoke train). Model cached rev 5617a9f6.. / 9a0624b8.. .
+
+### 2026-07-17 — Gate G0 GPU jobs RUNNING (user approved: single-seed Run E + newest S2DN venv smoke)
+- **Run E retrain** (bg task bh72tja85): `train_dbp5l_lora.py` seed 42, clean desc, 30 epochs, ml160, r16, CRR ρ0.1, HN K=7 from ep5. Run dir `DBP5L/checkpoints/bgem3_lora_dbp5l_20260717_1541_crr_hn7_r16`. Manifest written, 118256 ex, 13860 steps, VRAM 1.14GB. Log `~/research_kg/logs/run_clean_seed42_ml160.log`. ETA ~5-10h. **After it finishes: eval the best_model.pt** (HF_HUB_OFFLINE=1) → compare to historical R-005/006 (26.5 provisional, was contaminated desc + best-case ties). This is the real clean number.
+- **S2DN smoke** (bg task bok1mceqo): venv_s2dn_gpu_latest (torch2.11+cu128, dgl2.4.0+cu121), fb237_v1, 1 epoch, max_links 20, paper dims (emb64/hop3/lr5e-4). Log `scratchpad/s2dn_smoke.log`. Validates structural pipeline + logged hyperparams for G0. Not the full repro (that's R-013 MRR 53.13, ~4.8h).
+- **Gate G0 close-out after both:** mark G0 boxes, record pushed SHA, `git push origin main` (11 commits pending). Then Phase 1.

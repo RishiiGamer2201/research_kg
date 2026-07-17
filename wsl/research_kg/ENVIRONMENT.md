@@ -32,10 +32,14 @@ repo file changes what actually runs — no copy step, no drift.
   `AutoModel` (XLM-R backbone), so FlagEmbedding is not needed for the LoRA trainer.
 
 ## Structural branch (S2DN)
-- Separate, divergent venvs (§4.10 "multiple divergent environments"):
-  `S2DN/venv_s2dn`, `S2DN/venv_s2dn_gpu`, `S2DN/venv_s2dn_gpu_latest`. `dgl` lives here.
-- `CBLiP/IEP/venv` is a third baseline env.
-- TODO(P0.5): freeze the canonical S2DN venv and record which of the three is authoritative.
+- **Canonical venv: `S2DN/venv_s2dn_gpu_latest`** (frozen P0.5). torch 2.11.0+cu128,
+  dgl 2.4.0+cu121, numpy 2.2.6, networkx 3.4.2, lmdb 2.2.1, torchmetrics 1.9.0.
+  Full freeze: `requirements.s2dn-venv.txt` (66 pkgs).
+- Superseded/divergent (do not use): `S2DN/venv_s2dn`, `S2DN/venv_s2dn_gpu`. `CBLiP/IEP/venv` is a separate baseline env.
+- Smoke validated 2026-07-17 (R-022): `python train.py -d fb237_v1 -e smoke_gpu_fb237_v1 --gpu 0
+  --num_epochs 1 --max_links 20 --hop 3 --emb_dim 64` → subgraph extraction + 1 epoch on cuda,
+  effective hyperparams logged, S2DN_SMOKE_DONE. Full fb237_v1 repro is R-013 (MRR 53.13, ~4.8h).
+- Run S2DN from `S2DN/SDN/` (`cd` there; the paper-split wrapper is `scripts/run_fb237_paper_split_gpu.sh`).
 
 ## Hardware
 - GPU: NVIDIA GeForce RTX 5070 Ti, 16 GB, driver 610.74.
