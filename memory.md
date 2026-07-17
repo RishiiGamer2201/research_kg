@@ -44,6 +44,8 @@ Running log. Newest entries at top of each section. Absolute dates.
   - **Reproduces historical R-001 (zero-shot MRR 1.45) → got 1.44** (within 0.01; diff = tie-averaging + rounding). Rebuilt evaluator validated end-to-end on GPU.
   - Eval manifest fully populated on real run: candidate_hash, all splits + per-language support hashes, git commit, model rev 9a0624b8. P0.2 candidate/filter deferral CLOSED.
   - Eval throughput: ~56k entity encode ~55s; full 54,473-triple eval ~2 min (within+cross-lingual).
-  - RUNNING: 1-epoch smoke train (bge, ml64, clean desc) to validate train-side manifest + checkpoint hash.
-  - REMAINING before Gate G0: (a) full trained Run E retrain ~10 GPU-h [big background job]; (b) S2DN smoke [needs dgl venv]. Both scheduled, not blocking code correctness.
+  - Smoke train DONE (R-021): 1-epoch bge ml64, ~7 min. Train manifest status=complete, ckpt hash d2c8dcde, metrics logged. Ckpt eval: max_length=64 auto-read from ckpt, eval manifest written. Full train→ckpt→load→eval→manifest chain validated.
+  - Smoke MRR 0.40 < zero-shot 1.44 = EXPECTED (1 epoch, ml64, no CRR/HN, undertrained). NOT a regression. Real number needs Run E config.
+  - REMAINING before Gate G0: (a) full trained Run E retrain ~10 GPU-h [big background job]; (b) S2DN structural smoke [needs dgl venv — one of S2DN/venv_s2dn*]. Both pure GPU-time, not code.
+  - NOT pushed yet: holding Gate G0 push until structural baseline + full retrain done (or user says push text-side progress now). 10 commits local on main.
 - **HF note:** eval hits HF Hub for BGE-M3 metadata each load (online). Set `HF_HUB_OFFLINE=1` to avoid network (used in smoke train). Model cached rev 5617a9f6.. / 9a0624b8.. .
