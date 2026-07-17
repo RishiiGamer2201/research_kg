@@ -436,3 +436,154 @@ The best paper story is:
 5. The result is validated across languages, evidence budgets, and an external inductive resource.
 
 If the router fails its gate, the benchmark and empirical diagnosis remain a coherent publishable unit. If the corruption and repair work later passes its stronger gate, it becomes a separate, better-supported self-healing paper rather than an overextended section of the first one.
+
+## 9. Previous work and results to date
+
+This section records what had actually been completed by 17 July 2026. It distinguishes measured results from planned work. The primary evidence sources are the [results and inference ledger](RESULTS_AND_INFERENCE.md), the [project story and plan](PROJECT_STORY_AND_PLAN.md), the [S2DN implementation ladder](pivot/IMPLEMENTATION_PLAN_S2DN_LADDER.md), the [RuleTrust experiment ledger](pivot/RULETRUST_EXPERIMENT_LEDGER.md), and the [first detector report](pivot/self_healing_detector_result_2026-07-07.md).
+
+### 9.1 Repository, data, and benchmark construction
+
+The project was organized as a Windows-side research and documentation repository with a committed [WSL training snapshot](../wsl/README.md). The training snapshot contains the multilingual text pipeline, DBP-5L data products, S2DN reproduction, experiment launchers, logs, and result artifacts.
+
+An entity-disjoint inductive version of DBP-5L was built for English, French, Spanish, Japanese, and Greek. Approximately 20% of the entities in each language were held out from training. The resulting local split contains the following counts, recorded in [`stats.json`](../wsl/research_kg/DBP5L/ind/stats.json):
+
+| Language | Total entities | Train entities | Unseen test entities | Train triples | Validation triples | Test triples | Support triples |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| EN | 13,132 | 10,506 | 2,626 | 44,801 | 4,977 | 18,409 | 11,980 |
+| FR | 10,074 | 8,060 | 2,014 | 25,968 | 2,885 | 11,154 | 9,008 |
+| ES | 10,108 | 8,087 | 2,021 | 26,902 | 2,989 | 15,094 | 9,081 |
+| JA | 7,473 | 5,979 | 1,494 | 13,531 | 1,503 | 7,237 | 6,503 |
+| EL | 4,020 | 3,216 | 804 | 7,054 | 783 | 2,579 | 3,423 |
+| **Total** | **44,807** | **35,848** | **8,959** | **118,256** | **13,137** | **54,473** | **39,995** |
+
+The completed data work includes:
+
+- the [DBP-5L inductive split builder](../wsl/research_kg/scripts/data_prep/build_dbp5l_ind.py);
+- multilingual entity-description construction and coverage analysis;
+- support graphs for unseen entities;
+- a [DBP-5L-to-GraIL/S2DN converter](../wsl/research_kg/scripts/data_prep/convert_dbp5l_to_grail.py);
+- filtered evaluation with support triples included as known true facts; and
+- within-language and all-language candidate ranking modes.
+
+This is a working research benchmark, but it is not yet the proposed DBP5L-Ind v2. The current split still requires the concept-level leakage, provenance, PPR-shortcut, inverse-relation, and deterministic-manifest repairs specified earlier in this proposal.
+
+### 9.2 BGE-M3/LoRA multilingual inductive KGC baseline
+
+The main completed text model is a BGE-M3 bi-encoder fine-tuned with LoRA. It encodes an unseen head's description and relation as a query and ranks candidate tail descriptions. The strongest configuration uses CRR, seven hard negatives, LoRA rank 16, and a maximum sequence length of 160 tokens.
+
+The controlled ablation path was:
+
+| Stage | Main addition | Filtered within-language MRR | Change |
+|---|---|---:|---:|
+| Zero-shot BGE-M3 | No task fine-tuning | 1.45 | — |
+| Row3-HN | CRR + hard negatives, length 96 | 13.77 | +12.32 |
+| A | Enriched descriptions, length 128 | 23.80 | +10.03 |
+| B | LoRA rank 16 | 25.15 | +1.35 |
+| E | Length 160 | 26.69 | +1.54 |
+
+The single-reference Run E achieved 26.69 MRR, 18.80 Hits@1, 29.43 Hits@3, and 41.62 Hits@10. Its per-language MRR was 35.93 FR, 37.32 ES, 16.98 EN, 18.42 EL, and 17.90 JA.
+
+Three independent seeds produced MRR values of 26.24, 26.85, and 26.45. The resulting headline was **26.51 ± 0.31 MRR**, with **18.35 ± 0.52 Hits@1** and **41.76 ± 0.28 Hits@10**. Per-language three-seed MRR was 37.29 FR, 36.55 ES, 17.19 EN, 16.79 EL, and 16.15 JA. This result is stable, but it was trained on the old description collection and must therefore remain labelled provisional until the clean three-seed retrain is complete.
+
+The main empirical findings were:
+
+- Wikipedia-style descriptions increased MRR from 3.10 to 10.02, showing that rich text was the largest early driver.
+- CRR alone was similar to InfoNCE on rich text, but CRR combined with hard negatives reached 13.77 MRR.
+- Increasing context length from 128 to 160 raised MRR from 25.15 to 26.69. The gain was concentrated in Japanese and Greek.
+- A stale global-negative cache reduced MRR to 21.56 despite approximately 95% training accuracy, demonstrating harmful label noise or memorization.
+- Extending training to 40 epochs reduced MRR to 23.43, indicating overfitting.
+
+For statistical validation, the full recipe exceeded the pre-enrichment Row3-HN model by 12.67 MRR with a paired 95% bootstrap confidence interval of [12.41, 12.94]. The length-160 model exceeded length 128 by 1.30 MRR with a bootstrap interval of [1.11, 1.49], although the one-sided Wilcoxon result was not significant (`p = 0.31`), meaning that the gain was concentrated rather than uniform across queries.
+
+### 9.3 Baselines and cross-lingual evaluation
+
+An mBERT baseline was run using the same CRR, hard-negative, LoRA, description, and evaluation recipe. It achieved 24.08 overall MRR, compared with the provisional BGE-M3 three-seed mean of 26.51. The per-language comparison was:
+
+| Language | mBERT-clean MRR | BGE-M3 provisional MRR | Difference |
+|---|---:|---:|---:|
+| EN | 16.75 | 17.19 | +0.44 |
+| FR | 35.17 | 37.29 | +2.12 |
+| ES | 31.25 | 36.55 | +5.30 |
+| JA | 15.50 | 16.15 | +0.65 |
+| EL | 10.63 | 16.79 | +6.16 |
+| **Overall** | **24.08** | **26.51** | **+2.43** |
+
+This comparison supports BGE-M3, especially for Greek and Spanish, but it is not fully apples-to-apples until the BGE-M3 clean retrain is finished.
+
+The all-language evaluator ranked each answer against 56,589 multilingual candidates. Across three seeds, within-language MRR was 26.51 ± 0.31 and all-language MRR was 26.01 ± 0.30, a reduction of only 0.50. Hits@10 changed from 41.76 to 40.93. This indicates that the encoder rarely ranks an entity from the wrong language above the correct answer.
+
+A relation-anchor experiment initially appeared to collapse from 15.59 to 3.17 MRR. The cause was a train/evaluation mismatch: the model was trained with anchor-augmented queries but evaluated with bare queries. Matched anchor-aware evaluation reached 20.38 MRR, while the bare-query control reached 3.84. The original negative conclusion was retracted; a controlled anchor study is still pending.
+
+### 9.4 Evaluation and reproducibility fixes
+
+Several important engineering errors were identified and corrected before publication:
+
+1. The evaluator hardcoded a sequence length of 96 even for models trained at 128 or 160. Correcting it raised Run B from 15.59 to 24.76 MRR and established that length 160, not 128, was the better setting.
+2. The filter map omitted 39,995 support triples. Of the test queries, 25.25% had a support-tail that should have been filtered. Adding support facts raised the strongest model from 26.26 to 26.69 MRR and Row3-HN from 11.36 to 13.77.
+3. Anchor-trained queries were evaluated in the wrong format. Matched evaluation changed the anchor result from an apparent 3.17 MRR failure to 20.38 MRR.
+4. The S2DN release contained a hardcoded learning rate that overrode the command line. One 4-hour-46-minute run was invalidated; later runs verified the logged hyperparameters rather than trusting the launch command.
+
+These fixes are part of the contribution's reproducibility record: they prevent attractive but false conclusions from entering the paper.
+
+### 9.5 Description audit and clean-description repair
+
+The first description collection included 1,042 descriptions generated with Llama 3.2 3B for low-resource Greek and Japanese entities. A manual audit of 25 Greek examples found approximately 17 clearly hallucinated, three partially correct, and five accurate: an error rate close to 70%. Proper names were often converted into plausible but false biographies.
+
+An evaluation-time removal test replaced unverifiable English back-fill for 2,359 Greek and Japanese entities. Without retraining, overall MRR increased from 26.69 to 26.94, Japanese MRR increased from 17.90 to 19.85 (**+1.95**), Greek changed from 18.42 to 18.33 (-0.09), and the untouched languages remained identical. This is evidence that the contaminated descriptions hurt ranking, but it is not yet a clean-retraining causal result.
+
+A clean description file was then constructed. Of the 2,359 affected entities, 1,070 (45%) recovered a native-language Wikipedia summary and 1,289 (55%) fell back to the native entity name. LLM-generated and unverifiable cross-lingual English fallback text was removed. The clean three-seed BGE-M3 retrain remains pending.
+
+### 9.6 Graph-text contamination detector
+
+A training-free detector was implemented using BGE-M3 cosine similarity between an entity description and a serialization of its graph neighborhood. Lower agreement indicates possible contamination.
+
+On a controlled set of 400 clean versus wrong-entity description pairs, mean cosine similarity was 0.885 for clean descriptions and 0.663 for injected descriptions. The detector achieved:
+
+- ROC-AUC: **0.995**;
+- best threshold: **0.773**;
+- precision: **0.985**;
+- recall: **0.990**; and
+- F1: **0.988**.
+
+For 40 real Llama-generated fabrications with at least two graph edges, the mean score was 0.761 and 23 of 40 (57%) were flagged at the same threshold. The strong AUC must be described as a random wrong-entity injection sanity benchmark, not as proof of realistic contamination detection. The 57% result exposes the central coverage limitation: the most contaminated entities often have almost no graph structure to audit.
+
+### 9.7 S2DN reproduction
+
+The structural branch reproduced S2DN on the GraIL inductive splits. WN18RR v1-v4 completed with the following average:
+
+| Result | MRR | Hits@1 | Hits@5 | Hits@10 |
+|---|---:|---:|---:|---:|
+| Reproduced WN18RR v1-v4 average | 73.77 | 69.12 | 77.36 | 80.57 |
+| S2DN paper reference | — | — | — | 81.23 |
+
+The reproduced average Hits@10 was 0.66 points below the paper. Individual v1 results were 79.95 MRR, 74.73 Hits@1, 84.84 Hits@5, and 87.23 Hits@10; v3, the hardest split, reached 57.02 MRR and 68.84 Hits@10.
+
+On FB15k-237 v1, the corrected paper-parameter run achieved 53.13 MRR, 44.63 Hits@1, 61.22 Hits@5, and 67.80 Hits@10. The paper reported 52.10 MRR, 43.68 Hits@1, and 67.34 Hits@10, so the reproduction was +1.03 MRR, +0.95 Hits@1, and +0.46 Hits@10 above the paper's v1 result.
+
+FB15k-237 v2 with paper settings did not fit the 16 GB RTX 5070 Ti, and NELL v1-v4 was not completed. Therefore S2DN is reproduced on WN18RR v1-v4 and FB15k-237 v1, not across the entire benchmark suite.
+
+### 9.8 RuleTrust work
+
+RuleTrust was implemented as an entity-independent symbolic score added to the S2DN graph score through one learnable scalar initialized at zero. The model size increased from 122,896 to 122,897 parameters. The rule miner was improved from 142 rules covering 62 of 180 head relations to 462 rules covering 93 relations.
+
+On FB15k-237 v1, with the target edge removed, rule support occurred for 38.8% of positive training subgraphs and 36.1% of positive unseen-entity test cases, compared with 0.8% and 0.1% of negatives. Rule-only AUC was 0.690 on training cases and 0.680 on inductive test cases, showing that the relation-level signal transfers to unseen entities.
+
+The completed single-seed experiments were:
+
+| Run | Learned rule scale | Validation AUC | MRR | Hits@1 | Hits@10 |
+|---|---:|---:|---:|---:|---:|
+| S2DN baseline | — | 0.8527 | 53.13 | 44.63 | 67.80 |
+| RuleTrust | 3.90 | 0.8586 | 53.19 | 44.15 | 71.22 |
+| Shuffled-rule control | 0.12 | 0.8317 | 51.03 | 41.22 | 70.00 |
+
+The real-rule run raised Hits@10 by 3.42 and MRR by 0.06, while Hits@1 fell by 0.49. The learned scale of 3.90, versus 0.12 for shuffled rules, shows that the model distinguishes genuine from corrupted rules. However, the shuffled control moved MRR by -2.10 and Hits@10 by +2.20 despite nearly ignoring its rules. On the 205-triple test set, this variance is larger than the apparent effect. Consequently, RuleTrust has a verified live mechanism but **no defensible ranking improvement yet**; paired three-to-five-seed validation on a locked design remains required.
+
+### 9.9 Semantic Smoothing status
+
+The original S2DN Semantic Smoothing module is present in the reproduced S2DN architecture. A new similarity-guided Semantic Smoothing modification was designed as a second research branch, but it has not been implemented and evaluated as a controlled contribution. It has also not yet been added to the BGE-M3/LoRA training pipeline. Any future use must first be compared against the clean BGE-M3/LoRA baseline, then tested alone, with RuleTrust alone, and with both combined.
+
+### 9.10 Current evidence boundary
+
+The completed work establishes a functioning multilingual inductive dataset, a stable provisional BGE-M3/LoRA result, an mBERT comparison, cross-lingual evaluation, a partial S2DN reproduction, a live but statistically unproven RuleTrust mechanism, a real description-contamination finding, and a strong controlled detector sanity check.
+
+It does not yet establish a clean three-seed BGE-M3 headline, a leakage-audited DBP5L-Ind v2 benchmark, a RuleTrust performance gain, a new Semantic Smoothing gain, realistic contamination detection, automatic verified repair, or external-dataset generalization. Those are the remaining experiments governed by the gates in Section 6.9.
