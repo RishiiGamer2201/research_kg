@@ -18,10 +18,14 @@ discoveries (Sections 1 to 5, 9, 11), so read those. But four things have change
 body disagrees with this banner, the banner wins:
 
 1. Direction settled: the mentor chose a bottom-up ladder, reproduce S2DN (AAAI 2025 inductive KGC),
-   beat it on English inductive with a neuro-symbolic modification (RuleTrust), extend to multilingual,
-   then add self-healing. This ladder is now merged with the external gap plan into the single plan of
-   record, `docs/pivot/UNIFIED_PATHWAY.md`. Section 6 and 10 below (the "two candidate directions" and
-   the venue plan) are superseded by it.
+   beat it on English inductive with neuro-symbolic modifications, extend to multilingual, then add
+   self-healing. The modifications target both of S2DN's branches, not just one: rule-guided Structure
+   Refining (RuleTrust, Phase B) and similarity-guided Semantic Smoothing (Phase B2), plus anything
+   else that makes the architecture novel and better (mentor answer 5). RuleTrust is the first branch
+   under test, not the whole contribution. Which modifications survive is decided by results, not
+   pre-committed. This ladder is now merged with the external gap plan into the single plan of record,
+   `docs/pivot/UNIFIED_PATHWAY.md`. Section 6 and 10 below (the "two candidate directions" and the
+   venue plan) are superseded by it.
 
 2. Venue changed: WSDM 2027 (Section 10) is NOT the target. Decision 2026-07-17 is A-star only, so
    SIGIR 2027 is primary (late-January-style deadline, gives about six months of runway), with WSDM
