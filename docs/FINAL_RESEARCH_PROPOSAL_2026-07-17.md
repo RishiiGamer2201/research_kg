@@ -16,7 +16,7 @@ The project will target **one unified self-healing paper** rather than separate 
 The unified scope is ambitious but coherent if every component serves this closed loop:
 
 1. **DBP5L-Ind v2** supplies concept-disjoint entities, explicit evidence budgets, clean text, and held-out corruption tracks.
-2. **BGE-M3/LoRA experimentation** establishes a strong text baseline and tests Semantic Smoothing, RuleTrust, and their combination.
+2. **BGE-M3/LoRA experimentation** establishes a strong text baseline and tests native dense/sparse/multi-vector scoring, structure/schema-aware contrastive learning, calibrated uncertainty, joint link-description learning, Semantic Smoothing, RuleTrust, and carefully selected combinations.
 3. **TrustRouter** chooses among text, structure, rules, and fallback evidence while producing calibrated uncertainty.
 4. **Self-healing** converts detection into action: abstain, quarantine, retrieve a verified replacement, validate it, accept or reject the repair, and re-evaluate the affected tasks.
 5. **Downstream evaluation** measures whether accepted repairs improve both KGC and one focused factual QA/RAG task.
@@ -121,6 +121,12 @@ The broad topic is timely, but several proposed components are occupied:
 - Text, structure, and rules have already been combined for KG error detection by CCA and GOLD ([CCA, AAAI 2024](https://ojs.aaai.org/index.php/AAAI/article/view/28729); [GOLD, Findings of EMNLP 2023](https://aclanthology.org/2023.findings-emnlp.232/)).
 - PediaTypes already contains English↔French/German DBpedia transfer with entirely new nodes and relation types, so “the multilingual-inductive cell is empty” is not defensible as an absolute claim ([Double Equivariance / PediaTypes](https://arxiv.org/abs/2302.01313)).
 - Stronger inductive backbones now include ULTRA, SEMMA, TARGI, GraphOracle, ARNS, and the June 2026 MGIL preprint; S2DN alone is not a sufficient state-of-the-art comparison ([ULTRA](https://arxiv.org/abs/2310.04562), [TARGI](https://ojs.aaai.org/index.php/AAAI/article/view/33260), [GraphOracle](https://ojs.aaai.org/index.php/AAAI/article/view/38978), [ARNS](https://ojs.aaai.org/index.php/AAAI/article/view/38484), [MGIL](https://arxiv.org/abs/2606.16509)).
+- The current pipeline uses only BGE-M3's dense vector even though the model was trained for dense, learned-sparse, and multi-vector retrieval with cross-mode self-distillation ([BGE-M3](https://aclanthology.org/2024.findings-acl.137/)). This creates a low-cost experiment opportunity before changing the backbone.
+- Structure-aware and schema-aware contrastive work suggests that vertex, neighborhood, path, relation composition, type constraints, and schema-guided negatives can add supervision absent from triple-only text training ([StructKGC](https://aclanthology.org/2024.emnlp-main.772/); [Prior Relational Schema](https://aclanthology.org/2024.lrec-main.1139/)).
+- Multilingual knowledge sharing and iterative reranking are already demonstrated in transductive MKGC ([KL-GMoE](https://aclanthology.org/2025.findings-emnlp.577/)); the research opportunity here is to test whether lightweight shared/language-specific adapters and reranking transfer to concept-inductive entities.
+- Calibration and conformal answer sets now provide stronger uncertainty baselines than raw softmax confidence ([KGE Calibrator](https://aclanthology.org/2025.emnlp-main.1522/); [Conformalized Answer Set Prediction](https://aclanthology.org/2025.naacl-long.32/)).
+- Description repair should be claim-level and source-grounded: FActScore decomposes text into atomic facts, SAFE adds search-grounded verification, and RARR retrieves evidence before minimally revising unsupported content ([FActScore](https://aclanthology.org/2023.emnlp-main.741/); [SAFE](https://papers.neurips.cc/paper_files/paper/2024/hash/937ae0e83eb08d2cb8627fe1def8c751-Abstract-Conference.html); [RARR](https://aclanthology.org/2023.acl-long.910/)).
+- LLM-as-a-judge cannot be treated as gold in this project: multilingual judges are inconsistent across equivalent languages and weaker for low-resource languages ([How Reliable is Multilingual LLM-as-a-Judge?](https://aclanthology.org/2025.findings-emnlp.587/)). It is therefore an ablated verifier calibrated against human labels, not the final authority.
 
 ### Defensible novelty
 
@@ -180,9 +186,9 @@ The model outputs a candidate score and a calibrated trust/abstention score. For
 
 **H4:** TrustRouter will improve AUPRC, calibration, and risk–coverage over raw graph–text cosine and entropy-only baselines on held-out hard corruptions.
 
-**RQ5 — BGE-M3 method extensions.** Can Semantic Smoothing and RuleTrust improve a BGE-M3/LoRA bi-encoder under clean, sparse, and corrupted evidence?
+**RQ5 — BGE-M3 method extensions.** Which retrieval mode, contrastive structure/schema signal, negative-mining strategy, calibration method, Semantic Smoothing variant, or RuleTrust mechanism improves a BGE-M3/LoRA bi-encoder under clean, sparse, and corrupted evidence?
 
-**H5:** Similarity-guided smoothing will help sparse and semantically related relations, while rule confidence will help high-precision rule-covered queries; the combined model will help only when the two signals are calibrated and gated rather than applied uniformly.
+**H5:** BGE hybrid scoring and structure/schema-aware supervision will provide the strongest general gains; similarity-guided smoothing will help sparse and semantically related relations, while rule confidence will help high-precision rule-covered queries. Combined mechanisms will help only when calibrated and gated rather than applied uniformly.
 
 **RQ6 — Closed-loop self-healing.** Can the system detect, repair, verify, and recover from multilingual description contamination without damaging clean entities?
 
@@ -263,6 +269,28 @@ Rules must be mined from training triples only, relation IDs must remain injecti
 
 **Selection rule.** Screen variants with one seed, then run at least three paired seeds for B0, the best smoothing model, the best RuleTrust model, and their combination. A component survives only if it improves clean or robust macro-MRR with a paired confidence interval, or materially improves calibration/repair coverage without an unacceptable clean-performance cost. Otherwise it remains a negative ablation.
 
+#### Work package 2C — Literature-derived KGC experiment portfolio
+
+The following experiments were selected from related inductive, transductive, multilingual, contrastive, and uncertainty-aware KGC work. They are ranked by expected scientific value relative to implementation cost. “Priority 0” experiments should be completed before expanding the architecture; “Priority 1” experiments are screened only after the clean baseline is locked; “Priority 2” experiments are optional if the simpler version saturates.
+
+| ID | Priority | Experiment | Paper basis | Adaptation to this project | Main test |
+|---|:---:|---|---|---|---|
+| K1 | 0 | **Native BGE-M3 dense/sparse/multi-vector KGC** | [BGE-M3](https://aclanthology.org/2024.findings-acl.137/) supports dense, learned-sparse, and multi-vector retrieval with cross-mode self-distillation | Compare dense-only, sparse-only, multi-vector reranking, learned score fusion, and hybrid-teacher→dense-student distillation | Do lexical and token-level signals recover low-resource or long-description errors missed by the current single dense vector? |
+| K2 | 0 | **Structure-aware supervised contrastive tasks** | [StructKGC](https://aclanthology.org/2024.emnlp-main.772/) uses vertex-, neighbor-, path-, and relation-composition-level contrastive tasks | Add train-only neighbor/path/relation-composition positives to BGE fine-tuning; ablate each task and all tasks | Can local structure improve text representations without requiring a full GNN at inference? |
+| K3 | 0 | **Schema/type-guided negatives** | [Prior Relational Schema](https://aclanthology.org/2024.lrec-main.1139/) uses schema interactions and schema-guided negatives for inductive KGC | Build domain/range/type prototypes from training only; sample same-type hard negatives and explicit type-violating controls | Does relation schema sharpen unseen-entity ranking and improve corruption detection? |
+| K4 | 0 | **False-negative-safe dynamic mining** | [Generative hard-negative mining](https://aclanthology.org/2023.findings-acl.362/) and [positive-set expansion](https://aclanthology.org/2025.r2lm-1.17/) show benefits from harder negatives and additional plausible positives | Refresh top-ranked negatives during training; filter known/likely positives using graph facts, alignments, rules, and type constraints; optionally expand positives only when two independent signals agree | Can harder multilingual confusables improve discrimination without repeating the stale-cache failure? |
+| K5 | 0 | **Calibrated and conformal answer sets** | [KGE Calibrator](https://aclanthology.org/2025.emnlp-main.1522/) targets ranking-preserving probability calibration; [conformalized KGE answer sets](https://aclanthology.org/2025.naacl-long.32/) provide coverage-controlled candidate sets | Compare temperature/vector scaling, KGEC-style calibration, and relation/language/evidence-budget conformal sets | Can abstention use statistically meaningful coverage rather than an arbitrary score threshold? |
+| K6 | 0 | **Joint link-and-description completion** | [KG-TRICK](https://aclanthology.org/2025.coling-main.611/) unifies multilingual relational and textual completion | Add auxiliary masked-description reconstruction, source-language→target-language description completion, and relation prediction; never expose test descriptions | Does learning KGC and description quality together improve both induction and later repair verification? |
+| K7 | 1 | **Shared plus language-specific LoRA experts** | [KL-GMoE](https://aclanthology.org/2025.findings-emnlp.577/) combines grouped multilingual experts with iterative entity reranking | Use one shared LoRA plus small language/script/resource-group adapters and a sparse gate; add leave-one-language-out and imbalance tests | Is language-specific capacity useful beyond a shared multilingual encoder, especially for EL and JA? |
+| K8 | 1 | **Two-stage iterative entity reranking** | [KL-GMoE](https://aclanthology.org/2025.findings-emnlp.577/) iterative reranking and [BGE-M3](https://aclanthology.org/2024.findings-acl.137/) multi-vector scoring motivate a retriever→reranker design | Dense retrieval produces top-K; rerank with BGE multi-vector interaction, a compact cross-encoder, or structure/rule features | Does top-K reranking improve full-ranking MRR enough to justify latency? Report recall@K and cost. |
+| K9 | 1 | **Sparse-entity pseudo-neighbor augmentation** | [SLiNT](https://aclanthology.org/2025.findings-emnlp.736/) uses structure-guided pseudo-neighbors and dynamic hard contrastive learning | Retrieve train entities with similar text/type and transfer only relation prototypes or confidence-weighted summaries—not unverified edges | Can zero/one-edge entities benefit without fabricating graph facts or leaking aligned concepts? |
+| K10 | 1 | **Perturbation stability regularization** | [Stability and Generalization of Subgraph Reasoners](https://openreview.net/forum?id=NE6Px91RkQ) links structural perturbation stability to inductive generalization | Apply nested support-edge dropout, description sentence dropout, and relation-label paraphrases; penalize excessive score/rank changes when semantics are preserved | Does local stability predict and improve robustness under evidence budgets? |
+| K11 | 1 | **Reciprocal and auxiliary relation/type prediction** | [Multi-task PLM KGC](https://aclanthology.org/2020.coling-main.153/) combines link, relation, and relevance objectives | Train head and tail directions jointly with relation and entity-type auxiliary heads; compare shared versus separate adapters | Does auxiliary relational supervision reduce lexical shortcutting? |
+| K12 | 2 | **Self-adversarial negative weighting** | [RotatE](https://openreview.net/forum?id=HkgEQnRqYQ) introduced self-adversarial negative sampling | Weight filtered negatives by current model hardness with a capped temperature and stop-gradient | Is this cheaper than a generator while matching dynamic-mining gains? |
+| K13 | 2 | **Full generative-negative model** | [Generative hard-negative mining](https://aclanthology.org/2023.findings-acl.362/) uses a sequence-to-sequence generator to produce diverse difficult negatives | Train only if K4 saturates; resolve generated strings to existing entity IDs and discard unresolved or potentially true candidates | Does a generator add useful hardness beyond retrieval-based mining? |
+
+**KGC experiment controls.** Every experiment uses the same DBP5L-Ind v2 fold, description snapshot, candidate set, filtering rules, and seed. Report gains by language, evidence budget, relation frequency, description source, and rule/type coverage. For any auxiliary target derived from structure, recompute it from training triples only. Do not run the full Cartesian product: K1–K6 are screened independently against B0, then at most the best four components enter a factorial combination study.
+
 #### Work package 3 — TrustRouter
 
 Let each expert \(m\) produce score \(s_m(q,c)\). A lightweight gate computes weights:
@@ -314,6 +342,24 @@ The self-healing controller then executes a logged state machine:
 7. **Rollback:** reject the repair if clean controls regress, provenance is missing, or the repair fails downstream verification.
 
 Compare verified retrieval against no repair, quarantine-only, name-only fallback, nearest-language transfer, and unconstrained LLM generation. Every repair must preserve the original text, replacement text, source URL/snapshot ID, verifier scores, decision, and rollback history.
+
+#### Work package 4B — Literature-derived self-healing experiment portfolio
+
+| ID | Priority | Experiment | Paper basis | Adaptation and required control |
+|---|:---:|---|---|---|
+| S1 | 0 | **Multi-signal contamination detector** | [CCA](https://ojs.aaai.org/index.php/AAAI/article/view/28729) combines textual and structural evidence to distinguish semantically similar errors | Compare BGE graph–text cosine, triplet-reconstruction confidence, type/schema violation, RuleTrust contradiction, model disagreement, and their calibrated ensemble. Ablate every signal and test hard type-matched corruption. |
+| S2 | 0 | **Atomic-claim verification** | [FActScore](https://aclanthology.org/2023.emnlp-main.741/) decomposes text into atomic facts; [SAFE](https://papers.neurips.cc/paper_files/paper/2024/hash/937ae0e83eb08d2cb8627fe1def8c751-Abstract-Conference.html) verifies claims through search-augmented reasoning | Split each description into atomic claims; retrieve frozen-source evidence per claim; label supported, contradicted, or insufficient. Compare atomic verification with whole-description judging. Human-label a stratified test set. |
+| S3 | 0 | **Retrieve-and-minimally-revise repair** | [RARR](https://aclanthology.org/2023.acl-long.910/) retrieves attribution and edits unsupported content while preserving the original | Compare deletion, full replacement, and minimal claim-level editing. Measure edit distance, supported-claim gain, preservation of already-correct claims, KGC recovery, and rollback rate. |
+| S4 | 0 | **Multilingual source ensemble** | [M-NTA](https://aclanthology.org/2023.emnlp-main.100/) shows MT, web search, and LLMs each struggle alone and combines sources for multilingual KG text | Compare native Wikipedia/Wikidata, cross-language transfer, machine translation, approved web retrieval, and LLM synthesis. Require source attribution and two-signal agreement before acceptance. |
+| S5 | 0 | **Calibrated LLM-as-a-judge panel** | [How Reliable is Multilingual LLM-as-a-Judge?](https://aclanthology.org/2025.findings-emnlp.587/) finds cross-language inconsistency and worse low-resource reliability | Compare pointwise and pairwise judging, original/repaired order swaps, native versus translated prompts, self-judge versus cross-model judge, and evidence-present versus evidence-absent prompts. Use two model families plus deterministic/NLI checks; calibrate against human labels per language. An LLM vote alone cannot accept a repair. |
+| S6 | 0 | **Joint KGC↔KGE cycle-consistency verifier** | [KG-TRICK](https://aclanthology.org/2025.coling-main.611/) treats relational and textual completion as mutually beneficial | Accept a repair only if it improves description→relation/tail prediction and graph→description claim recovery while remaining source-supported. Compare source verification alone with source + cycle consistency. |
+| S7 | 1 | **Human-example-conditioned RAG faithfulness judge** | [FaithJudge](https://aclanthology.org/2025.emnlp-industry.54/) uses diverse human-annotated hallucination examples to improve RAG faithfulness evaluation | Build a small multilingual bank of supported/unsupported QA answers; compare zero-shot judge, example-conditioned judge, NLI, and human decisions. Report judge accuracy and calibration before using it as a downstream metric. |
+| S8 | 1 | **Realistic corruption curriculum** | [WETBench](https://aclanthology.org/2025.wikinlp-1.6/) studies realistic multilingual machine-generated text, while CCA motivates semantically similar errors | Train on easy random swaps only after including type-matched swaps, single-claim edits, mistranslations, stale dates, entity collisions, and multiple generators. Hold out corruption families to test transfer rather than memorization. |
+| S9 | 1 | **Multilingual KG-grounded QA transfer** | [MultiHal](https://arxiv.org/abs/2505.14101) is a 2025 preprint with multilingual multi-hop KG paths for hallucination evaluation | Use it as external diagnostic evidence, not the primary benchmark. Compare plain QA, corrupted-KG RAG, quarantined-KG RAG, and repaired-KG RAG with fixed retrieval and generation settings. |
+| S10 | 1 | **Conformal escalation policy** | [Conformal KGE answer sets](https://aclanthology.org/2025.naacl-long.32/) and [KGE Calibrator](https://aclanthology.org/2025.emnlp-main.1522/) motivate explicit coverage-controlled uncertainty | Use relation/language/evidence-budget calibration to choose automatic accept, quarantine, or human review. Measure empirical coverage, repair set size, automation rate, and false-repair rate. |
+| S11 | 2 | **Judge disagreement as a training signal** | The [multilingual judge study](https://aclanthology.org/2025.findings-emnlp.587/) suggests disagreement itself is informative | Feed cross-model, cross-language, NLI, graph, and source disagreement to TrustRouter; test whether it predicts false repairs better than mean judge score. Do not add multi-agent generation unless this simple disagreement feature helps. |
+
+**Self-healing acceptance rule.** A proposed repair is accepted only when source provenance is valid, entity identity is resolved, atomic claims pass the selected verifier, the calibrated policy permits automatic action, and KGC/QA clean controls do not trigger rollback. LLM-as-a-judge is an experimental verifier and explanation generator, not ground truth. The primary test set remains human-adjudicated and hidden from prompt/example selection.
 
 ### 6.5 Evaluation protocol
 
@@ -407,22 +453,24 @@ DBP-5L’s published per-language graph sizes are approximately 80,167 triples f
 | Corrected clean BGE-M3, 3 seeds | 30 | RTX 5070 Ti |
 | mBERT + XLM-R, 3 seeds | 20–30 | RTX 5070 Ti |
 | Core objective/text/evidence ablations | 30–50 | RTX 5070 Ti |
-| Semantic Smoothing and RuleTrust one-seed screening | 40–70 | RTX 5070 Ti |
+| Priority-0 KGC portfolio screening (K1–K6) | 70–120 | RTX 5070 Ti |
 | Paired confirmation of BGE variants, 3 seeds | 40–80 | RTX 5070 Ti / 96 GB GPU |
 | One or two structural baselines on corrected splits | 40–80 | 96 GB GPU preferred |
 | Static fusion, oracle selector, TrustRouter, calibration | 40–70 | Either GPU |
-| Detection, repair verification, and factual QA/RAG | 30–60 | Either GPU + CPU |
+| Priority-0 self-healing portfolio (S1–S6) | 60–100 | Either GPU + CPU |
 | Evaluation, bootstrap, robustness curves | 5–15 | GPU + CPU |
-| **Unified paper total** | **275–485** | staged across both GPUs |
+| **Unified paper total** | **335–545** | staged across both GPUs |
+| Optional Priority-1 screening | +40–80 | Only after Priority-0 gates |
 
-These are engineering estimates and should be recalibrated after one profiled English run. A safe upper allocation is **500–600 GPU-hours**, but one-seed screening must eliminate weak BGE variants before three-seed confirmation. Only the baseline and surviving Semantic Smoothing/RuleTrust configurations receive full multi-fold, multi-seed evaluation.
+These are engineering estimates and should be recalibrated after one profiled English run. A safe upper allocation is **650 GPU-hours**, but one-seed screening must eliminate weak variants before three-seed confirmation. Only B0 and at most four surviving KGC components receive factorial and multi-seed evaluation. Priority-1 experiments do not begin until the corresponding Priority-0 gate passes.
 
 #### CPU, RAM, disk, and human resources
 
 - **CPU:** 16–32 cores for split construction, graph partitioning, PPR audits, subgraph extraction, and bootstrap analysis.
 - **RAM:** 32 GB minimum; 64 GB recommended. The current WSL 15 GB allocation may bottleneck structural preprocessing.
-- **Storage:** reserve 150 GB for data, caches, manifests, rank dumps, and checkpoints. Save LoRA adapters rather than 1.14 GB copies of the frozen encoder.
+- **Storage:** reserve 250 GB for data, dense/sparse/multi-vector caches, manifests, rank dumps, repair evidence, judge traces, and checkpoints. Save LoRA adapters rather than 1.14 GB copies of the frozen encoder.
 - **Annotation:** approximately 100–250 annotator-hours for 500–1,000 twice-labeled multilingual corruption/repair cases plus a focused factual-QA set, depending on verification difficulty and adjudication.
+- **LLM/search budget:** track tokens, retrieval calls, judge calls, and cost per verified repair. Cache source evidence and judge prompts; never let changing web results enter a frozen test run.
 - **Model scale:** no multi-billion-parameter MoE is required. The proposed gate is lightweight; frozen/cached expert embeddings should be used wherever possible.
 
 ### 6.9 Execution plan and go/no-go gates
@@ -447,21 +495,25 @@ These are engineering estimates and should be recalibrated after one profiled En
 
 - Run lexical/PPR, mBERT, XLM-R, clean BGE-M3/LoRA, one structural KGFM, relation-anchor, and static-fusion baselines.
 - Screen BGE objective, hard-negative, relation-template, and prototype variants.
+- Evaluate BGE-M3 dense, sparse, multi-vector, and hybrid scoring before adding new encoders.
+- Screen structure-aware contrastive tasks, schema-guided negatives, false-negative-safe dynamic mining, calibration/conformal sets, and joint link-description completion.
 - Test Semantic Smoothing, RuleTrust loss weighting, RuleTrust score adaptation, and their combination.
 - Use one seed for screening, then at least three paired seeds for the locked baseline and surviving variants.
 
-**Gate G2:** the clean BGE baseline is reproducible; every surviving extension beats its matched control in clean or robust macro-MRR/calibration with a paired confidence interval; shuffled/zero-weight controls pass. Weak variants are removed rather than accumulated.
+**Gate G2:** the clean BGE baseline is reproducible; every surviving extension beats its matched control in clean or robust macro-MRR/calibration with a paired confidence interval; shuffled/zero-weight controls pass. Weak variants are removed rather than accumulated, and at most four components proceed to combination experiments.
 
 #### Phase 3 — Reliability, routing, and corruption benchmark (3–5 weeks)
 
 - Build held-out missing, natural, and realistically corrupted evidence with multilingual annotation.
 - Train TrustRouter with counterfactual evidence dropout.
-- Evaluate calibration, risk–coverage, robust macro-MRR, and quarantine decisions.
+- Compare standard calibration, KGE-specific calibration, and relation/language/evidence-budget conformal answer sets.
+- Evaluate calibration, empirical coverage, set size, risk–coverage, robust macro-MRR, and quarantine decisions.
 
 **Gate G3:** TrustRouter beats the best single expert and tuned static fusion under corruption, while clean MRR drops by no more than 0.5 absolute points and detector thresholds remain fixed from validation.
 
 #### Phase 4 — Verified self-healing loop (3–5 weeks)
 
+- Implement the Priority-0 detector and verifier portfolio: multi-signal detection, atomic claims, source retrieval, minimal revision, multilingual source ensemble, LLM-judge calibration, and KGC↔KGE cycle consistency.
 - Implement source-allowlisted retrieval, provenance capture, graph-text verification, accept/reject thresholds, and rollback.
 - Compare no repair, quarantine-only, name-only, cross-language transfer, unconstrained generation, and verified retrieval.
 - Re-evaluate KGC after every intervention and audit false repairs on clean controls.
@@ -514,9 +566,9 @@ The best paper story is:
 
 1. Existing evaluation cannot tell whether multilingual inductive systems truly generalize or which evidence they trust.
 2. DBP5L-Ind v2 fixes concept leakage, evidence budgets, text provenance, shortcut risk, and evaluation comparability.
-3. BGE-M3/LoRA is strengthened and stress-tested with controlled Semantic Smoothing and RuleTrust variants.
-4. TrustRouter detects unreliable evidence and chooses between use, fallback, quarantine, and abstention.
-5. The system retrieves and verifies replacement evidence, accepts or rolls back the repair, and measures KGC recovery.
+3. BGE-M3/LoRA is strengthened and stress-tested through its native dense/sparse/multi-vector modes, structure/schema-aware contrastive learning, calibrated uncertainty, joint link-description learning, Semantic Smoothing, and RuleTrust.
+4. TrustRouter uses calibrated or conformal uncertainty to choose between use, fallback, quarantine, abstention, and human escalation.
+5. The system decomposes suspect text into claims, retrieves and verifies replacement evidence, minimally repairs or replaces it, accepts or rolls back the change, and measures KGC recovery.
 6. Accepted repairs improve one focused factual QA/RAG task without damaging clean cases.
 7. The result is validated across languages, evidence budgets, corruption types, and an external resource.
 
