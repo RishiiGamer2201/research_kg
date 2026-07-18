@@ -1,0 +1,164 @@
+{
+  "built_utc": "2026-07-18T05:13:00Z",
+  "files": {
+    "entity/el.tsv": {
+      "bytes": 318929,
+      "lines": 5231,
+      "sha256": "76bf04f0364f81668fe48af9c511ff2469dce836843c63c21dfb2b8e4d220272"
+    },
+    "entity/en.tsv": {
+      "bytes": 643322,
+      "lines": 13996,
+      "sha256": "cc2d4c4a4769c8b6de00386eae6fba14552eb5bd6b42ffe86429f6ef02bcb811"
+    },
+    "entity/es.tsv": {
+      "bytes": 614227,
+      "lines": 12381,
+      "sha256": "ec46f124ecb66b99a0bb83af6c55c7298150016c6f88ed276b4fea3db2f0e6b6"
+    },
+    "entity/fr.tsv": {
+      "bytes": 654388,
+      "lines": 13176,
+      "sha256": "b56502875ef0b1df62f9bcacac80c582b24ad4c4fa20932125a8a383a311e924"
+    },
+    "entity/ja.tsv": {
+      "bytes": 703372,
+      "lines": 11805,
+      "sha256": "215649324c276f30bffe245456acfdd8c2af15f0ae02b590f2565b71cbdc056b"
+    },
+    "kg/el-test.tsv": {
+      "bytes": 13698,
+      "lines": 1017,
+      "sha256": "1ec7bd54fa5654b6e2adb6e2e57f6fa8bc9a54eca491df730f1b63742516b4ea"
+    },
+    "kg/el-train.tsv": {
+      "bytes": 116888,
+      "lines": 8670,
+      "sha256": "46305881c555fe3c260a1619059ca7036e451d6c0f4cac194e313bcc08a58cb5"
+    },
+    "kg/el-val.tsv": {
+      "bytes": 55953,
+      "lines": 4152,
+      "sha256": "2a407b5ff7e62b3faca164a8ddeffcea502854994ad8c4ef2c8c3382aa925c57"
+    },
+    "kg/en-test.tsv": {
+      "bytes": 105258,
+      "lines": 7464,
+      "sha256": "8f8da3e594e3675b47e37ba840e14c8f603bb10c2b69d0c364a251b6f51055f6"
+    },
+    "kg/en-train.tsv": {
+      "bytes": 686474,
+      "lines": 48652,
+      "sha256": "b4c9d1bdb67897d629e3ee44e230b20832893bd96f07b165ce8e7260a452ca81"
+    },
+    "kg/en-val.tsv": {
+      "bytes": 339380,
+      "lines": 24051,
+      "sha256": "d24379a3fc7647250e090a7e41f73a804999a8876bc00fc01ae2b611573b499e"
+    },
+    "kg/es-test.tsv": {
+      "bytes": 67198,
+      "lines": 4810,
+      "sha256": "71c65a31134a53a103c94c852fcfe5b840c0451eaeccada52a0f2cf9c2e1212b"
+    },
+    "kg/es-train.tsv": {
+      "bytes": 461628,
+      "lines": 33036,
+      "sha256": "7ac16e46f8329e017ef1d50b07a0fc4502e3397ed34b03da02c2d61f7b3abb3e"
+    },
+    "kg/es-val.tsv": {
+      "bytes": 226306,
+      "lines": 16220,
+      "sha256": "92b43d63fa597ec0421c46b823dcb22e90d87aab57f3993debf2061600b6b871"
+    },
+    "kg/fr-test.tsv": {
+      "bytes": 58271,
+      "lines": 4171,
+      "sha256": "440891a2dce9dcbe8417764a6b988555e612fa354cd3dba8a05845b2bd6d4579"
+    },
+    "kg/fr-train.tsv": {
+      "bytes": 421640,
+      "lines": 30139,
+      "sha256": "fc21af2d21d415a47958c39d50e03c8f981b839cf6b3bc8c71151e2eb75cec4f"
+    },
+    "kg/fr-val.tsv": {
+      "bytes": 205699,
+      "lines": 14705,
+      "sha256": "59458f5580a33563f84f5242af966c2b610bf5e2fcd878355923389d20d81e49"
+    },
+    "kg/ja-test.tsv": {
+      "bytes": 29811,
+      "lines": 2162,
+      "sha256": "ff32c85456d7f524a7ed8936db6f0a927cab6fc71091974da03e73c402b8f7fe"
+    },
+    "kg/ja-train.tsv": {
+      "bytes": 248198,
+      "lines": 17979,
+      "sha256": "93d156bb3328d0791caf5257d0e54606bed6221201781126c47a4e27c3b7c367"
+    },
+    "kg/ja-val.tsv": {
+      "bytes": 118960,
+      "lines": 8633,
+      "sha256": "21a84758d38ed639cfbdca05fc2b6aa821daf4abdaf34db43a272fb1ebb134b4"
+    },
+    "relations.txt": {
+      "bytes": 37564,
+      "lines": 960,
+      "sha256": "7dae0ef521f05d477b8bfdb2a8d5ae74fed35c361a18d476717bc680318d9518"
+    },
+    "seed_alignlinks/el-en.tsv": {
+      "bytes": 31054,
+      "lines": 2290,
+      "sha256": "c3ebddb2977d6ddb72a2f6b965d86befdbf855be2bbcb6d09f5bc76aa575cde2"
+    },
+    "seed_alignlinks/el-es.tsv": {
+      "bytes": 30092,
+      "lines": 2224,
+      "sha256": "81a7d76bd9240a8ce2df752ea14ef0b848c98abac119dac7a527d101f2538e7c"
+    },
+    "seed_alignlinks/el-fr.tsv": {
+      "bytes": 31055,
+      "lines": 2298,
+      "sha256": "07cea02ba20d18c27d182572fa578e7547631c63654ab4a84f4a9dd0f8a34372"
+    },
+    "seed_alignlinks/el-ja.tsv": {
+      "bytes": 30134,
+      "lines": 2230,
+      "sha256": "49ad09f9a5323f881277307f1a34d940b5d2e8c46dde2547b7974d33435e4eca"
+    },
+    "seed_alignlinks/en-fr.tsv": {
+      "bytes": 75146,
+      "lines": 5255,
+      "sha256": "981060e233a73e920580596c6028592103bef3d09d66d67ab7f2adb6f335c2c0"
+    },
+    "seed_alignlinks/es-en.tsv": {
+      "bytes": 68834,
+      "lines": 4831,
+      "sha256": "4b1ff8ec649d8b0aaeedbd8781dbd0693a078e118a5f093262ce2f40cf59d560"
+    },
+    "seed_alignlinks/es-fr.tsv": {
+      "bytes": 64767,
+      "lines": 4562,
+      "sha256": "dbe34cb0f375716f540c172d50191c58386106b463b6101eb63f831546d8bdde"
+    },
+    "seed_alignlinks/ja-en.tsv": {
+      "bytes": 64277,
+      "lines": 4541,
+      "sha256": "bab5b164512b191e26a63236046af57212f124f817fc6c4171c06358a91bdfd5"
+    },
+    "seed_alignlinks/ja-es.tsv": {
+      "bytes": 66611,
+      "lines": 4730,
+      "sha256": "4ce1b7ea532d6945ef77d350d5f74238afb8698a72feb70d44f569395146050a"
+    },
+    "seed_alignlinks/ja-fr.tsv": {
+      "bytes": 67138,
+      "lines": 4762,
+      "sha256": "dea72a6273769114cba58471e7c8529a15c4b4a0a22f5b0192534b67e1f45272"
+    }
+  },
+  "n_files": 31,
+  "top_sha256": "0eca75a5a0d5eda7ceff0f9ceab4bf27a682d9b0e3c1d361c2ce202ec9d5f7db",
+  "total_bytes": 6656272,
+  "upstream": "github.com/stasl0217/KEnS (data/), DBP-5L"
+}
