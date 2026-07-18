@@ -355,7 +355,7 @@ Report whether PPR or simple degree can explain test rankings. Do not merely ass
 - [x] Data card and immutable hashes are complete. *(`docs/DBP5L_IND_V2_DATACARD.md`: card + fold/budget stats + corruption taxonomy + reproduction; records R-034–R-037, key hashes, 14.2% mask rate, inverse-clean policy.)*
 - [x] Ledger is updated with old-vs-v2 metric changes and their causes. *(R-024–R-037; v1 72.3% concept-leak vs v2 concept-disjoint; answer-mention/PPR/inverse-support findings recorded.)*
 - [x] Phase 1 commit is pushed to `main`.
-- [x] Record pushed SHA: `<filled after push>` and date: `2026-07-18`.
+- [x] Record pushed SHA: `ab3b588` and date: `2026-07-18`.
 
 ## 4. Phase 2 - clean baselines and BGE-M3 experiments
 
