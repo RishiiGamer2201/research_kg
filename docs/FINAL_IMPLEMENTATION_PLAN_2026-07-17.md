@@ -59,6 +59,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-024 | 2026-07-18 | Valid benchmark infra + finding | Phase 1 | P1.2 concept clustering (union-find over alignments) + P1.7 concept-leakage audit of v1 split | 56,589 entities → **29,440 concepts** (9,762 multilingual size 2–5, 19,678 singletons, 0 ambiguous), deterministic hashes. v1 audit: **72.3% of test concepts (4,964/6,866) leak into train** via cross-lingual aligned IDs | v1 mapping clean (0 unmapped) | v1 `ind/` split is NOT concept-inductive — quantifies §4.3 and motivates v2. `assert_concept_disjoint` ready for P1.3 fold builder | `build_concept_clusters.py`, `concept_leakage_audit.py`, `DBP5L/ind_v2/concepts/concept_stats.json` |
 | R-025 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.3 three fixed concept-disjoint folds (seeds 13/42/79), stratified by language coverage | Per fold: train 22,082 / valid 2,943 / test 4,415 concepts (75/10/15); all 5 langs present in valid+test; degree median 3 across splits; `assert_concept_disjoint` passes on all folds; distinct manifest hashes per seed; deterministic | none | Concept-disjoint inductive folds replace the 72.3%-leaking v1 split; ready for P1.4 support budgets | `build_v2_folds.py`, `DBP5L/ind_v2/folds/fold{0,1,2}_seed{13,42,79}/` |
 | R-026 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.1 freeze + hash raw DBP-5L source; provenance + licensing | `source_manifest.json`: 31 files, 6.66MB, `top_sha256=0eca75a5…`. Provenance doc: KEnS/EMNLP-2020, CC BY-SA 3.0 obligations, ID layers URI→(lang,local)→global→concept | Exact upstream git commit not captured at download (content hash is the anchor instead) | v2 benchmark is content-addressed to an immutable source snapshot | `hash_source_data.py`, `DBP5L/ind_v2/source_manifest.json`, `DBP5L_DATA_PROVENANCE.md` |
+| R-027 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.4 nested evidence budgets S^0⊂S^1⊂S^3⊂S^5 per fold, comparability rule enforced | Per fold (fold0): 10,399 unseen entities w/ support, avg pool 3.81, S^5 union 39,152; eval_targets_test 36,940 / valid 18,233; exposed/budget 0/10.4k/27k/39.6k. Invariants pass: caps \|S^k\|≤k, prefix nesting, **target∩S^5=0**, **targets fixed across budgets**, **single filter (one hash) all budgets**. Deterministic | none | S^5-union-first + remove-from-all-targets makes budgets directly comparable (only exposed evidence varies) | `build_v2_support_budgets.py`, `DBP5L/ind_v2/folds/*/budgets/` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -288,10 +289,10 @@ $$
 
 ### P1.4 Construct nested support budgets
 
-- [ ] Build a deterministic ordered support pool for every unseen entity.
-- [ ] Prefer training-connected, non-target, non-duplicate edges; record the ordering rule.
-- [ ] Materialize $k\in\{0,1,3,5\}$ prefixes after global deduplication.
-- [ ] Remove all selected support edges from evaluation targets and add them to filtering.
+- [x] Build a deterministic ordered support pool for every unseen entity. *(`build_v2_support_budgets.py`; 10,399 unseen entities with support/fold, avg pool 3.81.)*
+- [x] Prefer training-connected, non-target, non-duplicate edges; record the ordering rule. *(Order key `(other_endpoint_seen?0:1, relation_id, other_global_id, direction)` → seen-neighbour edges first; triples deduped; rule in the module docstring.)*
+- [x] Materialize $k\in\{0,1,3,5\}$ prefixes after global deduplication. *(S^k(e)=pool[:k]; **comparability rule enforced**: S^5 union selected FIRST and removed from eval targets for every budget, so targets + candidate universe are identical across budgets — only exposed evidence varies. exposed edges/budget 0/10.4k/27k/39.6k.)*
+- [x] Remove all selected support edges from evaluation targets and add them to filtering. *(`eval_targets_{test,valid}` = eligible triples − S^5 union; the single known-true filter = all graph facts (which contains the support edges), `filter_hash` identical across budgets.)*
 
 **Acceptance:** nesting assertions, caps, no target overlap, and identical regenerated hashes.
 
