@@ -1,0 +1,456 @@
+{
+  "built_utc": "2026-07-18T06:19:13Z",
+  "folds": {
+    "fold0_seed13": {
+      "oracle": {
+        "by_direction": {
+          "head": {
+            "exact_rate": 0.1507,
+            "n": 36940,
+            "subset_rate": 0.0988,
+            "trivial": 90
+          },
+          "tail": {
+            "exact_rate": 0.6348,
+            "n": 36940,
+            "subset_rate": 0.4364,
+            "trivial": 121
+          }
+        },
+        "by_language": {
+          "el": {
+            "exact_rate": 0.4351,
+            "n": 3042,
+            "subset_rate": 0.338,
+            "trivial": 1
+          },
+          "en": {
+            "exact_rate": 0.4727,
+            "n": 27160,
+            "subset_rate": 0.3624,
+            "trivial": 51
+          },
+          "es": {
+            "exact_rate": 0.29,
+            "n": 19092,
+            "subset_rate": 0.1577,
+            "trivial": 32
+          },
+          "fr": {
+            "exact_rate": 0.3742,
+            "n": 16934,
+            "subset_rate": 0.2451,
+            "trivial": 13
+          },
+          "ja": {
+            "exact_rate": 0.3891,
+            "n": 7652,
+            "subset_rate": 0.2255,
+            "trivial": 114
+          }
+        },
+        "by_source": {
+          "entity_name": {
+            "exact_rate": 0.034,
+            "n": 324,
+            "subset_rate": 0.0309,
+            "trivial": 0
+          },
+          "wikipedia_cross_lang": {
+            "exact_rate": 0.0782,
+            "n": 3403,
+            "subset_rate": 0.0478,
+            "trivial": 13
+          },
+          "wikipedia_native": {
+            "exact_rate": 0.4096,
+            "n": 70153,
+            "subset_rate": 0.2792,
+            "trivial": 198
+          }
+        },
+        "overall": {
+          "exact_rate": 0.3927,
+          "n": 73880,
+          "subset_rate": 0.2675,
+          "trivial": 211
+        }
+      },
+      "primary": {
+        "by_direction": {
+          "head": {
+            "exact_rate": 0.1492,
+            "n": 36940,
+            "subset_rate": 0.0977,
+            "trivial": 90
+          },
+          "tail": {
+            "exact_rate": 0.6307,
+            "n": 36940,
+            "subset_rate": 0.4342,
+            "trivial": 121
+          }
+        },
+        "by_language": {
+          "el": {
+            "exact_rate": 0.4328,
+            "n": 3042,
+            "subset_rate": 0.3364,
+            "trivial": 1
+          },
+          "en": {
+            "exact_rate": 0.4655,
+            "n": 27160,
+            "subset_rate": 0.3586,
+            "trivial": 51
+          },
+          "es": {
+            "exact_rate": 0.29,
+            "n": 19092,
+            "subset_rate": 0.1577,
+            "trivial": 32
+          },
+          "fr": {
+            "exact_rate": 0.3737,
+            "n": 16934,
+            "subset_rate": 0.2447,
+            "trivial": 13
+          },
+          "ja": {
+            "exact_rate": 0.3892,
+            "n": 7652,
+            "subset_rate": 0.2255,
+            "trivial": 114
+          }
+        },
+        "by_source": {
+          "entity_name": {
+            "exact_rate": 0.034,
+            "n": 324,
+            "subset_rate": 0.0309,
+            "trivial": 0
+          },
+          "wikipedia_cross_lang": {
+            "exact_rate": 0.0165,
+            "n": 3403,
+            "subset_rate": 0.0136,
+            "trivial": 13
+          },
+          "wikipedia_native": {
+            "exact_rate": 0.4096,
+            "n": 70153,
+            "subset_rate": 0.2792,
+            "trivial": 198
+          }
+        },
+        "overall": {
+          "exact_rate": 0.3899,
+          "n": 73880,
+          "subset_rate": 0.2659,
+          "trivial": 211
+        }
+      }
+    },
+    "fold1_seed42": {
+      "oracle": {
+        "by_direction": {
+          "head": {
+            "exact_rate": 0.1467,
+            "n": 37629,
+            "subset_rate": 0.0935,
+            "trivial": 72
+          },
+          "tail": {
+            "exact_rate": 0.6318,
+            "n": 37629,
+            "subset_rate": 0.4328,
+            "trivial": 114
+          }
+        },
+        "by_language": {
+          "el": {
+            "exact_rate": 0.4592,
+            "n": 3470,
+            "subset_rate": 0.3545,
+            "trivial": 3
+          },
+          "en": {
+            "exact_rate": 0.4657,
+            "n": 27686,
+            "subset_rate": 0.352,
+            "trivial": 35
+          },
+          "es": {
+            "exact_rate": 0.2878,
+            "n": 19510,
+            "subset_rate": 0.1526,
+            "trivial": 22
+          },
+          "fr": {
+            "exact_rate": 0.3638,
+            "n": 16792,
+            "subset_rate": 0.2394,
+            "trivial": 15
+          },
+          "ja": {
+            "exact_rate": 0.3945,
+            "n": 7800,
+            "subset_rate": 0.2336,
+            "trivial": 111
+          }
+        },
+        "by_source": {
+          "entity_name": {
+            "exact_rate": 0.0424,
+            "n": 354,
+            "subset_rate": 0.0452,
+            "trivial": 0
+          },
+          "wikipedia_cross_lang": {
+            "exact_rate": 0.0762,
+            "n": 3590,
+            "subset_rate": 0.0441,
+            "trivial": 9
+          },
+          "wikipedia_native": {
+            "exact_rate": 0.4066,
+            "n": 71314,
+            "subset_rate": 0.2751,
+            "trivial": 177
+          }
+        },
+        "overall": {
+          "exact_rate": 0.3891,
+          "n": 75258,
+          "subset_rate": 0.263,
+          "trivial": 186
+        }
+      },
+      "primary": {
+        "by_direction": {
+          "head": {
+            "exact_rate": 0.1451,
+            "n": 37629,
+            "subset_rate": 0.0927,
+            "trivial": 72
+          },
+          "tail": {
+            "exact_rate": 0.6276,
+            "n": 37629,
+            "subset_rate": 0.4308,
+            "trivial": 114
+          }
+        },
+        "by_language": {
+          "el": {
+            "exact_rate": 0.4575,
+            "n": 3470,
+            "subset_rate": 0.353,
+            "trivial": 3
+          },
+          "en": {
+            "exact_rate": 0.4585,
+            "n": 27686,
+            "subset_rate": 0.3486,
+            "trivial": 35
+          },
+          "es": {
+            "exact_rate": 0.2873,
+            "n": 19510,
+            "subset_rate": 0.1522,
+            "trivial": 22
+          },
+          "fr": {
+            "exact_rate": 0.3637,
+            "n": 16792,
+            "subset_rate": 0.2394,
+            "trivial": 15
+          },
+          "ja": {
+            "exact_rate": 0.3945,
+            "n": 7800,
+            "subset_rate": 0.2336,
+            "trivial": 111
+          }
+        },
+        "by_source": {
+          "entity_name": {
+            "exact_rate": 0.0424,
+            "n": 354,
+            "subset_rate": 0.0452,
+            "trivial": 0
+          },
+          "wikipedia_cross_lang": {
+            "exact_rate": 0.0159,
+            "n": 3590,
+            "subset_rate": 0.0142,
+            "trivial": 9
+          },
+          "wikipedia_native": {
+            "exact_rate": 0.4066,
+            "n": 71314,
+            "subset_rate": 0.2751,
+            "trivial": 177
+          }
+        },
+        "overall": {
+          "exact_rate": 0.3862,
+          "n": 75258,
+          "subset_rate": 0.2616,
+          "trivial": 186
+        }
+      }
+    },
+    "fold2_seed79": {
+      "oracle": {
+        "by_direction": {
+          "head": {
+            "exact_rate": 0.1451,
+            "n": 37624,
+            "subset_rate": 0.0923,
+            "trivial": 27
+          },
+          "tail": {
+            "exact_rate": 0.6607,
+            "n": 37624,
+            "subset_rate": 0.4723,
+            "trivial": 223
+          }
+        },
+        "by_language": {
+          "el": {
+            "exact_rate": 0.4818,
+            "n": 3028,
+            "subset_rate": 0.3814,
+            "trivial": 0
+          },
+          "en": {
+            "exact_rate": 0.4765,
+            "n": 26832,
+            "subset_rate": 0.3612,
+            "trivial": 7
+          },
+          "es": {
+            "exact_rate": 0.3113,
+            "n": 20354,
+            "subset_rate": 0.1937,
+            "trivial": 9
+          },
+          "fr": {
+            "exact_rate": 0.3772,
+            "n": 17956,
+            "subset_rate": 0.2596,
+            "trivial": 6
+          },
+          "ja": {
+            "exact_rate": 0.4121,
+            "n": 7078,
+            "subset_rate": 0.247,
+            "trivial": 228
+          }
+        },
+        "by_source": {
+          "entity_name": {
+            "exact_rate": 0.0101,
+            "n": 297,
+            "subset_rate": 0.0135,
+            "trivial": 0
+          },
+          "wikipedia_cross_lang": {
+            "exact_rate": 0.0742,
+            "n": 3013,
+            "subset_rate": 0.0423,
+            "trivial": 8
+          },
+          "wikipedia_native": {
+            "exact_rate": 0.4176,
+            "n": 71938,
+            "subset_rate": 0.293,
+            "trivial": 242
+          }
+        },
+        "overall": {
+          "exact_rate": 0.4022,
+          "n": 75248,
+          "subset_rate": 0.2818,
+          "trivial": 250
+        }
+      },
+      "primary": {
+        "by_direction": {
+          "head": {
+            "exact_rate": 0.1438,
+            "n": 37624,
+            "subset_rate": 0.0914,
+            "trivial": 27
+          },
+          "tail": {
+            "exact_rate": 0.6566,
+            "n": 37624,
+            "subset_rate": 0.4702,
+            "trivial": 223
+          }
+        },
+        "by_language": {
+          "el": {
+            "exact_rate": 0.4808,
+            "n": 3028,
+            "subset_rate": 0.3808,
+            "trivial": 0
+          },
+          "en": {
+            "exact_rate": 0.4694,
+            "n": 26832,
+            "subset_rate": 0.3573,
+            "trivial": 7
+          },
+          "es": {
+            "exact_rate": 0.3112,
+            "n": 20354,
+            "subset_rate": 0.1936,
+            "trivial": 9
+          },
+          "fr": {
+            "exact_rate": 0.3768,
+            "n": 17956,
+            "subset_rate": 0.2594,
+            "trivial": 6
+          },
+          "ja": {
+            "exact_rate": 0.4121,
+            "n": 7078,
+            "subset_rate": 0.247,
+            "trivial": 228
+          }
+        },
+        "by_source": {
+          "entity_name": {
+            "exact_rate": 0.0101,
+            "n": 297,
+            "subset_rate": 0.0135,
+            "trivial": 0
+          },
+          "wikipedia_cross_lang": {
+            "exact_rate": 0.007,
+            "n": 3013,
+            "subset_rate": 0.0053,
+            "trivial": 8
+          },
+          "wikipedia_native": {
+            "exact_rate": 0.4176,
+            "n": 71938,
+            "subset_rate": 0.293,
+            "trivial": 242
+          }
+        },
+        "overall": {
+          "exact_rate": 0.3995,
+          "n": 75248,
+          "subset_rate": 0.2803,
+          "trivial": 250
+        }
+      }
+    }
+  },
+  "hash": "4c7fad9eb609da02516deafa6c82a0ebc454f33598b59f8f893f1feba7a05b12"
+}
