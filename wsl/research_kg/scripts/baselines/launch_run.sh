@@ -18,6 +18,18 @@ if [ -e "$RUN_DIR" ]; then
   echo "REFUSING: $RUN_DIR already exists (run directories are never reused)" >&2
   exit 2
 fi
+
+# Mandatory preflight: never launch on scripts that cannot report status (CRLF once made
+# resume_guard.sh print REFUSED while exiting 0). Set SKIP_PREFLIGHT=1 only to debug.
+if [ "${SKIP_PREFLIGHT:-0}" != "1" ]; then
+  PREFLIGHT="$(cd "$(dirname "$0")" && pwd)/preflight.sh"
+  if [ -f "$PREFLIGHT" ]; then
+    bash "$PREFLIGHT" > /tmp/preflight_$$.log 2>&1 || {
+      echo "REFUSING: preflight failed — not launching $RUN_ID" >&2
+      cat /tmp/preflight_$$.log >&2; rm -f /tmp/preflight_$$.log; exit 2; }
+    rm -f /tmp/preflight_$$.log
+  fi
+fi
 mkdir -p "$RUN_DIR"
 LOG="$RUN_DIR/run.log"
 

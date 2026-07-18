@@ -7,9 +7,13 @@
 #
 # Usage:
 #   resume_guard.sh <run_dir> <launch_commit> [repo_dir]
-# Exit: 0 = safe to resume with the same identity
-#       1 = code differs -> must create a continuation run (see continue_run.sh)
-#       2 = malformed input
+#
+# DETERMINISTIC EXIT SEMANTICS (asserted by preflight.sh — do not change):
+#   0 = ALLOWED   HEAD == launch commit AND working tree clean
+#   1 = REFUSED   code/tree differs -> continue under a new run id (continue_run.sh)
+#   2 = MALFORMED bad arguments, missing run dir, or git unreadable
+# Note: CRLF line endings corrupt these codes; preflight.sh fails the launch if any tracked
+# *.sh contains a CR byte (this bug once made the guard print REFUSED but exit 0).
 set -u
 RUN_DIR="${1:?usage: resume_guard.sh <run_dir> <launch_commit> [repo_dir]}"
 LAUNCH_COMMIT="${2:?missing launch commit}"
