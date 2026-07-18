@@ -1,0 +1,15 @@
+{
+  "note": "Line-ending-only normalization (CRLF -> LF) of vendored upstream shell scripts. NO algorithmic change. Proof: the CR-stripped content hash is IDENTICAL before and after; only the raw byte hash differs.",
+  "normalized_in_commit": "f8ffb31",
+  "previous_commit": "a49aea4",
+  "reason": "CRLF in executable shell scripts corrupts exit codes under WSL bash; preflight.sh now fails any launch when a tracked *.sh contains CR.",
+  "upstream": {
+    "external/grail": {"project": "GraIL — Inductive relation prediction by subgraph reasoning (ICML 2020)", "paper": "https://arxiv.org/abs/1911.06962", "upstream_commit": "NOT CAPTURED at vendoring time (snapshot committed in 17807b5)"},
+    "external/SDN": {"project": "S2DN — Semantic Structure-aware Denoising Network", "paper": "https://arxiv.org/abs/2412.15822", "upstream_commit": "NOT CAPTURED at vendoring time (snapshot committed in 17807b5)"}
+  },
+  "files": [
+  ],
+  "files_changed": 0,
+  "files_content_identical_ignoring_line_endings": 0,
+  "algorithmic_change": false
+}
