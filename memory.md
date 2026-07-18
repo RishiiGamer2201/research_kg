@@ -121,3 +121,8 @@ Running log. Newest entries at top of each section. Absolute dates.
 - **FIX:** wrap encode loop in `torch.no_grad()` + `empty_cache()`. Verified: grad-ON OOMs at 4000 entities fresh (`test_hn_oom.py`); fixed builds full 42450 at 3.01GB (`test_hn_fix.py`). Commit e6875a6, **tag `b0-baseline-v2`** (b0-baseline-v1/165c7aa is BROKEN — do not use).
 - **B0-RUN-004**: pid 32093, launch_commit e6875a6, started 17:05:28Z, fixed code. CRITICAL milestone = clearing epoch 5 (~19:30Z). ETA ~14h. Run dir `DBP5L/ind_v2/audits/training/B0-RUN-004`.
 - **Lesson compounded:** don't over-trust a first "environmental" diagnosis; a second identical failure at the same point = deterministic bug. Also: eval path had no_grad but trainer's copy didn't — inconsistency between two encode paths.
+
+### 2026-07-19 — Ledger policy for B0 HN-OOM incident (user-specified)
+- **On B0-RUN-004 SUCCESSFUL completion:** add a NEW ledger row R-XXX "incident resolved" for the HN no_grad OOM root cause, LINKING all three runs (B0-RUN-002 failed, B0-RUN-003 failed, B0-RUN-004 success). 
+- **DO NOT** change R-F003/R-F004 statuses — failed runs stay `failed` permanently (append-only ledger). The incident resolution is separate from the run outcomes.
+- B0-RUN-004 cleared epoch-5 gate 19:27Z (HN build + resumed to epoch 6). ETA ~10.9h from 19:30. Report order at completion: selection record → 3-view eval → clustered verdict (primary) + concept-macro → continuation decision.
