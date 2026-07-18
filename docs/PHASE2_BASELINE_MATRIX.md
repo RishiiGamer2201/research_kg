@@ -56,17 +56,22 @@ Every model reports **all four**, per direction (head / tail / combined):
 Plus: per-language, per-evidence-budget (0/1/3/5), macro-language and worst-language.
 
 **Lexical results are reported by direction × mention bucket, never as aggregate MRR alone**
-(answer exposure is strongly directional: tail ≈63% mentioned vs head ≈25%; see R-041).
+(answer exposure is strongly directional). Lexical baselines run on the **full** target set —
+they are cheap once vectorized — so no sampling CI is needed; if any run is sub-sampled, its
+95% CI on MRR must be reported alongside (`mrr_ci95`).
 
-## 4b. Lexical baselines are retained as EXPERTS, not just floors
-`name_match` and `bm25` are kept as first-class lexical experts for later work:
-- **P2.3** calibrated BGE-M3 dense / learned-sparse / multi-vector fusion — the lexical scorers
-  are the sparse-side reference and fusion candidates.
-- **P3.1/P3.4 TrustRouter** — per-query lexical scores (and their agreement/disagreement with the
-  dense expert) are router features and a fallback expert when text is missing or quarantined.
-Evidence for the split roles (R-041): `name_match` has essentially no non-mention signal
-(unmentioned MRR 0.22–0.41) — a mention detector; `bm25` retains genuine non-mention signal
-(1.10–1.30) — a usable retrieval expert.
+## 4b. Expert roles are SEPARATE (binding for P2.3 fusion and P3 TrustRouter)
+
+| Component | Role | Allowed uses | Prohibited |
+|---|---|---|---|
+| **`name_match`** | **mention / leakage DETECTOR and router feature only** | leakage diagnostics; a router *feature* signalling "the answer is probably named in this text"; mentioned/unmentioned stratification | **never a retrieval expert; never a fallback; must NOT be routed missing-text or quarantined-text queries** — its non-mention signal is effectively zero |
+| **BM25 / BGE learned-sparse** | genuine **lexical retrieval experts** | P2.3 sparse side of calibrated dense/sparse/multi-vector fusion; standalone expert; fallback when the dense expert is unavailable | — |
+| **Dense (BGE-M3) / structure / name-only** | **missing- or quarantined-text fallbacks** | the fallback path when a description is absent, suspect, or quarantined | — |
+
+Rationale: `name_match` scores essentially at floor once the answer is not named, so routing a
+missing-text query to it would produce confident-looking noise. BM25 retains real non-mention
+signal and is therefore a legitimate expert. Quantitative support comes from **R-042** (full
+target set); the earlier R-040/R-041 numbers are invalidated for biased sampling.
 
 **Sufficiency rule:** beating these baselines on natural aggregate MRR is NOT sufficient. A
 neural model must also beat them on (a) the unmentioned bucket, (b) both directions separately,
