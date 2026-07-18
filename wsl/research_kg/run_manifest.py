@@ -50,7 +50,7 @@ NEGATIVE_POLICY_VERSION = "negpol-v2-train-only"
 
 def token_cache_key(*, model_name, desc_path, fold, candidate_universe, filter_hash,
                     negative_policy=NEGATIVE_POLICY_VERSION, hard_neg_k=None, max_length=None,
-                    reciprocal=None, extra=None):
+                    reciprocal=None, model_revision=None, tokenizer_revision=None, extra=None):
     """Complete cache key for tokenized/negative caches.
 
     Must pin EVERYTHING that changes what a cached tensor means: encoder, description-view
@@ -68,8 +68,16 @@ def token_cache_key(*, model_name, desc_path, fold, candidate_universe, filter_h
         cand_hash = None
     else:
         cand_hash = sha256_json(sorted(int(x) for x in candidate_universe))
+    # Resolve the frozen base/tokenizer revision if not supplied: a base-model change must
+    # change this key (the adapter hash deliberately cannot see frozen weights).
+    if model_revision is None and model_name:
+        model_revision = model_snapshot_revision(model_name)
+    if tokenizer_revision is None:
+        tokenizer_revision = model_revision
     payload = {
         "model_name": model_name,
+        "model_revision": model_revision,
+        "tokenizer_revision": tokenizer_revision,
         "desc_hash": sha256_file(desc_path) if desc_path else None,
         "fold": (os.path.basename(str(fold).rstrip("/")) if fold else None),
         "candidate_universe_hash": cand_hash,
@@ -260,7 +268,9 @@ def _selfcheck():
                     candidate_universe=[1, 2, 3], filter_hash="fh1",
                     hard_neg_k=7, max_length=160, reciprocal=True)
         k0, _ = token_cache_key(**base)
-        for field, newval in [("model_name", "bert-base"), ("fold", "/x/fold1_seed42"),
+        for field, newval in [("model_name", "bert-base"),
+                              ("model_revision", "othersha"), ("tokenizer_revision", "othertok"),
+                              ("fold", "/x/fold1_seed42"),
                               ("candidate_universe", [1, 2, 3, 4]), ("filter_hash", "fh2"),
                               ("negative_policy", "negpol-v1-all-entities"),
                               ("hard_neg_k", 3), ("max_length", 96), ("reciprocal", False)]:

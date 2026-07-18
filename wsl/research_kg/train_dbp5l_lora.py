@@ -132,25 +132,41 @@ def lora_state_hash(model):
     return h.hexdigest()
 
 
-def assert_hn_cache_fresh(meta, model, expected_epoch):
-    """Reject a hard-negative cache that was not produced by the CURRENT adapter state.
+def assert_hn_cache_fresh(meta, model, expected_epoch, cache_key):
+    """Reject a hard-negative cache unless BOTH identities match:
+
+      1. the exact ADAPTER state hash (lora_state_hash — trainable params only), and
+      2. the PARENT immutable cache key, which pins base-model + tokenizer revision, fold,
+         description view, candidate universe, filter, negative policy, K, max_length and
+         reciprocal mode.
+
+    Both are required. The adapter hash deliberately cannot see frozen weights, so a
+    base-model/tokenizer swap is invisible to it — that case must be rejected through the
+    parent key. Conversely the parent key is identical across epochs, so only the adapter hash
+    can detect a cache built by a different checkpoint of the same configuration.
 
     The in-memory cache is rebuilt from the resumed weights on every resume, so this holds
-    trivially today. It is enforced anyway so that adding a disk cache later (tempting: the
-    refresh costs ~72.7s/epoch) cannot silently reuse embeddings from a different checkpoint.
+    trivially today; it is enforced so that adding a disk cache later (tempting: the refresh
+    costs ~72.7s/epoch) cannot silently reuse embeddings from a different base or checkpoint.
     """
     if meta is None:
         return
+    if meta.get('cache_key') != cache_key:
+        raise RuntimeError(
+            f"HN cache rejected (parent key): built under cache_key "
+            f"{str(meta.get('cache_key'))[:16]} but the current configuration is "
+            f"{str(cache_key)[:16]}. Base/tokenizer revision, fold, view, candidate universe, "
+            f"filter, negative policy, K, length or reciprocal mode differs.")
     current = lora_state_hash(model)
     if meta.get('lora_hash') != current:
         raise RuntimeError(
-            f"HN cache rejected: produced by adapter {str(meta.get('lora_hash'))[:12]} at epoch "
-            f"{meta.get('epoch')}, but the current adapter is {current[:12]} (expected epoch "
-            f"{expected_epoch}). Rebuild the cache from the resumed checkpoint.")
+            f"HN cache rejected (adapter): produced by adapter {str(meta.get('lora_hash'))[:12]} "
+            f"at epoch {meta.get('epoch')}, but the current adapter is {current[:12]} (expected "
+            f"epoch {expected_epoch}). Rebuild the cache from the resumed checkpoint.")
 
 
 def build_entity_cache(model, tokenizer, entity_texts, all_entity_ids,
-                        max_length, device, batch_size=512, epoch=None):
+                        max_length, device, batch_size=512, epoch=None, cache_key=None):
     """Encode all entities; return (N,D) CPU float32 tensor + eid→idx map + provenance meta.
 
     NOTE: this cache is IN-MEMORY ONLY — it is never persisted, so a resume always rebuilds it
@@ -171,6 +187,7 @@ def build_entity_cache(model, tokenizer, entity_texts, all_entity_ids,
     entity_cache = torch.cat(embeddings, dim=0)  # (N, D)
     eid_to_idx   = {eid: i for i, eid in enumerate(all_entity_ids)}
     meta = {'epoch': epoch, 'lora_hash': lora_state_hash(model),
+            'cache_key': cache_key,          # parent immutable key (base rev, fold, view, ...)
             'n_entities': len(all_entity_ids), 'max_length': max_length,
             'built_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
             'persisted': False}
@@ -559,8 +576,8 @@ def train(args):
                 # against the resumed adapter state before use.
                 entity_cache, eid_to_idx, hn_meta = build_entity_cache(
                     model, tokenizer, entity_texts, all_entity_ids, args.max_length, device,
-                    batch_size=512, epoch=start_epoch)
-                assert_hn_cache_fresh(hn_meta, model, start_epoch)
+                    batch_size=512, epoch=start_epoch, cache_key=cache_key)
+                assert_hn_cache_fresh(hn_meta, model, start_epoch, cache_key)
                 logger.info(f'  [HN] resume cache verified against adapter '
                             f"{hn_meta['lora_hash'][:12]} (epoch {start_epoch})")
                 entity_cache_gpu = entity_cache.to(device)
@@ -751,7 +768,7 @@ def train(args):
             _te = time.time()
             entity_cache, eid_to_idx, hn_meta = build_entity_cache(
                 model, tokenizer, entity_texts, all_entity_ids,
-                args.max_length, device, batch_size=512, epoch=epoch + 1)
+                args.max_length, device, batch_size=512, epoch=epoch + 1, cache_key=cache_key)
             _prof['encode_s'] += time.time() - _te
             _prof['last_hn_meta'] = hn_meta
             entity_cache_gpu = entity_cache.to(device)
