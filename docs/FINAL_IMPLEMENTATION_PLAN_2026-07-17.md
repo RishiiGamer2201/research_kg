@@ -57,6 +57,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-022 | 2026-07-17 | Valid infra (smoke) | Phase 0 | P0.5 S2DN structural smoke: fb237_v1, 1 epoch, max_links 20, paper dims, venv_s2dn_gpu_latest | Subgraph extraction (pos/neg, train/valid) + 1 epoch on cuda:0 (loss 200.8, train AUC 0.53) in ~12s; effective hyperparams logged (emb_dim 64, hop 3, batch 16, max_links 20) | batch_size defaulted to 16 (paper 32) — smoke only, not a metric run | Structural pipeline reproduces on the newest dgl venv; frozen as canonical. G0 structural-baseline item satisfied | `requirements.s2dn-venv.txt`, `scratchpad/s2dn_smoke.log` |
 | R-023 | 2026-07-18 | Valid, single-seed clean baseline | Phase 0 | Run E clean retrain (seed 42, ml160, r16, CRR, HN K=7, **clean descriptions**, 30 ep) evaluated under the fixed evaluator | **Within-lang MRR 27.02** (H@1 18.52, H@3 30.19, H@10 43.02); cross-lingual 26.78. Best ckpt ep23. Per-lang FR 37.7 / ES 37.6 / JA 19.8 / EL 17.1 / EN 16.1. Train + eval manifests complete (ckpt c85f23de) | Single seed only — no clean-vs-contaminated claim yet | Seed-42 clean 27.02 sits within the provisional R-005/006 band (26.51±0.31 / 26.69), so this run shows **no evidence contamination inflated it** — but that is NOT a definitive clean-vs-contaminated comparison; the **3-seed clean baseline (Phase 2)** is required before any such claim. Rebuilt pipeline reproduces the ~26–27 regime → **Gate G0 baseline reproduced** | `.../bgem3_lora_dbp5l_20260717_1541_crr_hn7_r16/{manifest.json,evals/*/manifest.json}`, `scratchpad/eval_E.log` |
 | R-024 | 2026-07-18 | Valid benchmark infra + finding | Phase 1 | P1.2 concept clustering (union-find over alignments) + P1.7 concept-leakage audit of v1 split | 56,589 entities → **29,440 concepts** (9,762 multilingual size 2–5, 19,678 singletons, 0 ambiguous), deterministic hashes. v1 audit: **72.3% of test concepts (4,964/6,866) leak into train** via cross-lingual aligned IDs | v1 mapping clean (0 unmapped) | v1 `ind/` split is NOT concept-inductive — quantifies §4.3 and motivates v2. `assert_concept_disjoint` ready for P1.3 fold builder | `build_concept_clusters.py`, `concept_leakage_audit.py`, `DBP5L/ind_v2/concepts/concept_stats.json` |
+| R-025 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.3 three fixed concept-disjoint folds (seeds 13/42/79), stratified by language coverage | Per fold: train 22,082 / valid 2,943 / test 4,415 concepts (75/10/15); all 5 langs present in valid+test; degree median 3 across splits; `assert_concept_disjoint` passes on all folds; distinct manifest hashes per seed; deterministic | none | Concept-disjoint inductive folds replace the 72.3%-leaking v1 split; ready for P1.4 support budgets | `build_v2_folds.py`, `DBP5L/ind_v2/folds/fold{0,1,2}_seed{13,42,79}/` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -214,7 +215,7 @@ $$
 - [x] Add train, validation, test, and support triples to the filtered-known-fact map. *(Already done — verified `eval_dbp5l.py:276-310`; support edges mapped to global IDs.)*
 - [ ] Verify reciprocal head and tail query templates separately. **DEFERRED → P1.6:** evaluator is tail-only (`head [SEP] rel → tail`). Reciprocal head prediction needs reciprocal *training* (direction marker), so it lands with the benchmark tracks, not as a half-feature in P0.
 - [x] Average tied ranks and test with a constructed equal-score case. *(Fixed the best-case tie bug at the shared `compute_filtered_metrics`; `rank = higher + (ties+1)/2`. Runnable check: `eval_dbp5l.py --selftest`.)*
-- [ ] Assert identical metrics across two consecutive evaluations of the same checkpoint. **DEFERRED → P0.5:** eval path has no RNG (`model.eval()`, sorted candidates, no sampling) so determinism holds by construction; will assert empirically when reproducing a baseline.
+- [x] Assert identical metrics across two consecutive evaluations of the same checkpoint. *(Done in P0.5 / R-020: zero-shot full eval run twice → byte-identical within-lang MRR 1.44016, `DETERMINISTIC: True`. Eval path has no RNG: `model.eval()`, sorted candidates, no sampling.)*
 
 For query $(h,r,?)$, the filtered candidate set is:
 
@@ -277,10 +278,10 @@ $$
 
 ### P1.3 Construct three fixed folds
 
-- [ ] Split concept IDs into train, validation, and test using three published seeds.
-- [ ] Stratify approximately by language coverage, degree, and relation support without moving individual members of a concept.
-- [ ] Make validation inductive; do not tune on entities present in training.
-- [ ] Persist exact concept lists and split manifests.
+- [x] Split concept IDs into train, validation, and test using three published seeds. *(`build_v2_folds.py`, seeds **[13, 42, 79]**; per fold train 22,082 / valid 2,943 / test 4,415 concepts (75/10/15).)*
+- [x] Stratify approximately by language coverage, degree, and relation support without moving individual members of a concept. *(Stratified by concept language-coverage (size 1–5) bucket; whole concepts only. Balance verified: size-hist proportional across splits, degree median 3 everywhere, per-split relation counts reported.)*
+- [x] Make validation inductive; do not tune on entities present in training. *(Validation concepts disjoint from train (whole-concept split); `assert_concept_disjoint` passes on every fold.)*
+- [x] Persist exact concept lists and split manifests. *(Per fold: `{train,valid,test}_concepts.json`, `{…}_entities.json` (expansions), `stratification_stats.json`, `fold_manifest.json` (seed, ratios, hashes, `assert_concept_disjoint: passed`); `folds_summary.json`. Deterministic (hash-stable).)*
 
 **Acceptance:** pairwise concept intersection is empty and every language has usable validation/test queries at each supported evidence budget.
 
@@ -313,7 +314,7 @@ $$
 
 ### P1.7 Run shortcut and leakage audits
 
-- [x] Concept/alignment leakage audit. *(`concept_leakage_audit.py`: v1 `ind/` split leaks **4,964 / 6,866 test concepts (72.3%)** into train via cross-language aligned IDs — confirms §4.3 quantitatively. Also provides the reusable `assert_concept_disjoint(train,valid,test)` invariant for the v2 fold builder. R-024. Remaining P1.7 items (dup/inverse/answer-string/PPR audits) after folds.)*
+- [x] Concept/alignment leakage audit. *(`concept_leakage_audit.py`. **RQ1 motivation result (precise definition):** a v1 test concept *leaks* iff its alignment-connected component (the union-find concept) contains ≥1 entity that is in the v1 training set of any language. Under this definition **4,964 / 6,866 v1 test concepts = 72.3% leak** (0 unmapped IDs). Confirms §4.3 quantitatively. Provides reusable `assert_concept_disjoint(train,valid,test)` for the v2 fold builder. R-024. Remaining P1.7 items (dup/inverse/answer-string/PPR audits) after folds.)*
 - [ ] Exact and near-duplicate entity/description audit.
 - [ ] Inverse-relation and reciprocal-triple audit.
 - [ ] Answer-string and relation-template leakage audit.
