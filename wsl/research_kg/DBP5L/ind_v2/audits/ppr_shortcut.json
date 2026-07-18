@@ -1,0 +1,35 @@
+{
+  "alpha": 0.85,
+  "built_utc": "2026-07-18T06:24:27Z",
+  "folds": {
+    "fold0_seed13": {
+      "excluded_answer_edges": 50622,
+      "median_shortest_path": 3,
+      "n_sampled": 400,
+      "ppr_hits1": 0.0,
+      "ppr_hits10": 0.13,
+      "ppr_mrr": 0.0553,
+      "reachable_frac": 0.9775
+    },
+    "fold1_seed42": {
+      "excluded_answer_edges": 51128,
+      "median_shortest_path": 3,
+      "n_sampled": 400,
+      "ppr_hits1": 0.005,
+      "ppr_hits10": 0.1225,
+      "ppr_mrr": 0.0508,
+      "reachable_frac": 0.97
+    },
+    "fold2_seed79": {
+      "excluded_answer_edges": 50001,
+      "median_shortest_path": 3,
+      "n_sampled": 400,
+      "ppr_hits1": 0.0025,
+      "ppr_hits10": 0.1475,
+      "ppr_mrr": 0.061,
+      "reachable_frac": 0.995
+    }
+  },
+  "hash": "92cc5ff4c3a5367f657498aad64181e37179ccf6567f9e7cfd51b88a504e2886",
+  "sample_per_fold": 400
+}
