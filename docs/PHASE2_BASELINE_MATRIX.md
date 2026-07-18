@@ -48,7 +48,9 @@ Every model reports **all four**, per direction (head / tail / combined):
 
 1. **Natural text** (primary view) — headline retrieval number.
 2. **Mentioned vs unmentioned** split (`by_mention`) — isolates the answer-mention effect.
-3. **Alias-masked** (`descriptions_v2_masked.json`, 14.2% text removed) — leak-reduced view.
+3. **Alias-masked** (`descriptions_v2_masked.json`, 14.2% text removed) — **stress diagnostic**, not a
+   clean generalization measure: masking removes legitimate context along with answer names, so it
+   under-states achievable performance. Report it as a robustness/stress number.
 4. **Missing-text** (`descriptions_v2_missing_text.json`, name-only) — no-description floor.
 
 Plus: per-language, per-evidence-budget (0/1/3/5), macro-language and worst-language.
@@ -56,8 +58,18 @@ Plus: per-language, per-evidence-budget (0/1/3/5), macro-language and worst-lang
 ## 5. Claim discipline (mandatory)
 Natural-text MRR **must not** be described as relational generalization: on v2, unmentioned MRR
 is ~1% versus 5–18% mentioned (R-037), so the natural-text number substantially reflects
-answer-mention reading. Generalization claims must cite the **unmentioned** and **alias-masked**
-results. Any abstract/table sentence violating this is a defect.
+answer-mention reading.
+
+**The primary relational-generalization indicator is the `unmentioned` query bucket** — it keeps
+the text intact and simply selects the queries whose description does not name the answer. The
+alias-masked view is a *stress* diagnostic (it also deletes legitimate context) and must not be
+presented as the clean generalization measure. Any abstract/table sentence violating this is a
+defect.
+
+**Negative-sampling policy (R-038):** every v2 result must be trained under
+`negpol-v2-train-only` (negatives drawn from the fold's training entities only). Runs trained
+with the old all-entity negative pool are not strictly concept-inductive and cannot be cited as
+v2 baselines.
 
 ## 6. Order of work (cheap → expensive)
 1. Wiring smoke tests: training reads v2 fold splits + inverse-clean support; tiny-config run.

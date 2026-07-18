@@ -42,6 +42,47 @@ def hash_inputs(paths: dict) -> dict:
     return {k: sha256_file(v) for k, v in paths.items()}
 
 
+# Bump when the negative-sampling POLICY changes semantics (not just its parameters).
+# v1 = negatives drawn from every entity (LEAKY for inductive claims, see ledger R-038)
+# v2 = negatives restricted to the fold's training entities
+NEGATIVE_POLICY_VERSION = "negpol-v2-train-only"
+
+
+def token_cache_key(*, model_name, desc_path, fold, candidate_universe, filter_hash,
+                    negative_policy=NEGATIVE_POLICY_VERSION, hard_neg_k=None, max_length=None,
+                    reciprocal=None, extra=None):
+    """Complete cache key for tokenized/negative caches.
+
+    Must pin EVERYTHING that changes what a cached tensor means: encoder, description-view
+    CONTENT, fold, the training-candidate universe (negative pool) content, the complete
+    known-fact filter, the negative-sampling policy version, K, sequence length and whether
+    reciprocal examples are included. Model/fold/view alone is insufficient — two runs with
+    different negative pools or filters would otherwise share a cache.
+
+    `candidate_universe`: list/iterable of entity ids OR a path to a persisted id list.
+    Returns a short hex digest suitable for embedding in a filename.
+    """
+    if isinstance(candidate_universe, (str, bytes, os.PathLike)) and os.path.exists(candidate_universe):
+        cand_hash = sha256_file(candidate_universe)
+    elif candidate_universe is None:
+        cand_hash = None
+    else:
+        cand_hash = sha256_json(sorted(int(x) for x in candidate_universe))
+    payload = {
+        "model_name": model_name,
+        "desc_hash": sha256_file(desc_path) if desc_path else None,
+        "fold": (os.path.basename(str(fold).rstrip("/")) if fold else None),
+        "candidate_universe_hash": cand_hash,
+        "filter_hash": filter_hash,
+        "negative_policy": negative_policy,
+        "hard_neg_k": hard_neg_k,
+        "max_length": max_length,
+        "reciprocal": reciprocal,
+        "extra": extra or {},
+    }
+    return sha256_json(payload)[:16], payload
+
+
 # ── environment / provenance ──────────────────────────────────────────────────
 def _git(args, cwd):
     try:
@@ -210,6 +251,30 @@ def _selfcheck():
         rd3 = os.path.join(d, "run3")
         m3 = start_run(rd3, "eval", {"ghost": os.path.join(d, "nope.json")})
         assert m3["input_hashes"]["ghost"] is None
+
+        # ── token_cache_key: every pinned component must change the key ──────────
+        desc = os.path.join(d, "desc.json")
+        with open(desc, "w") as fh:
+            fh.write('{"1":"a"}')
+        base = dict(model_name="BAAI/bge-m3", desc_path=desc, fold="/x/fold0_seed13",
+                    candidate_universe=[1, 2, 3], filter_hash="fh1",
+                    hard_neg_k=7, max_length=160, reciprocal=True)
+        k0, _ = token_cache_key(**base)
+        for field, newval in [("model_name", "bert-base"), ("fold", "/x/fold1_seed42"),
+                              ("candidate_universe", [1, 2, 3, 4]), ("filter_hash", "fh2"),
+                              ("negative_policy", "negpol-v1-all-entities"),
+                              ("hard_neg_k", 3), ("max_length", 96), ("reciprocal", False)]:
+            kv = dict(base); kv[field] = newval
+            assert token_cache_key(**kv)[0] != k0, f"cache key ignores {field}"
+        # description CONTENT change must change the key too
+        with open(desc, "w") as fh:
+            fh.write('{"1":"b"}')
+        assert token_cache_key(**base)[0] != k0, "cache key ignores description content"
+        # candidate universe accepted as a persisted file, order-independent
+        cu = os.path.join(d, "cands.json")
+        json.dump([3, 1, 2], open(cu, "w"))
+        kf, _ = token_cache_key(**{**base, "candidate_universe": cu})
+        assert isinstance(kf, str) and len(kf) == 16
 
         # git commit captured (repo is a git tree)
         assert m1["env"]["git_commit"], "expected a git commit hash"

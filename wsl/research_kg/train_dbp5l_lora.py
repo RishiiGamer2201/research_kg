@@ -354,6 +354,34 @@ def train(args):
         anchors_by_rel = json.load(f)
     logger.info(f'Loaded {len(entity_texts)} entities, {len(anchors_by_rel)} relation anchor groups')
 
+    # ── Negative-candidate universe (fixed BEFORE the cache key & manifest) ─────
+    # P2.1 check 1: with --v2-fold this is the fold's TRAIN entities only; drawing negatives
+    # from every entity would expose held-out concept descriptions (leaky, ledger R-038).
+    recip = bool(args.reciprocal)
+    if args.v2_fold:
+        _train_ents = set(json.load(open(os.path.join(args.v2_fold, 'train_entities.json'))))
+        all_entity_ids = sorted(e for e in entity_texts.keys() if e in _train_ents)
+        _filter_hash = None
+        _bm = os.path.join(args.v2_fold, 'budgets', 'budget_manifest.json')
+        if os.path.exists(_bm):
+            _filter_hash = json.load(open(_bm)).get('filter_hash')
+        logger.info(f'  [HN] negative universe restricted to fold train entities: '
+                    f'{len(all_entity_ids)} (of {len(entity_texts)})')
+    else:
+        all_entity_ids = sorted(entity_texts.keys())
+        _filter_hash = 'legacy-processed-split'
+
+    # ── Complete token/negative cache key (P2.1) ────────────────────────────────
+    # Pins encoder, description-view CONTENT, fold, training-candidate-universe content,
+    # complete filter hash, negative-policy version, K, max_length and reciprocal flag.
+    cache_key, cache_key_payload = rm.token_cache_key(
+        model_name=args.model_name, desc_path=desc_path, fold=args.v2_fold,
+        candidate_universe=all_entity_ids, filter_hash=_filter_hash,
+        hard_neg_k=args.hard_neg_k, max_length=args.max_length, reciprocal=recip,
+        extra={'n_anchors': args.n_anchors, 'xl_anchors': int(args.use_cross_lingual_anchors)})
+    logger.info(f'  Cache key {cache_key} (policy {rm.NEGATIVE_POLICY_VERSION}, '
+                f'|neg universe|={len(all_entity_ids)}, filter={str(_filter_hash)[:12]})')
+
     # ── P0.2: pin this run to immutable code/data/env state ───────────────────
     # Resume reuses an existing run dir (and its manifest); only fresh runs create one.
     if not args.resume:
@@ -368,7 +396,10 @@ def train(args):
             },
             seed=args.seed, model_name=args.model_name,
             extra={'args': vars(args), 'run_name': run_name, 'max_length': args.max_length,
-                   'v2_fold': args.v2_fold, 'reciprocal': bool(args.reciprocal)},
+                   'v2_fold': args.v2_fold, 'reciprocal': bool(args.reciprocal),
+                   'cache_key': cache_key, 'cache_key_payload': cache_key_payload,
+                   'negative_policy': rm.NEGATIVE_POLICY_VERSION,
+                   'negative_universe_size': len(all_entity_ids)},
         )
         logger.info(f'  Wrote run manifest: {run_dir}/manifest.json')
 
@@ -420,12 +451,6 @@ def train(args):
     # back-filled text).
     model_tag = args.model_name.replace('/', '_')
     desc_tag = os.path.splitext(os.path.basename(desc_path))[0]
-    # P2.1 check 2: key the token cache by the description-view CONTENT hash, not just its
-    # filename — otherwise a rebuilt/edited view silently reuses stale token ids.
-    desc_hash = rm.sha256_file(desc_path)
-    desc_hash_tag = (desc_hash[:12] if desc_hash else 'nohash')
-    cache_tag = f'{model_tag}_{desc_tag}_{desc_hash_tag}'
-    recip = bool(args.reciprocal)
     rc_tag = '_recip' if recip else ''   # reciprocal doubles examples -> distinct cache
 
     if args.v2_fold:
@@ -440,13 +465,13 @@ def train(args):
         train_exs, entity_texts, anchors_by_rel, relation_names,
         tokenizer, args.max_length, n_anchors=args.n_anchors,
         use_cross_lingual_anchors=bool(args.use_cross_lingual_anchors), reciprocal=recip,
-        cache_path=os.path.join(CACHE_DIR, f'train_{cache_tag}_ml{args.max_length}_na{args.n_anchors}_xl{args.use_cross_lingual_anchors}{rc_tag}{fold_tag}_v2')
+        cache_path=os.path.join(CACHE_DIR, f'train_{model_tag}_{desc_tag}{fold_tag}{rc_tag}_{cache_key}')
     )
     logger.info('Pre-tokenizing validation set...')
     valid_ds = PreTokenizedDataset(
         valid_exs, entity_texts, anchors_by_rel, relation_names,
         tokenizer, args.max_length, n_anchors=0, reciprocal=recip,
-        cache_path=os.path.join(CACHE_DIR, f'valid_{cache_tag}_ml{args.max_length}{rc_tag}{fold_tag}_v2')
+        cache_path=os.path.join(CACHE_DIR, f'valid_{model_tag}_{desc_tag}{fold_tag}{rc_tag}_{cache_key}')
     )
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
@@ -470,18 +495,7 @@ def train(args):
     entity_cache     = None   # (N, D) CPU tensor — populated after ep hard_neg_start_epoch
     entity_cache_gpu = None   # same but on GPU for fast matmul
     eid_to_idx       = None
-    # Negative-candidate universe for hard negatives / global negatives.
-    # P2.1 INDUCTIVE SAFETY: with --v2-fold this MUST be the fold's TRAIN entities only.
-    # Using every entity (the old default) would expose held-out valid/test concept
-    # descriptions to the model as negatives, i.e. transductive leakage in an inductive
-    # benchmark. Without --v2-fold the legacy behaviour (all entities) is kept.
-    if args.v2_fold:
-        _train_ents = set(json.load(open(os.path.join(args.v2_fold, 'train_entities.json'))))
-        all_entity_ids = sorted(e for e in entity_texts.keys() if e in _train_ents)
-        logger.info(f'  [HN] negative universe restricted to fold train entities: '
-                    f'{len(all_entity_ids)} (of {len(entity_texts)})')
-    else:
-        all_entity_ids = sorted(entity_texts.keys())
+    # (negative-candidate universe `all_entity_ids` was fixed earlier, before the cache key)
 
     # ── Resume: restore model / optimizer / scheduler / RNG / progress ───────────
     start_epoch = 0
