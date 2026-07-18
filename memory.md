@@ -106,3 +106,11 @@ Running log. Newest entries at top of each section. Absolute dates.
 - **Paired baseline**: LEX-RUN-003 (18 cells + 18 rank dumps, 73,880 rows each, schema-matched). R-040/R-041 INVALIDATED (biased sampling); **R-042 = citable lexical result**.
 - **After B0 verdict**: remaining fallback matrix = folds 1-2 @ seed 42, seeds 123/777 @ fold0 (5 runs/encoder total), then mBERT/XLM-R (replace assumed cost factors 0.33/0.40 with measurements).
 - **Key ledger rows**: R-038 (negative-pool leak, invalidates historical runs for v2 claims), R-039 (complete cache key), R-042 (lexical), R-043 (measured stage costs, fallback adopted 185.2h vs 333.1h), R-044 (B0 launch), R-F001/R-F002 (failed runs retained).
+
+### 2026-07-18 — B0-RUN-002 FAILED (cudaErrorUnknown), recovered as B0-RUN-003
+- B0-RUN-002 died epoch 5/30: `torch CUDA error: unknown error` on first hard-negative matmul (env transient, WSL CUDA context churn ~11:00Z login/reconnect; NOT code — GPU passes post-mortem matmul). Ledger R-F003.
+- Secondary: bash syntax errors from EDITING run_b0_fold0_seed42.sh WHILE it ran. **LESSON: never edit files a running job executes.**
+- **B0 code FROZEN: git tag `b0-baseline-v1` (165c7aa).** Whole fallback matrix (fold0-2 x seeds 42/123/777) uses this one commit. DO NOT edit train_dbp5l_lora.py / run_b0_fold0_seed42.sh until matrix done.
+- Run script frozen immutable: `~/research_kg/run_b0_fold0_seed42.FROZEN.sh` (chmod -w), launched via that copy so source edits can't corrupt the running job.
+- **B0-RUN-003**: pid 28845, launch_commit 165c7aa, started 11:07:51Z, cache_key ed7a1292 (model_revision now in parent key), 42450 neg universe. Fresh from HEAD (all fixes: selection-epoch persistence, complete cache key, HN provenance). ETA ~14h. Run dir `DBP5L/ind_v2/audits/training/B0-RUN-003`.
+- Recovery if it dies again: last_checkpoint.pt resumable BUT resume guard refuses same-identity unless HEAD==165c7aa clean → use continue_run.sh (B0-RUN-004) recording delta, or pin worktree at 165c7aa.
