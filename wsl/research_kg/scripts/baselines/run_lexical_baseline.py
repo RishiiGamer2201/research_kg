@@ -339,7 +339,11 @@ if __name__ == "__main__":
     ap.add_argument("--methods", default="name_match,bm25")
     ap.add_argument("--max-targets", type=int, default=0,
                     help="0 = FULL target set (default); >0 = deterministic random sample")
-    ap.add_argument("--out", default="DBP5L/ind_v2/audits/lexical_baselines_full.json")
+    ap.add_argument("--out-dir", default="DBP5L/ind_v2/audits/lexical/LEX-RUN-002",
+                    help="run-scoped output dir; each cell is written atomically as it "
+                         "completes, plus a resumable completion index")
+    ap.add_argument("--resume", action="store_true",
+                    help="skip cells already present in the completion index")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
     if args.selftest:
@@ -350,21 +354,61 @@ if __name__ == "__main__":
         "masked": "DBP5L/ind_v2/tracks/descriptions_v2_masked.json",
         "missing": "DBP5L/ind_v2/tracks/descriptions_v2_missing_text.json",
     }
-    out = {"built_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-           "max_targets_per_fold": args.max_targets or "full", "results": {}}
+    # Run-scoped output: each cell written atomically as it completes + a resumable index, so an
+    # end-of-run failure can never discard already-valid cells (see failed run LEX-RUN-001).
+    out_dir = os.path.join(args.root, args.out_dir)
+    cells_dir = os.path.join(out_dir, "cells")
+    os.makedirs(cells_dir, exist_ok=True)
+    index_path = os.path.join(out_dir, "completion_index.json")
+
+    def _atomic_write(path, obj):
+        tmp = path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(obj, f, indent=2, sort_keys=True)
+            f.flush(); os.fsync(f.fileno())
+        os.replace(tmp, path)
+
+    index = {"cells": {}, "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    if args.resume and os.path.exists(index_path):
+        index = json.load(open(index_path))
+        print(f"resuming: {len(index['cells'])} cell(s) already complete", flush=True)
+
     for fold in args.folds.split(","):
         for method in args.methods.split(","):
             for vname, vrel in views.items():
+                key = f"{fold}__{method}__{vname}"
+                cell_path = os.path.join(cells_dir, key + ".json")
+                if args.resume and key in index["cells"] and os.path.exists(cell_path):
+                    print(f"[{key}] skipped (already complete)", flush=True)
+                    continue
                 t0 = time.time()
                 r = run(args.root, fold, os.path.join(args.root, vrel), method,
                         args.max_targets or None)
-                out["results"].setdefault(fold, {}).setdefault(method, {})[vname] = r
+                r["cell"] = {"fold": fold, "method": method, "view": vname,
+                             "seconds": round(time.time() - t0, 1),
+                             "completed_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+                _atomic_write(cell_path, r)                      # cell is durable from here on
+                index["cells"][key] = {"path": os.path.relpath(cell_path, out_dir),
+                                       "combined_mrr": r["combined"]["mrr"],
+                                       "n_targets": r["n_targets"],
+                                       "completed_utc": r["cell"]["completed_utc"]}
+                index["updated_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                _atomic_write(index_path, index)                 # index updated after the cell
                 bm = r["by_mention"]
-                print(f"[{fold}/{method}/{vname}] n={r['n_targets']} combined={r['combined']['mrr']:.3f} "
+                print(f"[{key}] n={r['n_targets']} combined={r['combined']['mrr']:.3f} "
                       f"| tail {r['tail']['mrr']:.3f} (m {bm['tail']['mentioned']['mrr']:.2f}/"
                       f"u {bm['tail']['unmentioned']['mrr']:.2f}) "
                       f"| head {r['head']['mrr']:.3f} (m {bm['head']['mentioned']['mrr']:.2f}/"
-                      f"u {bm['head']['unmentioned']['mrr']:.2f}) [{time.time()-t0:.0f}s]", flush=True)
-    p = os.path.join(args.root, args.out)
-    json.dump(out, open(p, "w"), indent=2, sort_keys=True)
-    print("wrote", p)
+                      f"u {bm['head']['unmentioned']['mrr']:.2f}) [{r['cell']['seconds']:.0f}s]",
+                      flush=True)
+
+    # aggregate view (convenience only — the cells + index are the source of truth)
+    agg = {"built_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+           "max_targets_per_fold": args.max_targets or "full", "results": {}}
+    for key, meta in sorted(index["cells"].items()):
+        fold, method, vname = key.split("__")
+        agg["results"].setdefault(fold, {}).setdefault(method, {})[vname] = \
+            json.load(open(os.path.join(out_dir, meta["path"])))
+    _atomic_write(os.path.join(out_dir, "results.json"), agg)
+    print("wrote", os.path.join(out_dir, "results.json"),
+          f"({len(index['cells'])} cells)")
