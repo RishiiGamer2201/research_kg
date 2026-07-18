@@ -61,6 +61,7 @@ Append every new result to this table. Do not replace the historical result when
 | R-026 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.1 freeze + hash raw DBP-5L source; provenance + licensing | `source_manifest.json`: 31 files, 6.66MB, `top_sha256=0eca75a5…`. Provenance doc: KEnS/EMNLP-2020, CC BY-SA 3.0 obligations, ID layers URI→(lang,local)→global→concept | Exact upstream git commit not captured at download (content hash is the anchor instead) | v2 benchmark is content-addressed to an immutable source snapshot | `hash_source_data.py`, `DBP5L/ind_v2/source_manifest.json`, `DBP5L_DATA_PROVENANCE.md` |
 | R-027 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.4 nested evidence budgets S^0⊂S^1⊂S^3⊂S^5 per fold, comparability rule enforced | Per fold (fold0): 10,399 unseen entities w/ support, avg pool 3.81, S^5 union 39,152; eval_targets_test 36,940 / valid 18,233; exposed/budget 0/10.4k/27k/39.6k. Invariants pass: caps \|S^k\|≤k, prefix nesting, **target∩S^5=0**, **targets fixed across budgets**, **single filter (one hash) all budgets**. Deterministic | none | S^5-union-first + remove-from-all-targets makes budgets directly comparable (only exposed evidence varies) | `build_v2_support_budgets.py`, `DBP5L/ind_v2/folds/*/budgets/` |
 | R-028 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.5 clean v2 descriptions from permitted evidence + full provenance | 56,589 entities: **48,496 native Wikipedia / 4,274 cross-lang / 3,819 name** (no LLM). EL leans most on cross-lang+name (low-resource). snapshot_rev=7ba0dd5f. Raw+norm hashes separate; cross-lang records source gid/concept + translated=false; deterministic | Per-page Wikipedia revision ids not captured (corpus frozen by snapshot_rev — recorded gap); snapshot text kept verbatim (answer leakage → P1.7, not stripped) | Clean snapshot-only corpus replaces the LLM-contaminated one and sidesteps the §4.2 graph-text leak; alignment-free primary track (P1.6) can exclude `wikipedia_cross_lang` for test/valid | `build_v2_descriptions.py`, `DBP5L/ind_v2/descriptions/descriptions_v2_stats.json` |
+| R-029 | 2026-07-18 | Valid benchmark infra | Phase 1 | P1.6 Part A — eval track/view definitions | Primary alignment-free view (d1afcf20, **0 cross-lang asserted**, 4,274→name); oracle diagnostic view (2a19bb0b); all-lang candidate universe (6a641485, matches evaluator) + 5 within-lang universes, independent hashes; track manifest declares head/tail/combined directions + budget-fixed targets/filter | Head+tail prediction code (reciprocal tokens, head/tail/combined reporting) + retrain = Part B, pending | Track contract + hashed views ready; alignment-free primary excludes cross-lang by construction | `build_v2_eval_tracks.py`, `DBP5L/ind_v2/tracks/` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -309,11 +310,11 @@ $$
 
 ### P1.6 Create evaluation tracks
 
-- [ ] Primary: alignment-free, full-candidate, head and tail prediction.
-- [ ] Oracle alignment: allow aligned counterpart evidence and label it diagnostic.
-- [ ] Within-language and all-language candidate sets.
-- [ ] Evidence budgets 0/1/3/5.
-- [ ] Clean, missing-text, and held-out corruption tracks.
+- [~] Primary: alignment-free, full-candidate, head and tail prediction. *(Alignment-free description **view built + hashed** (`descriptions_v2_primary.json` d1afcf20; **0 cross-lang usage asserted**, 4,274 fall back to native name). Full-candidate defined. **head+tail prediction code = Part B** (reciprocal tokens in trainer+evaluator) — pending.)*
+- [x] Oracle alignment: allow aligned counterpart evidence and label it diagnostic. *(Oracle view = full P1.5 corpus (with cross-lang), labelled `diagnostic`, hash 2a19bb0b.)*
+- [x] Within-language and all-language candidate sets. *(Recorded independently: `candidates_all.json` (6a641485, matches the evaluator's persisted candidate hash) + `candidates_within_{lang}.json` ×5, each hashed.)*
+- [x] Evidence budgets 0/1/3/5. *(Track manifest references the P1.4 per-fold budget artifacts; targets/filter/candidate hashes fixed across budgets — recorded in `fixed_across_budgets`.)*
+- [~] Clean, missing-text, and held-out corruption tracks. *(Clean track = primary view. Missing-text + corruption declared as tracks; their data is built in Phase 3/4.)*
 
 ### P1.7 Run shortcut and leakage audits
 
