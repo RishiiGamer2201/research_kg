@@ -101,12 +101,20 @@ def audit_fold(root, fold_dir, all_triples, gid_lang, within_ids, n):
         if (h, r, t) not in excluded:
             filt[(h, r)].add(t)
 
+    deg = np.asarray(A.sum(axis=1)).ravel()          # degree = popularity baseline
     rng = random.Random(SAMPLE_SEED)
     sample = sorted(set(tgt_test))
     rng.shuffle(sample)
     sample = sample[:SAMPLE_PER_FOLD]
 
-    rr, h1, h10, sp_lens, reach = [], [], [], [], 0
+    def _rank(score_of, t, cands, known):
+        ts = score_of(t)
+        higher = sum(1 for c in cands if c != t and c not in known and score_of(c) > ts)
+        ties = sum(1 for c in cands if c != t and c not in known and score_of(c) == ts)
+        return higher + (ties + 1) / 2.0
+
+    ppr_rr, deg_rr, rnd_rr, h1, h10, sp_lens, reach = [], [], [], [], [], [], 0
+    rel_rr = defaultdict(list)                        # per-relation PPR RR (outlier detection)
     for (h, r, t) in sample:
         lang = gid_lang.get(t, "en")
         cands = within_ids.get(lang, [])
@@ -114,23 +122,34 @@ def audit_fold(root, fold_dir, all_triples, gid_lang, within_ids, n):
             continue
         pi = _ppr(P, h, n)
         known = filt.get((h, r), set())
-        # rank t among same-language candidates by PPR score (filtered)
-        t_score = pi[t]
-        higher = sum(1 for c in cands if c != t and c not in known and pi[c] > t_score)
-        ties = sum(1 for c in cands if c != t and c not in known and pi[c] == t_score)
-        rank = higher + (ties + 1) / 2.0
-        rr.append(1.0 / rank); h1.append(int(rank <= 1)); h10.append(int(rank <= 10))
+        rank = _rank(lambda c: pi[c], t, cands, known)
+        ppr_rr.append(1.0 / rank); h1.append(int(rank <= 1)); h10.append(int(rank <= 10))
+        rel_rr[r].append(1.0 / rank)
+        # degree (popularity) baseline
+        deg_rr.append(1.0 / _rank(lambda c: deg[c], t, cands, known))
+        # random baseline (deterministic per-query permutation)
+        rscore = {c: rng.random() for c in cands}
+        rnd_rr.append(1.0 / _rank(lambda c: rscore[c], t, cands, known))
         d = _bfs_dist(A, h, t)
         if d >= 0:
             sp_lens.append(d); reach += 1
-    m = len(rr)
+    m = len(ppr_rr)
+    # relation-level outliers: relations whose structural (PPR) MRR is far above the mean
+    rel_mrr = {r: sum(v) / len(v) for r, v in rel_rr.items() if len(v) >= 5}
+    ppr_mean = (sum(ppr_rr) / m) if m else 0
+    outliers = sorted(({"relation": r, "ppr_mrr": round(mr, 4), "n": len(rel_rr[r])}
+                       for r, mr in rel_mrr.items() if mr >= max(2 * ppr_mean, 0.2)),
+                      key=lambda x: -x["ppr_mrr"])[:10]
     return {
         "n_sampled": m,
-        "ppr_mrr": round(sum(rr) / m, 4) if m else 0,
+        "ppr_mrr": round(ppr_mean, 4),
         "ppr_hits1": round(sum(h1) / m, 4) if m else 0,
         "ppr_hits10": round(sum(h10) / m, 4) if m else 0,
+        "degree_baseline_mrr": round(sum(deg_rr) / m, 4) if m else 0,
+        "random_baseline_mrr": round(sum(rnd_rr) / m, 4) if m else 0,
         "reachable_frac": round(reach / m, 4) if m else 0,
         "median_shortest_path": (sorted(sp_lens)[len(sp_lens) // 2] if sp_lens else -1),
+        "relation_level_outliers": outliers,
         "excluded_answer_edges": len(excluded),
     }
 

@@ -1,35 +1,44 @@
 {
   "alpha": 0.85,
-  "built_utc": "2026-07-18T06:24:27Z",
+  "built_utc": "2026-07-18T06:31:02Z",
   "folds": {
     "fold0_seed13": {
+      "degree_baseline_mrr": 0.0735,
       "excluded_answer_edges": 50622,
       "median_shortest_path": 3,
       "n_sampled": 400,
       "ppr_hits1": 0.0,
       "ppr_hits10": 0.13,
       "ppr_mrr": 0.0553,
-      "reachable_frac": 0.9775
+      "random_baseline_mrr": 0.0007,
+      "reachable_frac": 0.9775,
+      "relation_level_outliers": []
     },
     "fold1_seed42": {
+      "degree_baseline_mrr": 0.0755,
       "excluded_answer_edges": 51128,
       "median_shortest_path": 3,
       "n_sampled": 400,
       "ppr_hits1": 0.005,
       "ppr_hits10": 0.1225,
       "ppr_mrr": 0.0508,
-      "reachable_frac": 0.97
+      "random_baseline_mrr": 0.0006,
+      "reachable_frac": 0.97,
+      "relation_level_outliers": []
     },
     "fold2_seed79": {
+      "degree_baseline_mrr": 0.0628,
       "excluded_answer_edges": 50001,
       "median_shortest_path": 3,
       "n_sampled": 400,
       "ppr_hits1": 0.0025,
       "ppr_hits10": 0.1475,
       "ppr_mrr": 0.061,
-      "reachable_frac": 0.995
+      "random_baseline_mrr": 0.0016,
+      "reachable_frac": 0.995,
+      "relation_level_outliers": []
     }
   },
-  "hash": "92cc5ff4c3a5367f657498aad64181e37179ccf6567f9e7cfd51b88a504e2886",
+  "hash": "0082e2055036456211270a96a1fada1d3ec919cff15ab1014c0eea4c3336623c",
   "sample_per_fold": 400
 }
