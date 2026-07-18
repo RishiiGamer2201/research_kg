@@ -119,9 +119,43 @@ def crr_loss(pos_logits, all_logits, rho=0.1, tau=0.1):
 
 # ─── Hard Negative Mining ─────────────────────────────────────────────────────
 @torch.no_grad()
+def lora_state_hash(model):
+    """SHA-256 over the LoRA (trainable) parameters — identifies the exact adapter state
+    that produced a hard-negative cache. The frozen base revision / cache key are NOT
+    sufficient: the base is identical every epoch while the adapter changes."""
+    import hashlib
+    h = hashlib.sha256()
+    for name, p in sorted(model.named_parameters(), key=lambda kv: kv[0]):
+        if p.requires_grad:
+            h.update(name.encode())
+            h.update(p.detach().to(torch.float32).cpu().numpy().tobytes())
+    return h.hexdigest()
+
+
+def assert_hn_cache_fresh(meta, model, expected_epoch):
+    """Reject a hard-negative cache that was not produced by the CURRENT adapter state.
+
+    The in-memory cache is rebuilt from the resumed weights on every resume, so this holds
+    trivially today. It is enforced anyway so that adding a disk cache later (tempting: the
+    refresh costs ~72.7s/epoch) cannot silently reuse embeddings from a different checkpoint.
+    """
+    if meta is None:
+        return
+    current = lora_state_hash(model)
+    if meta.get('lora_hash') != current:
+        raise RuntimeError(
+            f"HN cache rejected: produced by adapter {str(meta.get('lora_hash'))[:12]} at epoch "
+            f"{meta.get('epoch')}, but the current adapter is {current[:12]} (expected epoch "
+            f"{expected_epoch}). Rebuild the cache from the resumed checkpoint.")
+
+
 def build_entity_cache(model, tokenizer, entity_texts, all_entity_ids,
-                        max_length, device, batch_size=512):
-    """Encode all entities; return (N,D) CPU float32 tensor + eid→idx map."""
+                        max_length, device, batch_size=512, epoch=None):
+    """Encode all entities; return (N,D) CPU float32 tensor + eid→idx map + provenance meta.
+
+    NOTE: this cache is IN-MEMORY ONLY — it is never persisted, so a resume always rebuilds it
+    from the checkpoint being resumed. `meta` records the producing epoch and the exact LoRA
+    state hash so any future persistence can be validated (see assert_hn_cache_fresh)."""
     logger.info(f'  [HN] Building entity cache for {len(all_entity_ids)} entities...')
     t0 = time.time()
     model.eval()
@@ -136,9 +170,14 @@ def build_entity_cache(model, tokenizer, entity_texts, all_entity_ids,
         embeddings.append(emb.cpu())
     entity_cache = torch.cat(embeddings, dim=0)  # (N, D)
     eid_to_idx   = {eid: i for i, eid in enumerate(all_entity_ids)}
+    meta = {'epoch': epoch, 'lora_hash': lora_state_hash(model),
+            'n_entities': len(all_entity_ids), 'max_length': max_length,
+            'built_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'persisted': False}
     model.train()
-    logger.info(f'  [HN] Cache built in {(time.time()-t0)/60:.1f} min | shape {entity_cache.shape}')
-    return entity_cache, eid_to_idx
+    logger.info(f"  [HN] Cache built in {(time.time()-t0)/60:.1f} min | shape {entity_cache.shape} "
+                f"| epoch {epoch} | adapter {meta['lora_hash'][:12]}")
+    return entity_cache, eid_to_idx, meta
 
 
 def get_hard_negatives(q_embs_detached, t_eids, entity_cache_gpu,
@@ -491,6 +530,7 @@ def train(args):
     logger.info(f'Batch={args.batch_size} | GradAccum={args.grad_accum} | Effective batch={args.batch_size*args.grad_accum}')
 
     best_acc1 = 0.0
+    best_epoch = None          # epoch whose checkpoint validation selection kept
     results = []
     entity_cache     = None   # (N, D) CPU tensor — populated after ep hard_neg_start_epoch
     entity_cache_gpu = None   # same but on GPU for fast matmul
@@ -515,8 +555,14 @@ def train(args):
             logger.info(f'Resumed at epoch {start_epoch}/{args.epochs} | best acc@1 so far {best_acc1:.2f}%')
             # Rebuild the hard-negative entity cache if the next epoch needs it
             if args.hard_neg_k > 0 and start_epoch >= args.hard_neg_start_epoch:
-                entity_cache, eid_to_idx = build_entity_cache(
-                    model, tokenizer, entity_texts, all_entity_ids, args.max_length, device, batch_size=512)
+                # Rebuilt from the RESUMED weights (never loaded from disk), then verified
+                # against the resumed adapter state before use.
+                entity_cache, eid_to_idx, hn_meta = build_entity_cache(
+                    model, tokenizer, entity_texts, all_entity_ids, args.max_length, device,
+                    batch_size=512, epoch=start_epoch)
+                assert_hn_cache_fresh(hn_meta, model, start_epoch)
+                logger.info(f'  [HN] resume cache verified against adapter '
+                            f"{hn_meta['lora_hash'][:12]} (epoch {start_epoch})")
                 entity_cache_gpu = entity_cache.to(device)
         else:
             logger.warning('Resume checkpoint has no optimizer state (old best_model.pt format); '
@@ -679,6 +725,7 @@ def train(args):
 
         if va1 > best_acc1:
             best_acc1 = va1
+            best_epoch = epoch + 1
             torch.save({'epoch': epoch+1, 'model_state_dict': model.state_dict(),
                         'valid_acc1': va1, 'args': vars(args)},
                        f'{run_dir}/best_model.pt')
@@ -702,10 +749,11 @@ def train(args):
         # ── Build / refresh entity cache for next epoch’s hard negatives ──────
         if args.hard_neg_k > 0 and (epoch + 1) >= args.hard_neg_start_epoch:
             _te = time.time()
-            entity_cache, eid_to_idx = build_entity_cache(
+            entity_cache, eid_to_idx, hn_meta = build_entity_cache(
                 model, tokenizer, entity_texts, all_entity_ids,
-                args.max_length, device, batch_size=512)
+                args.max_length, device, batch_size=512, epoch=epoch + 1)
             _prof['encode_s'] += time.time() - _te
+            _prof['last_hn_meta'] = hn_meta
             entity_cache_gpu = entity_cache.to(device)
             logger.info(f'  [HN] Cache on GPU ({entity_cache_gpu.element_size()*entity_cache_gpu.nelement()/1e6:.0f} MB)')
 
@@ -727,9 +775,32 @@ def train(args):
         'seconds_per_epoch': round(_wall_s / max(len(results), 1), 1),
     }
     logger.info(f'PROFILE {json.dumps(_profile)}')
+
+    # Preserve the selection record BEFORE any downstream evaluation (P2.1 completion rule):
+    # exact selected-checkpoint hash, the validation metric/epoch that selected it, the
+    # effective runtime profile, and the per-epoch validation history.
+    _selection = {
+        'selected_checkpoint': f'{run_dir}/best_model.pt',
+        'selected_checkpoint_sha256': rm.sha256_file(f'{run_dir}/best_model.pt'),
+        'selection_metric': 'valid_acc@1 (inductive fold valid targets; selection only)',
+        'selection_value': best_acc1,
+        'selection_epoch': best_epoch,
+        'epochs_run': len(results),
+        'validation_history': results,
+        'last_hn_cache_meta': _prof.get('last_hn_meta'),
+        'profile': _profile,
+    }
+    with open(f'{run_dir}/selection_record.json', 'w') as f:
+        json.dump(_selection, f, indent=2, sort_keys=True)
+    logger.info(f"SELECTION epoch={best_epoch} acc@1={best_acc1:.2f} "
+                f"ckpt_sha={str(_selection['selected_checkpoint_sha256'])[:12]}")
+
     if rm.load_manifest(run_dir) is not None:
         rm.finish_run(run_dir, status='complete',
                       metrics={'best_valid_acc1': best_acc1, 'epochs_run': len(results),
+                               'selection': {k: _selection[k] for k in
+                                             ('selected_checkpoint_sha256', 'selection_metric',
+                                              'selection_value', 'selection_epoch')},
                                'profile': _profile},
                       checkpoint_path=f'{run_dir}/best_model.pt')
 
