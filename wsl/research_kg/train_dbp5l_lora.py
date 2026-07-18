@@ -367,7 +367,8 @@ def train(args):
                 'anchors_by_rel': f'{PROCESSED}/anchors_by_rel.json',
             },
             seed=args.seed, model_name=args.model_name,
-            extra={'args': vars(args), 'run_name': run_name, 'max_length': args.max_length},
+            extra={'args': vars(args), 'run_name': run_name, 'max_length': args.max_length,
+                   'v2_fold': args.v2_fold, 'reciprocal': bool(args.reciprocal)},
         )
         logger.info(f'  Wrote run manifest: {run_dir}/manifest.json')
 
@@ -388,6 +389,30 @@ def train(args):
     def load_exs(path):
         return [json.loads(l) for l in open(path)]
 
+    def load_v2_fold(fold_dir):
+        """DBP5L-Ind v2 (P2.1): train on triples INTERNAL to the fold's train entities
+        (concept-disjoint, so no unseen concept is touched); validate on the fold's
+        inductive eval targets. Entity lang comes from entities.json."""
+        train_ents = set(json.load(open(os.path.join(fold_dir, 'train_entities.json'))))
+        elang = {int(g): e.get('lang', 'en') for g, e in
+                 json.load(open(f'{PROCESSED}/entities.json')).items()}
+        tr = []
+        for split in ('train', 'valid', 'test'):
+            p = f'{PROCESSED}/{split}.json'
+            if not os.path.exists(p):
+                continue
+            for line in open(p):
+                d = json.loads(line)
+                if d['h'] in train_ents and d['t'] in train_ents:
+                    tr.append({'h': d['h'], 'r': d['r'], 't': d['t'],
+                               'lang': d.get('lang', elang.get(d['h'], 'en'))})
+        va_path = os.path.join(fold_dir, 'budgets', 'eval_targets_valid.json')
+        va = [{'h': h, 'r': r, 't': t, 'lang': elang.get(h, 'en')}
+              for h, r, t in json.load(open(va_path))]
+        logger.info(f'  v2 fold {os.path.basename(fold_dir)}: {len(tr)} train (train-internal), '
+                    f'{len(va)} valid (inductive targets)')
+        return tr, va
+
     # Token cache MUST be keyed by encoder AND by the descriptions file: different tokenizers
     # (BGE-M3 SentencePiece vs mBERT/XLM-R WordPiece) produce incompatible ids, and different
     # description sources produce different text. Without these tags a run would silently reuse a
@@ -399,18 +424,25 @@ def train(args):
     recip = bool(args.reciprocal)
     rc_tag = '_recip' if recip else ''   # reciprocal doubles examples -> distinct cache
 
+    if args.v2_fold:
+        train_exs, valid_exs = load_v2_fold(args.v2_fold)
+        fold_tag = '_' + os.path.basename(args.v2_fold.rstrip('/'))
+    else:
+        train_exs, valid_exs = load_exs(f'{PROCESSED}/train.json'), load_exs(f'{PROCESSED}/valid.json')
+        fold_tag = ''
+
     logger.info('Pre-tokenizing training set...')
     train_ds = PreTokenizedDataset(
-        load_exs(f'{PROCESSED}/train.json'), entity_texts, anchors_by_rel, relation_names,
+        train_exs, entity_texts, anchors_by_rel, relation_names,
         tokenizer, args.max_length, n_anchors=args.n_anchors,
         use_cross_lingual_anchors=bool(args.use_cross_lingual_anchors), reciprocal=recip,
-        cache_path=os.path.join(CACHE_DIR, f'train_{cache_tag}_ml{args.max_length}_na{args.n_anchors}_xl{args.use_cross_lingual_anchors}{rc_tag}_v2')
+        cache_path=os.path.join(CACHE_DIR, f'train_{cache_tag}_ml{args.max_length}_na{args.n_anchors}_xl{args.use_cross_lingual_anchors}{rc_tag}{fold_tag}_v2')
     )
     logger.info('Pre-tokenizing validation set...')
     valid_ds = PreTokenizedDataset(
-        load_exs(f'{PROCESSED}/valid.json'), entity_texts, anchors_by_rel, relation_names,
+        valid_exs, entity_texts, anchors_by_rel, relation_names,
         tokenizer, args.max_length, n_anchors=0, reciprocal=recip,
-        cache_path=os.path.join(CACHE_DIR, f'valid_{cache_tag}_ml{args.max_length}{rc_tag}_v2')
+        cache_path=os.path.join(CACHE_DIR, f'valid_{cache_tag}_ml{args.max_length}{rc_tag}{fold_tag}_v2')
     )
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
@@ -693,6 +725,10 @@ if __name__ == '__main__':
                    help='Increase hard_neg_k by 1 every N epochs during curriculum phase.')
     p.add_argument('--seed', type=int, default=42,
                    help='Random seed for reproducibility. Use different seeds for multi-seed runs.')
+    p.add_argument('--v2-fold', default=None,
+                   help='Path to a DBP5L-Ind v2 fold dir (e.g. DBP5L/ind_v2/folds/fold0_seed13). '
+                        'Trains on triples internal to that fold\'s train entities and validates '
+                        'on its inductive eval targets (P2.1 frozen matrix).')
     p.add_argument('--reciprocal', type=int, default=0,
                    help='If 1, add a reciprocal (head-prediction) example per triple with the '
                         'RECIP_MARKER direction token, so head prediction is trained (P1.6). '
