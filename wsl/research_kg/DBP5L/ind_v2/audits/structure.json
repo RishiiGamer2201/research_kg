@@ -1,0 +1,163 @@
+{
+  "built_utc": "2026-07-18T06:22:36Z",
+  "distributions": {
+    "concept_size_histogram": {
+      "1": 19678,
+      "2": 1523,
+      "3": 1894,
+      "4": 3542,
+      "5": 2803
+    },
+    "degree": {
+      "max": 3911,
+      "median": 5,
+      "min": 1,
+      "p25": 2,
+      "p75": 10,
+      "p95": 23
+    },
+    "entities_per_language": {
+      "el": 5231,
+      "en": 13996,
+      "es": 12381,
+      "fr": 13176,
+      "ja": 11805
+    },
+    "n_entities": 56589,
+    "n_relations": 903,
+    "n_triples": 185866,
+    "relation_freq_top5": [
+      [
+        289,
+        20395
+      ],
+      [
+        351,
+        18261
+      ],
+      [
+        448,
+        13300
+      ],
+      [
+        357,
+        9996
+      ],
+      [
+        912,
+        8471
+      ]
+    ],
+    "relations_freq_le2": 335,
+    "triples_per_language": {
+      "el": 10416,
+      "en": 68187,
+      "es": 44985,
+      "fr": 40007,
+      "ja": 22271
+    }
+  },
+  "duplicates": {
+    "example_dup_names": [
+      {
+        "gids": [
+          2,
+          13998
+        ],
+        "name": "1. fc union berlin"
+      },
+      {
+        "gids": [
+          3,
+          27175
+        ],
+        "name": "1. fsv mainz 05"
+      },
+      {
+        "gids": [
+          7,
+          14002
+        ],
+        "name": "2012 (film)"
+      },
+      {
+        "gids": [
+          8,
+          14003
+        ],
+        "name": "2046 (film)"
+      },
+      {
+        "gids": [
+          9,
+          14004,
+          27180,
+          51367
+        ],
+        "name": "20th century fox"
+      }
+    ],
+    "n_dup_description_groups": 3767,
+    "n_dup_name_groups": 8082,
+    "n_entities_in_dup_descriptions": 8212,
+    "n_entities_in_dup_names": 21638
+  },
+  "hash": "31d7b48825cbb5bb88200945d1c0b542cb2edc4046576caaf89997522eb71c79",
+  "inverse_relations": {
+    "min_support": 20,
+    "n_inverse_relation_pairs_ge_support": 20,
+    "reciprocal_same_relation_triples": 2441,
+    "top_inverse_pairs": [
+      {
+        "rel_a": 289,
+        "rel_b": 298,
+        "support": 2136
+      },
+      {
+        "rel_a": 298,
+        "rel_b": 289,
+        "support": 2136
+      },
+      {
+        "rel_a": 289,
+        "rel_b": 824,
+        "support": 1089
+      },
+      {
+        "rel_a": 824,
+        "rel_b": 289,
+        "support": 1089
+      },
+      {
+        "rel_a": 298,
+        "rel_b": 243,
+        "support": 548
+      },
+      {
+        "rel_a": 243,
+        "rel_b": 298,
+        "support": 548
+      },
+      {
+        "rel_a": 284,
+        "rel_b": 339,
+        "support": 494
+      },
+      {
+        "rel_a": 339,
+        "rel_b": 284,
+        "support": 494
+      },
+      {
+        "rel_a": 358,
+        "rel_b": 358,
+        "support": 462
+      },
+      {
+        "rel_a": 660,
+        "rel_b": 660,
+        "support": 456
+      }
+    ]
+  }
+}
