@@ -49,6 +49,9 @@ logger = logging.getLogger(__name__)
 
 # RESEARCH_KG_ROOT lets a clean clone point at data elsewhere without editing source; default = old behavior.
 _ROOT = os.environ.get('RESEARCH_KG_ROOT', os.path.expanduser('~/research_kg'))
+# Reciprocal direction marker for head-prediction training examples. MUST match
+# eval_dbp5l.RECIP_MARKER so head queries are identical at train and eval time.
+RECIP_MARKER = 'reverse of'
 PROCESSED = os.path.join(_ROOT, 'DBP5L/processed')
 CHECKPOINT_DIR = os.path.join(_ROOT, 'DBP5L/checkpoints')
 CACHE_DIR = os.path.join(_ROOT, 'DBP5L/token_cache')
@@ -155,32 +158,40 @@ def get_hard_negatives(q_embs_detached, t_eids, entity_cache_gpu,
 class PreTokenizedDataset(Dataset):
     def __init__(self, examples, entity_texts, anchors_by_rel, relation_names,
                  tokenizer, max_length, n_anchors=0,
-                 use_cross_lingual_anchors=False, cache_path=None):
+                 use_cross_lingual_anchors=False, cache_path=None, reciprocal=False):
 
         self.n_anchors = n_anchors
         self.anchors_by_rel = anchors_by_rel
         self.use_xl = use_cross_lingual_anchors
 
-        logger.info(f'  Building {len(examples)} example texts...')
+        n_out = len(examples) * (2 if reciprocal else 1)
+        logger.info(f'  Building {n_out} example texts (reciprocal={reciprocal})...')
         q_texts, t_texts, a_texts = [], [], []
         self.has_anchor = []
-        self.t_eids = []   # tail entity IDs for hard-negative exclusion
+        self.t_eids = []   # target entity IDs for hard-negative exclusion
 
         for ex in examples:
             h, r, t = ex['h'], ex['r'], ex['t']
             lang = ex.get('lang', 'en')
             rel_name = relation_names.get(str(r), relation_names.get(r, f'relation {r}'))
             head_text = entity_texts.get(h, f'entity_{h}')
+            tail_text = entity_texts.get(t, f'entity_{t}')
+            # forward: predict tail  (query = head [SEP] relation)
             q_texts.append(f'{head_text} [SEP] {rel_name}')
-            t_texts.append(entity_texts.get(t, f'entity_{t}'))
-            self.t_eids.append(t)   # store tail entity ID for hard-neg lookup
+            t_texts.append(tail_text)
+            self.t_eids.append(t)
             anch = self._pick_anchor(h, r, lang, entity_texts) if n_anchors > 0 else None
             if anch:
-                a_texts.append(anch)
-                self.has_anchor.append(True)
+                a_texts.append(anch); self.has_anchor.append(True)
             else:
-                a_texts.append(q_texts[-1])
-                self.has_anchor.append(False)
+                a_texts.append(q_texts[-1]); self.has_anchor.append(False)
+            # reciprocal: predict head (query = tail [SEP] <RECIP> relation); target = head.
+            # Same direction marker the evaluator uses so train/eval head queries match.
+            if reciprocal:
+                q_texts.append(f'{tail_text} [SEP] {RECIP_MARKER} {rel_name}')
+                t_texts.append(head_text)
+                self.t_eids.append(h)
+                a_texts.append(q_texts[-1]); self.has_anchor.append(False)
 
         self.q_ids, self.q_mask = self._tok(tokenizer, q_texts, max_length, cache_path, 'q')
         self.t_ids, self.t_mask = self._tok(tokenizer, t_texts, max_length, cache_path, 't')
@@ -385,19 +396,21 @@ def train(args):
     model_tag = args.model_name.replace('/', '_')
     desc_tag = os.path.splitext(os.path.basename(desc_path))[0]
     cache_tag = f'{model_tag}_{desc_tag}'
+    recip = bool(args.reciprocal)
+    rc_tag = '_recip' if recip else ''   # reciprocal doubles examples -> distinct cache
 
     logger.info('Pre-tokenizing training set...')
     train_ds = PreTokenizedDataset(
         load_exs(f'{PROCESSED}/train.json'), entity_texts, anchors_by_rel, relation_names,
         tokenizer, args.max_length, n_anchors=args.n_anchors,
-        use_cross_lingual_anchors=bool(args.use_cross_lingual_anchors),
-        cache_path=os.path.join(CACHE_DIR, f'train_{cache_tag}_ml{args.max_length}_na{args.n_anchors}_xl{args.use_cross_lingual_anchors}_v2')
+        use_cross_lingual_anchors=bool(args.use_cross_lingual_anchors), reciprocal=recip,
+        cache_path=os.path.join(CACHE_DIR, f'train_{cache_tag}_ml{args.max_length}_na{args.n_anchors}_xl{args.use_cross_lingual_anchors}{rc_tag}_v2')
     )
     logger.info('Pre-tokenizing validation set...')
     valid_ds = PreTokenizedDataset(
         load_exs(f'{PROCESSED}/valid.json'), entity_texts, anchors_by_rel, relation_names,
-        tokenizer, args.max_length, n_anchors=0,
-        cache_path=os.path.join(CACHE_DIR, f'valid_{cache_tag}_ml{args.max_length}_v2')
+        tokenizer, args.max_length, n_anchors=0, reciprocal=recip,
+        cache_path=os.path.join(CACHE_DIR, f'valid_{cache_tag}_ml{args.max_length}{rc_tag}_v2')
     )
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
@@ -680,5 +693,9 @@ if __name__ == '__main__':
                    help='Increase hard_neg_k by 1 every N epochs during curriculum phase.')
     p.add_argument('--seed', type=int, default=42,
                    help='Random seed for reproducibility. Use different seeds for multi-seed runs.')
+    p.add_argument('--reciprocal', type=int, default=0,
+                   help='If 1, add a reciprocal (head-prediction) example per triple with the '
+                        'RECIP_MARKER direction token, so head prediction is trained (P1.6). '
+                        'Doubles the training set. Default 0 = tail-only (backward compatible).')
     args = p.parse_args()
     train(args)
