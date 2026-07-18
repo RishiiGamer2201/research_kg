@@ -64,6 +64,26 @@
       },
       "fix": "export LOG into the detached shell + `set -u` so an unset variable fails loudly; added scripts/baselines/test_launch_run.sh (10 checks incl. log capture, exit/signal recording, lock, heartbeat, reuse refusal, checker agreement).",
       "replaced_by": "B0-RUN-002"
+    },
+    {
+      "run_id": "B0-RUN-002",
+      "status": "failed",
+      "date_utc": "2026-07-18",
+      "purpose": "B0 anchor baseline, DBP5L-Ind v2 fold0_seed13, seed 42.",
+      "pid": 19926,
+      "launch_commit": "d51630b",
+      "progress": "5/30 epochs completed; best_model.pt + last_checkpoint.pt saved (epoch 5)",
+      "termination": {
+        "primary": "torch.AcceleratorError: CUDA error: unknown error (cudaErrorUnknown) on the first hard-negative matmul at epoch-5 HN onset (HN cache built fine, 1.2min/174MB immediately before). ENVIRONMENTAL, not code: the same code ran 5 epochs + the cache build successfully, and a post-mortem CUDA matmul on the same GPU succeeds (15.5GB free). Most likely a WSL2 CUDA-context disturbance during the session login/reconnect churn around 11:00Z.",
+        "secondary": "bash then emitted syntax errors on run_b0_fold0_seed42.sh lines 21-22 because the script had been EDITED (rewritten to the explicit-resume version) WHILE bash was executing it -> bash resumed at a stale byte offset. Cosmetic; did NOT cause the CUDA abort (python is an independent child)."
+      },
+      "process_lesson": "Do not edit files a running job executes. Training code will be frozen (git tag) for the duration of the B0 matrix; the run script is copied immutably at launch.",
+      "recovery": "Fresh B0-RUN-003 from current HEAD (single immutable commit with all fixes: selection-epoch persistence, complete cache key, HN provenance). ~2.3h lost.",
+      "outputs": {
+        "result_written": false,
+        "output_directory_reused": false
+      },
+      "replaced_by": "B0-RUN-003"
     }
   ]
 }
