@@ -58,9 +58,13 @@ Running log. Newest entries at top of each section. Absolute dates.
 ### 2026-07-18 — Run E DONE, Gate G0 CLOSED
 - Run E clean retrain finished 30/30 ep, exit 0, best acc@1 72.54% (ep23). Train manifest status=complete, ckpt c85f23de.
 - **Clean eval: within-lang MRR 27.02** (H@1 18.5 H@3 30.2 H@10 43.0), cross-lingual 26.78. Per-lang FR37.7/ES37.6/JA19.8/EL17.1/EN16.1. Ledger R-023.
-- **Finding:** clean desc (no LLM backfill) ≈ slightly-above contaminated provisional 26.51±0.31 → contamination was NOT inflating the headline. Single seed 42 (need 3 for final headline — do in P2).
+- **Finding (precise):** seed-42 clean 27.02 sits within provisional band 26.51±0.31 → NO evidence contamination inflated THIS run. NOT a definitive clean-vs-contaminated comparison — that needs the **3-seed clean baseline in Phase 2**. Do not overclaim causality from one seed.
 - **Gate G0 CLOSED:** all boxes marked, R-016..R-023 in ledger. Pushed to main (SHA recorded in plan). Phase 0 DONE.
-- **NEXT: Phase 1** — DBP5L-Ind v2 concept-disjoint benchmark (P1.1 freeze/hash DBP-5L source → P1.8 data card). This is where head-prediction eval (deferred from P0.3) and 3-seed clean baseline belong.
+- **Phase 1 STARTED (ledger R-024):**
+  - **P1.2 concept clusters DONE:** `scripts/data_prep/build_concept_clusters.py` (union-find over `processed/alignments.json` global-id pairs). 56,589 entities → **29,440 concepts** (9,762 multilingual size 2–5, 19,678 singletons, **0 ambiguous** = no same-lang collisions). Canonical concept_id = min gid. Output `DBP5L/ind_v2/concepts/` (concepts.json, entity2concept.json committed; union_provenance.jsonl gitignored/regenerable). Deterministic (hash-stable). Self-check `--selftest`.
+  - **P1.7 concept-leakage audit DONE (partial):** `scripts/data_prep/concept_leakage_audit.py`. **v1 split leaks 72.3% of test concepts (4,964/6,866) into train** via cross-lingual aligned IDs → confirms §4.3, motivates v2. Provides reusable `assert_concept_disjoint(train,valid,test)` for the fold builder.
+  - Data model: entities.json keyed by GLOBAL id {lang,local_id,global_id,name,uri,desc}; alignments.json = global-id pairs; align_index.json NOT transitively closed (don't use). v1 ind/ uses per-lang LOCAL ids → map via entities.json (lang,local_id)→global.
+- **NEXT: P1.3** build 3 fixed concept-disjoint folds (published seeds): split CONCEPT ids (not entity ids) into train/valid/test, stratify ~by language coverage/degree/relation support WITHOUT splitting a concept, inductive validation, persist concept lists + manifests. Use `assert_concept_disjoint`. Then P1.4 nested support budgets 0/1/3/5, P1.5 clean descriptions from train-only evidence, P1.6 eval tracks (incl. deferred head-prediction), rest of P1.7 audits (dup/inverse/PPR), P1.8 data card.
 
 ### 2026-07-17 (cont) — Run E INTERRUPTED then RESUMED detached
 - Tracked bg tasks got mass-killed at a session boundary (~8h job can't survive as a tool-tracked task). Run E had done **2/30 epochs** (valid acc@1 64.5→67.4) with best_model.pt + last_checkpoint.pt saved. Manifest stayed `running` (correct = incomplete).

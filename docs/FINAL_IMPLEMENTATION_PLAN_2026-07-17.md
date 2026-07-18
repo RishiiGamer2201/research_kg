@@ -55,7 +55,8 @@ Append every new result to this table. Do not replace the historical result when
 | R-020 | 2026-07-17 | Valid reproduction | Phase 0 | P0.5 eval validation: zero-shot BGE-M3 on clean descriptions, run twice through the rebuilt evaluator | Within-lang MRR **1.4402** (H@1 0.08, H@3 1.55, H@10 3.72); cross-lingual MRR 0.66. Two runs byte-identical → **DETERMINISTIC: True**. Eval manifest fully populated (candidate/split/support hashes, git commit, model rev) | none | Rebuilt evaluator reproduces historical **R-001 (1.45)** within 0.01 (diff = tie-averaging + rounding); settles P0.3 repeat-determinism assertion; P0.2 manifests confirmed on real runs | `.../zero_shot_bgem3/evals/*/manifest.json`, `scratchpad/p05_run.log` |
 | R-021 | 2026-07-17 | Valid infra (smoke) | Phase 0 | P0.5 train pipeline: 1-epoch smoke train (bge, ml64, clean desc) → eval the checkpoint | Train manifest `status=complete`, ckpt hash `d2c8dcde`, metrics logged. Ckpt eval: `max_length=64` auto-read from checkpoint; eval manifest written. Smoke within-lang MRR 0.40 | Smoke MRR (0.40) is BELOW zero-shot (1.44) — expected for 1 epoch / ml64 / no-CRR / no-HN (undertrained; LoRA-B init 0; ml64 truncates). NOT a regression | Full train→checkpoint→load→eval→manifest chain validated end-to-end; real number needs the Run E config retrain | `.../bgem3_lora_dbp5l_20260717_1527_r16/manifest.json` |
 | R-022 | 2026-07-17 | Valid infra (smoke) | Phase 0 | P0.5 S2DN structural smoke: fb237_v1, 1 epoch, max_links 20, paper dims, venv_s2dn_gpu_latest | Subgraph extraction (pos/neg, train/valid) + 1 epoch on cuda:0 (loss 200.8, train AUC 0.53) in ~12s; effective hyperparams logged (emb_dim 64, hop 3, batch 16, max_links 20) | batch_size defaulted to 16 (paper 32) — smoke only, not a metric run | Structural pipeline reproduces on the newest dgl venv; frozen as canonical. G0 structural-baseline item satisfied | `requirements.s2dn-venv.txt`, `scratchpad/s2dn_smoke.log` |
-| R-023 | 2026-07-18 | Valid, single-seed clean baseline | Phase 0 | Run E clean retrain (seed 42, ml160, r16, CRR, HN K=7, **clean descriptions**, 30 ep) evaluated under the fixed evaluator | **Within-lang MRR 27.02** (H@1 18.52, H@3 30.19, H@10 43.02); cross-lingual 26.78. Best ckpt ep23. Per-lang FR 37.7 / ES 37.6 / JA 19.8 / EL 17.1 / EN 16.1. Train + eval manifests complete (ckpt c85f23de) | Single seed only (need 3 for headline) | **Clean ≈ slightly-above contaminated** (vs provisional R-005/006 26.51±0.31 / 26.69): removing LLM back-fill did NOT reduce the headline, so contamination was not inflating it. Averaged ties (lower) offset by clean text. Rebuilt pipeline reproduces the ~26–27 regime → **Gate G0 baseline reproduced** | `.../bgem3_lora_dbp5l_20260717_1541_crr_hn7_r16/{manifest.json,evals/*/manifest.json}`, `scratchpad/eval_E.log` |
+| R-023 | 2026-07-18 | Valid, single-seed clean baseline | Phase 0 | Run E clean retrain (seed 42, ml160, r16, CRR, HN K=7, **clean descriptions**, 30 ep) evaluated under the fixed evaluator | **Within-lang MRR 27.02** (H@1 18.52, H@3 30.19, H@10 43.02); cross-lingual 26.78. Best ckpt ep23. Per-lang FR 37.7 / ES 37.6 / JA 19.8 / EL 17.1 / EN 16.1. Train + eval manifests complete (ckpt c85f23de) | Single seed only — no clean-vs-contaminated claim yet | Seed-42 clean 27.02 sits within the provisional R-005/006 band (26.51±0.31 / 26.69), so this run shows **no evidence contamination inflated it** — but that is NOT a definitive clean-vs-contaminated comparison; the **3-seed clean baseline (Phase 2)** is required before any such claim. Rebuilt pipeline reproduces the ~26–27 regime → **Gate G0 baseline reproduced** | `.../bgem3_lora_dbp5l_20260717_1541_crr_hn7_r16/{manifest.json,evals/*/manifest.json}`, `scratchpad/eval_E.log` |
+| R-024 | 2026-07-18 | Valid benchmark infra + finding | Phase 1 | P1.2 concept clustering (union-find over alignments) + P1.7 concept-leakage audit of v1 split | 56,589 entities → **29,440 concepts** (9,762 multilingual size 2–5, 19,678 singletons, 0 ambiguous), deterministic hashes. v1 audit: **72.3% of test concepts (4,964/6,866) leak into train** via cross-lingual aligned IDs | v1 mapping clean (0 unmapped) | v1 `ind/` split is NOT concept-inductive — quantifies §4.3 and motivates v2. `assert_concept_disjoint` ready for P1.3 fold builder | `build_concept_clusters.py`, `concept_leakage_audit.py`, `DBP5L/ind_v2/concepts/concept_stats.json` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -261,10 +262,10 @@ $$
 
 ### P1.2 Build real-world concept clusters
 
-- [ ] Load every seed alignment pair and build connected components with union-find.
-- [ ] Detect components containing duplicate IDs from the same language; quarantine ambiguous components.
-- [ ] Add canonical concept IDs that are stable across folds.
-- [ ] Store provenance for every union operation.
+- [x] Load every seed alignment pair and build connected components with union-find. *(`build_concept_clusters.py`: 37,723 edges over `alignments.json` → 29,440 clean concepts from 56,589 entities; 9,762 multilingual (size 2–5), 19,678 singletons.)*
+- [x] Detect components containing duplicate IDs from the same language; quarantine ambiguous components. *(Same-language collision detection implemented + tested; **0 found** on real data — alignment graph is clean, ≤1 entity per language per concept.)*
+- [x] Add canonical concept IDs that are stable across folds. *(canonical = min global id in the component; fold-independent.)*
+- [x] Store provenance for every union operation. *(`union_provenance.jsonl`, one line per edge; regenerable → gitignored, hash in `concept_stats.json`.)*
 
 If $a\sim b$ denotes an alignment edge, concept membership is its transitive closure:
 
@@ -312,7 +313,7 @@ $$
 
 ### P1.7 Run shortcut and leakage audits
 
-- [ ] Concept/alignment leakage audit.
+- [x] Concept/alignment leakage audit. *(`concept_leakage_audit.py`: v1 `ind/` split leaks **4,964 / 6,866 test concepts (72.3%)** into train via cross-language aligned IDs — confirms §4.3 quantitatively. Also provides the reusable `assert_concept_disjoint(train,valid,test)` invariant for the v2 fold builder. R-024. Remaining P1.7 items (dup/inverse/answer-string/PPR audits) after folds.)*
 - [ ] Exact and near-duplicate entity/description audit.
 - [ ] Inverse-relation and reciprocal-triple audit.
 - [ ] Answer-string and relation-template leakage audit.

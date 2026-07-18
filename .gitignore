@@ -55,6 +55,9 @@ wsl/**/token_cache/
 wsl/**/experiments/
 wsl/**/subgraphs_*/
 
+# Regenerable v2 audit trails (deterministic from tracked alignments.json + builder)
+wsl/**/ind_v2/concepts/union_provenance.jsonl
+
 # OS files
 Thumbs.db
 .DS_Store
