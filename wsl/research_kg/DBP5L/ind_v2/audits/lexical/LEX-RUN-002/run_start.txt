@@ -1,0 +1,5 @@
+run_id=LEX-RUN-002
+started_utc=2026-07-18T07:54:13Z
+host=DESKTOP-MQUF098
+command=python3 scripts/baselines/run_lexical_baseline.py --max-targets 0 --out-dir DBP5L/ind_v2/audits/lexical/LEX-RUN-002
+pid=16282

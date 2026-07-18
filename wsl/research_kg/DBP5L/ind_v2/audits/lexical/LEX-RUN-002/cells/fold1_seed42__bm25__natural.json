@@ -1,0 +1,125 @@
+{
+  "by_mention": {
+    "head": {
+      "mentioned": {
+        "h1": 0.9906,
+        "h10": 45.0926,
+        "h3": 23.2068,
+        "mrr": 15.9517,
+        "n": 5451
+      },
+      "unmentioned": {
+        "h1": 0.0093,
+        "h10": 2.3059,
+        "h3": 0.6588,
+        "mrr": 0.837,
+        "n": 32178
+      }
+    },
+    "tail": {
+      "mentioned": {
+        "h1": 0.2251,
+        "h10": 11.4292,
+        "h3": 5.0414,
+        "mrr": 4.0765,
+        "n": 23545
+      },
+      "unmentioned": {
+        "h1": 0.0,
+        "h10": 2.0165,
+        "h3": 0.6177,
+        "mrr": 0.6829,
+        "n": 14084
+      }
+    }
+  },
+  "cell": {
+    "completed_utc": "2026-07-18T07:57:48Z",
+    "fold": "fold1_seed42",
+    "method": "bm25",
+    "seconds": 37.7,
+    "view": "natural"
+  },
+  "combined": {
+    "h1": 0.1462,
+    "h10": 8.2051,
+    "h3": 3.6554,
+    "mrr": 2.9165,
+    "n": 75258
+  },
+  "head": {
+    "h1": 0.1515,
+    "h10": 8.5041,
+    "h3": 3.9252,
+    "mrr": 3.0266,
+    "n": 37629
+  },
+  "n_targets": 37629,
+  "provenance": {
+    "bm25_b": 0.75,
+    "bm25_k1": 1.5,
+    "filter": "complete known-fact filter (train+valid+test), direction-specific",
+    "per_language": {
+      "el": {
+        "candidate_order_hash": "74a29ef70ac4d0b4",
+        "n_candidates": 5231,
+        "sparse_matrix_exact_hash": "760e28dd16eba70d",
+        "sparse_matrix_tolerant_decimals": 9,
+        "sparse_matrix_tolerant_hash": "d1a8c0a688cd4828",
+        "vocab_hash": "e965a12826252fdf",
+        "vocab_size": 8019
+      },
+      "en": {
+        "candidate_order_hash": "a4e0254b9e28090e",
+        "n_candidates": 13996,
+        "sparse_matrix_exact_hash": "baafa1d6f00b0058",
+        "sparse_matrix_tolerant_decimals": 9,
+        "sparse_matrix_tolerant_hash": "957fd2fa494055be",
+        "vocab_hash": "8ae159c85e01f6ce",
+        "vocab_size": 17291
+      },
+      "es": {
+        "candidate_order_hash": "ae2c79bf0d9dd1af",
+        "n_candidates": 12381,
+        "sparse_matrix_exact_hash": "a0a9a03238aef3ba",
+        "sparse_matrix_tolerant_decimals": 9,
+        "sparse_matrix_tolerant_hash": "78edec5ded6a11a8",
+        "vocab_hash": "d05e5b0d68e5a522",
+        "vocab_size": 73720
+      },
+      "fr": {
+        "candidate_order_hash": "8e5a14b16da110b9",
+        "n_candidates": 13176,
+        "sparse_matrix_exact_hash": "3926025c33572ca8",
+        "sparse_matrix_tolerant_decimals": 9,
+        "sparse_matrix_tolerant_hash": "fdf060e403799433",
+        "vocab_hash": "cf217cd642c67086",
+        "vocab_size": 71459
+      },
+      "ja": {
+        "candidate_order_hash": "837685b8db65b880",
+        "n_candidates": 11805,
+        "sparse_matrix_exact_hash": "5e14163bd3170190",
+        "sparse_matrix_tolerant_decimals": 9,
+        "sparse_matrix_tolerant_hash": "ceda441831f8b496",
+        "vocab_hash": "64f445ce47611fc4",
+        "vocab_size": 57319
+      }
+    },
+    "query_batch_size": 1,
+    "sample_seed": null,
+    "scoring": "scipy.sparse CSR matmul (query binary vector x candidate matrix)",
+    "targets_hash": "7a647a2e594ca551",
+    "tie_policy": "average-tied-ranks: rank = n_> + (n_= + 1)/2, gold included in n_=",
+    "tokenizer": "NFC-normalize -> lowercase -> whitespace split",
+    "view_hash": "d1afcf20821e034b"
+  },
+  "sampled": false,
+  "tail": {
+    "h1": 0.1408,
+    "h10": 7.9061,
+    "h3": 3.3857,
+    "mrr": 2.8063,
+    "n": 37629
+  }
+}

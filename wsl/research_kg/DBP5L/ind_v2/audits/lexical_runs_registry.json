@@ -25,10 +25,10 @@
     },
     {
       "run_id": "LEX-RUN-002",
-      "status": "running",
+      "status": "complete",
       "date_utc": "2026-07-18",
       "purpose": "Clean restart: first citable lexical result (ledger R-042).",
-      "command": "bash ~/research_kg/run_lex_full.sh  ->  python3 scripts/baselines/run_lexical_baseline.py --max-targets 0",
+      "command": "bash scripts/baselines/launch_run.sh LEX-RUN-002 $HOME/research_kg/DBP5L/ind_v2/audits/lexical python3 scripts/baselines/run_lexical_baseline.py --max-targets 0 --out-dir DBP5L/ind_v2/audits/lexical/LEX-RUN-002",
       "replaces": "LEX-RUN-001",
       "includes": [
         "full target set per fold (no sampling)",
@@ -38,7 +38,12 @@
         "averaged-tie policy recorded",
         "direction x mentioned/unmentioned breakdown"
       ],
-      "output_directory": "DBP5L/ind_v2/audits/lexical/LEX-RUN-002/ (fresh; LEX-RUN-001's path is not reused)"
+      "output_directory": "DBP5L/ind_v2/audits/lexical/LEX-RUN-002/ (fresh; LEX-RUN-001's path is not reused)",
+      "exit_code": 0,
+      "ended_utc": "2026-07-18T08:01:02Z",
+      "pid": 16282,
+      "cells_completed": 18,
+      "ledger_row": "R-042"
     }
   ]
 }
