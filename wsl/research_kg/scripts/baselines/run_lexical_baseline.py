@@ -213,6 +213,7 @@ def run(root, fold, view_path, method, max_targets=None):
 
     out = {d: [] for d in ("tail", "head")}
     mention = {d: {"mentioned": [], "unmentioned": []} for d in ("tail", "head")}
+    rank_rows = []          # per-query records, schema-matched to eval_dbp5l --dump-ranks
     for (h, r, t) in targets:
         for direction in ("tail", "head"):
             q_ent, ans = (h, t) if direction == "tail" else (t, h)
@@ -240,11 +241,14 @@ def run(root, fold, view_path, method, max_targets=None):
             for k in known:
                 if k in idx and k != ans:
                     mask[idx[k]] = True
-            m = _metrics(_ranks(scores, idx[ans], mask))
+            rk = _ranks(scores, idx[ans], mask)
+            m = _metrics(rk)
             out[direction].append(m)
             an = name.get(ans, "")
             mentioned = len(an) >= 3 and an in desc.get(q_ent, "")
             mention[direction]["mentioned" if mentioned else "unmentioned"].append(m)
+            rank_rows.append({"h": h, "r": r, "t": t, "lang": lang, "direction": direction,
+                              "mentioned": bool(mentioned), "rank": rk, "rr": m["mrr"]})
 
     res = {d: _agg(out[d], ci=sampled) for d in ("tail", "head")}
     res["combined"] = _agg(out["tail"] + out["head"], ci=sampled)
@@ -252,6 +256,7 @@ def run(root, fold, view_path, method, max_targets=None):
                          for d in ("tail", "head")}
     res["sampled"] = sampled
     res["n_targets"] = len(targets)
+    res["rank_rows"] = rank_rows            # per-query RRs for paired bootstrap comparison
     # Reproducibility provenance: batching, matrix/vocab/candidate-order hashes and the tie
     # policy, so a change in batching or tokenization cannot silently alter rankings.
     res["provenance"] = {
@@ -387,6 +392,11 @@ if __name__ == "__main__":
                 r["cell"] = {"fold": fold, "method": method, "view": vname,
                              "seconds": round(time.time() - t0, 1),
                              "completed_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+                # per-query ranks go to their own file so cells stay small; the cell keeps the path
+                ranks_dir = os.path.join(out_dir, "ranks"); os.makedirs(ranks_dir, exist_ok=True)
+                ranks_path = os.path.join(ranks_dir, key + ".json")
+                _atomic_write(ranks_path, r.pop("rank_rows"))
+                r["rank_dump"] = os.path.relpath(ranks_path, out_dir)
                 _atomic_write(cell_path, r)                      # cell is durable from here on
                 index["cells"][key] = {"path": os.path.relpath(cell_path, out_dir),
                                        "combined_mrr": r["combined"]["mrr"],

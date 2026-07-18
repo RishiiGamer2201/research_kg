@@ -484,8 +484,11 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                             mention_acc[direction][mb][_k].append(wm[_k])
                             if 'combined' in acc:
                                 mention_acc['combined'][mb][_k].append(wm[_k])
-                        if rank_rows is not None and direction == 'tail':
+                        if rank_rows is not None:
+                            # both directions, with the mention bucket, so downstream paired
+                            # bootstrap can align query-ID x direction exactly.
                             rank_rows.append({'h': ex['h'], 'r': r, 't': ex['t'], 'lang': lang,
+                                              'direction': direction, 'mentioned': bool(mentioned),
                                               'rank': wm['rank'], 'rr': wm['mrr']})
 
             if (i // EVAL_BS + 1) % 5 == 0:
