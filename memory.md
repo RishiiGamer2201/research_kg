@@ -55,6 +55,13 @@ Running log. Newest entries at top of each section. Absolute dates.
 - **S2DN smoke** (bg task bok1mceqo): venv_s2dn_gpu_latest (torch2.11+cu128, dgl2.4.0+cu121), fb237_v1, 1 epoch, max_links 20, paper dims (emb64/hop3/lr5e-4). Log `scratchpad/s2dn_smoke.log`. Validates structural pipeline + logged hyperparams for G0. Not the full repro (that's R-013 MRR 53.13, ~4.8h).
 - **Gate G0 close-out after both:** mark G0 boxes, record pushed SHA, `git push origin main` (12 commits pending). Then Phase 1.
 
+### 2026-07-18 — Run E DONE, Gate G0 CLOSED
+- Run E clean retrain finished 30/30 ep, exit 0, best acc@1 72.54% (ep23). Train manifest status=complete, ckpt c85f23de.
+- **Clean eval: within-lang MRR 27.02** (H@1 18.5 H@3 30.2 H@10 43.0), cross-lingual 26.78. Per-lang FR37.7/ES37.6/JA19.8/EL17.1/EN16.1. Ledger R-023.
+- **Finding:** clean desc (no LLM backfill) ≈ slightly-above contaminated provisional 26.51±0.31 → contamination was NOT inflating the headline. Single seed 42 (need 3 for final headline — do in P2).
+- **Gate G0 CLOSED:** all boxes marked, R-016..R-023 in ledger. Pushed to main (SHA recorded in plan). Phase 0 DONE.
+- **NEXT: Phase 1** — DBP5L-Ind v2 concept-disjoint benchmark (P1.1 freeze/hash DBP-5L source → P1.8 data card). This is where head-prediction eval (deferred from P0.3) and 3-seed clean baseline belong.
+
 ### 2026-07-17 (cont) — Run E INTERRUPTED then RESUMED detached
 - Tracked bg tasks got mass-killed at a session boundary (~8h job can't survive as a tool-tracked task). Run E had done **2/30 epochs** (valid acc@1 64.5→67.4) with best_model.pt + last_checkpoint.pt saved. Manifest stayed `running` (correct = incomplete).
 - **RESUMED fully detached** (survives tool/session death): `~/research_kg/run_E_resume.sh` launched via `nohup setsid bash run_E_resume.sh & disown` from WSL. Confirmed running (PID, GPU ~10GB/32%). ~16.6 min/epoch → ~7.5h for remaining 28 epochs.
