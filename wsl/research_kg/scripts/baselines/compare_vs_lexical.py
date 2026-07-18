@@ -79,16 +79,35 @@ def cluster_bootstrap(model_rows, lex_rows, e2c, margin=PRACTICAL_MARGIN, n_boot
     concepts = sorted(by_concept)
     sums = np.array([sum(by_concept[c]) for c in concepts], dtype=np.float64)
     counts = np.array([len(by_concept[c]) for c in concepts], dtype=np.float64)
+    # PRIMARY (matches the query-weighted MRR estimand): ratio estimator
     point = float(sums.sum() / counts.sum())
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, len(concepts), size=(n_boot, len(concepts)))
-    # ratio estimator: resampled mean = sum of sampled cluster sums / sum of sampled sizes
     boots = sums[idx].sum(axis=1) / counts[idx].sum(axis=1)
     lo, hi = np.percentile(boots, [2.5, 97.5])
+
+    # SECONDARY robustness: concept-macro mean — every concept weighted equally, so a few
+    # high-degree concepts cannot carry the result. Diverging from the ratio estimate signals
+    # that the effect is concentrated in heavily-queried concepts.
+    per_concept_mean = sums / counts
+    macro_point = float(per_concept_mean.mean())
+    macro_boots = per_concept_mean[idx].mean(axis=1)
+    m_lo, m_hi = np.percentile(macro_boots, [2.5, 97.5])
+
+    q = lambda p: float(np.percentile(counts, p))
     return {"unit": "concept cluster", "n_clusters": len(concepts),
+            "n_unique_concepts": len(concepts),
             "n_queries": int(counts.sum()), "unmapped_queries": unmapped,
+            "cluster_size_distribution": {
+                "min": int(counts.min()), "p25": q(25), "median": q(50), "p75": q(75),
+                "p95": q(95), "max": int(counts.max()),
+                "mean": round(float(counts.mean()), 3)},
             "mean_diff_mrr_points": round(point, 4),
             "ci95_low": round(float(lo), 4), "ci95_high": round(float(hi), 4),
+            "concept_macro_mean_diff_mrr_points": round(macro_point, 4),
+            "concept_macro_ci95_low": round(float(m_lo), 4),
+            "concept_macro_ci95_high": round(float(m_hi), 4),
+            "concept_macro_significant": bool(m_lo > margin),
             "margin": margin, "n_boot": n_boot,
             "significant": bool(lo > margin),
             "evidence_against": bool(hi < margin)}
@@ -297,6 +316,26 @@ def _selftest():
     hr = {"h": 5, "r": 1, "t": 7, "direction": "head", "mentioned": False, "rr": 0.5}
     assert _query_entity(hr) == 7 and _query_entity({**hr, "direction": "tail"}) == 5
     print("PASS cluster key follows the description actually read (tail->head ent, head->tail ent)")
+
+    # cluster-size distribution is reported, and macro vs ratio DIVERGE when the effect is
+    # concentrated in heavily-queried concepts (exactly the case macro is meant to expose).
+    rm, rl, e2 = [], [], {}
+    for ci in range(30):
+        size = 50 if ci < 5 else 2            # 5 big concepts, 25 small ones
+        eff = 0.40 if ci < 5 else 0.0         # the gain lives only in the big concepts
+        for qi in range(size):
+            ent = 10000 * ci + qi
+            k = {"h": ent, "r": 0, "t": 500000 + ent, "direction": "tail", "mentioned": False}
+            rm.append({**k, "rr": 0.20 + eff}); rl.append({**k, "rr": 0.20}); e2[ent] = ci
+    cs = cluster_bootstrap(rm, rl, e2)
+    d = cs["cluster_size_distribution"]
+    assert cs["n_unique_concepts"] == 30 and d["max"] == 50 and d["min"] == 2, (cs["n_unique_concepts"], d)
+    # ratio is query-weighted (big concepts dominate) -> high; macro weights concepts equally -> low
+    assert cs["mean_diff_mrr_points"] > 3 * cs["concept_macro_mean_diff_mrr_points"], \
+        (cs["mean_diff_mrr_points"], cs["concept_macro_mean_diff_mrr_points"])
+    print(f"PASS size distribution reported (min {d['min']}, median {d['median']}, max {d['max']}); "
+          f"ratio {cs['mean_diff_mrr_points']:.2f} vs concept-macro "
+          f"{cs['concept_macro_mean_diff_mrr_points']:.2f} — concentration exposed")
 
     # missing dumps -> INCONCLUSIVE, never PASS
     import tempfile, shutil
