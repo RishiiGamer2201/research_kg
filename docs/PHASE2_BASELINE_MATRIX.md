@@ -84,6 +84,22 @@ target set); the earlier R-040/R-041 numbers are invalidated for biased sampling
 neural model must also beat them on (a) the unmentioned bucket, (b) both directions separately,
 and (c) at matched evidence budgets — otherwise it has only learned the mention shortcut.
 
+**Statistical test (binding, `compare_vs_lexical.py`).** Point estimates never authorize the
+remaining matrix.
+- **Primary: concept-cluster bootstrap.** Queries sharing a source concept reuse the same
+  description and are correlated, so whole concepts are resampled with all their queries.
+  Clustering follows the description actually read: **tail prediction clusters by the
+  head/query concept, head prediction by the tail/query concept.**
+- **Diagnostic only: per-query bootstrap** — reported, never decisive (it understates variance;
+  in the self-check it gives a 4.4× narrower interval and would wrongly authorize).
+- Exact `(h, r, t, direction)` alignment between model and lexical rank dumps is asserted
+  before pairing.
+- **Verdict:** `PASS` only if the clustered lower 95% bound exceeds the predeclared margin for
+  **both unmentioned directions on natural** and **both directions on the leak-reduced views**,
+  against **every** lexical method. A CI straddling the margin is `INCONCLUSIVE` (insufficient
+  evidence); only an upper bound below the margin is `FAIL` (evidence against). Missing or
+  misaligned dumps are `INCONCLUSIVE`, never `PASS`.
+
 ## 5. Claim discipline (mandatory)
 Natural-text MRR **must not** be described as relational generalization: on v2, unmentioned MRR
 is ~1% versus 5–18% mentioned (R-037), so the natural-text number substantially reflects

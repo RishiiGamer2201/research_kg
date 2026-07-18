@@ -33,6 +33,67 @@ def _key(row):
     return (int(row["h"]), int(row["r"]), int(row["t"]), row["direction"])
 
 
+def _query_entity(row):
+    """The entity whose DESCRIPTION the model reads for this query.
+    tail prediction (h,r,?) reads desc(h); head prediction (?,r,t) reads desc(t)."""
+    return int(row["h"]) if row["direction"] == "tail" else int(row["t"])
+
+
+def load_entity2concept():
+    p = os.path.join(ROOT, "DBP5L/ind_v2/concepts/entity2concept.json")
+    if not os.path.exists(p):
+        return None
+    return {int(k): int(v) for k, v in json.load(open(p)).items()}
+
+
+def cluster_bootstrap(model_rows, lex_rows, e2c, margin=PRACTICAL_MARGIN, n_boot=N_BOOT,
+                      seed=BOOT_SEED):
+    """PRIMARY test: bootstrap over CONCEPT CLUSTERS, not individual queries.
+
+    Queries that share a source concept reuse the same description, so their reciprocal-rank
+    differences are correlated; a per-query bootstrap understates the variance and produces
+    over-narrow intervals. Here whole concepts are resampled with replacement, carrying ALL of
+    their queries, which respects that correlation.
+
+    Clustering follows the description the model actually reads:
+      tail prediction -> cluster by the HEAD/query concept
+      head prediction -> cluster by the TAIL/query concept
+    """
+    m = {_key(r): (float(r["rr"]), _query_entity(r)) for r in model_rows}
+    l = {_key(r): float(r["rr"]) for r in lex_rows}
+    only_m, only_l = set(m) - set(l), set(l) - set(m)
+    if only_m or only_l:
+        raise AssertionError(
+            f"rank-dump misalignment: {len(only_m)} keys only in model, {len(only_l)} only in "
+            f"lexical. Paired comparison requires identical query sets.")
+    by_concept = {}
+    unmapped = 0
+    for k, (rr, qent) in m.items():
+        c = e2c.get(qent)
+        if c is None:
+            unmapped += 1
+            continue
+        by_concept.setdefault(c, []).append((rr - l[k]) * 100.0)
+    if not by_concept:
+        return None
+    concepts = sorted(by_concept)
+    sums = np.array([sum(by_concept[c]) for c in concepts], dtype=np.float64)
+    counts = np.array([len(by_concept[c]) for c in concepts], dtype=np.float64)
+    point = float(sums.sum() / counts.sum())
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(concepts), size=(n_boot, len(concepts)))
+    # ratio estimator: resampled mean = sum of sampled cluster sums / sum of sampled sizes
+    boots = sums[idx].sum(axis=1) / counts[idx].sum(axis=1)
+    lo, hi = np.percentile(boots, [2.5, 97.5])
+    return {"unit": "concept cluster", "n_clusters": len(concepts),
+            "n_queries": int(counts.sum()), "unmapped_queries": unmapped,
+            "mean_diff_mrr_points": round(point, 4),
+            "ci95_low": round(float(lo), 4), "ci95_high": round(float(hi), 4),
+            "margin": margin, "n_boot": n_boot,
+            "significant": bool(lo > margin),
+            "evidence_against": bool(hi < margin)}
+
+
 def paired_bootstrap(model_rows, lex_rows, margin=PRACTICAL_MARGIN, n_boot=N_BOOT,
                      seed=BOOT_SEED):
     """Paired bootstrap over per-query reciprocal-rank differences (model - lexical).
@@ -103,7 +164,10 @@ def compare(eval_dir, fold, margin=PRACTICAL_MARGIN):
     # ── paired bootstrap over per-query reciprocal-rank differences ──────────────
     # A point-estimate win does NOT authorize the remaining matrix: the lower confidence
     # bound must exceed the predeclared margin. Missing dumps -> INCONCLUSIVE, never PASS.
-    tests, errors = {}, []
+    tests, diag, errors = {}, {}, []
+    e2c = load_entity2concept()
+    if e2c is None:
+        errors.append("entity2concept.json missing — the primary concept-cluster test cannot run")
     for view in ("natural", "masked", "missing"):
         vp = os.path.join(eval_dir, f"view_{view}.json")
         if not os.path.exists(vp):
@@ -122,14 +186,21 @@ def compare(eval_dir, fold, margin=PRACTICAL_MARGIN):
                                  ("unmentioned_head", lambda r: r["direction"] == "head" and not r["mentioned"]),
                                  ("all_tail", lambda r: r["direction"] == "tail"),
                                  ("all_head", lambda r: r["direction"] == "head")):
+                mrows = [r for r in model_rows if pred(r)]
+                lrows = [r for r in lex_rows if pred(r)]
+                name = f"{view}|{method}|{bucket}"
                 try:
-                    res = paired_bootstrap([r for r in model_rows if pred(r)],
-                                           [r for r in lex_rows if pred(r)], margin)
+                    d = paired_bootstrap(mrows, lrows, margin)      # diagnostic (per query)
+                    if d:
+                        diag[name] = d
+                    if e2c is not None:
+                        c = cluster_bootstrap(mrows, lrows, e2c, margin)   # PRIMARY
+                        if c:
+                            tests[name] = c
                 except AssertionError as e:
-                    errors.append(f"{view}/{method}/{bucket}: {e}"); continue
-                if res:
-                    tests[f"{view}|{method}|{bucket}"] = res
-    out["paired_tests"] = tests
+                    errors.append(f"{name}: {e}"); continue
+    out["primary_tests_concept_clustered"] = tests
+    out["diagnostic_tests_per_query"] = diag
     out["errors"] = errors
 
     # required: BOTH unmentioned directions on natural, and the leak-reduced views,
@@ -140,20 +211,30 @@ def compare(eval_dir, fold, margin=PRACTICAL_MARGIN):
     out["required_tests"] = sorted(required)
     if errors or not required:
         out["sufficiency_verdict"] = "INCONCLUSIVE"
-        out["verdict_reason"] = (errors or ["no required paired tests could be computed"])[:5]
+        out["verdict_reason"] = (errors or ["no required concept-clustered tests could be computed"])[:5]
     elif all(tests[k]["significant"] for k in required):
         out["sufficiency_verdict"] = "PASS"
-        out["verdict_reason"] = ["all required lower CI bounds exceed the margin"]
-    else:
-        failed = [k for k in required if not tests[k]["significant"]]
+        out["verdict_reason"] = ["all required concept-clustered lower CI bounds exceed the margin"]
+    elif any(tests[k].get("evidence_against") for k in required):
+        against = [k for k in required if tests[k].get("evidence_against")]
         out["sufficiency_verdict"] = "FAIL"
-        out["verdict_reason"] = [f"lower CI bound does not exceed margin: {k} "
-                                 f"(lo={tests[k]['ci95_low']})" for k in failed[:5]]
+        out["verdict_reason"] = [f"upper CI bound below margin (model worse): {k} "
+                                 f"(hi={tests[k]['ci95_high']})" for k in against[:5]]
+    else:
+        straddle = [k for k in required if not tests[k]["significant"]]
+        out["sufficiency_verdict"] = "INCONCLUSIVE"
+        out["verdict_reason"] = [f"clustered CI straddles the margin: {k} "
+                                 f"(lo={tests[k]['ci95_low']}, hi={tests[k]['ci95_high']})"
+                                 for k in straddle[:5]]
     out["sufficiency_note"] = (
-        "Verdict is PASS/FAIL/INCONCLUSIVE from PAIRED BOOTSTRAP lower confidence bounds, not "
-        "point estimates. Natural aggregate MRR is excluded by design (dominated by "
-        "answer-mention reading, R-031/R-037/R-042). Query-ID x direction alignment between "
-        "the model and lexical rank dumps is asserted before pairing.")
+        "PRIMARY test is a CONCEPT-CLUSTER bootstrap: queries sharing a source concept reuse "
+        "the same description and are correlated, so whole concepts are resampled with all "
+        "their queries (tail prediction clusters by head/query concept, head prediction by "
+        "tail/query concept). The per-query bootstrap is retained as a DIAGNOSTIC only and "
+        "never decides the verdict. PASS requires the clustered lower bound to exceed the "
+        "predeclared margin; a CI straddling the margin is INCONCLUSIVE (insufficient "
+        "evidence), and only an upper bound below the margin is FAIL (evidence against). "
+        "Natural aggregate MRR is excluded by design (answer-mention reading, R-031/R-037/R-042).")
     return out
 
 
@@ -188,6 +269,34 @@ def _selftest():
     r3 = paired_bootstrap(m, l, margin=100.0)
     assert not r3["significant"], r3
     print("PASS practical margin enforced")
+
+    # ── concept-cluster bootstrap ────────────────────────────────────────────
+    # 40 concepts x 20 queries each. Within a concept every query shares the SAME difference
+    # (perfectly correlated, the worst case): the per-query bootstrap sees 800 "independent"
+    # points and reports a narrow CI, while the clustered bootstrap correctly sees only 40.
+    rows_m, rows_l, e2c = [], [], {}
+    conc = rng.normal(0.02, 0.30, 40)          # per-concept effect, mean small vs its spread
+    for ci in range(40):
+        for qi in range(20):
+            ent = 1000 * ci + qi
+            k = {"h": ent, "r": 0, "t": 999999 + ent, "direction": "tail", "mentioned": False}
+            rows_m.append({**k, "rr": 0.30 + float(conc[ci])})
+            rows_l.append({**k, "rr": 0.30})
+            e2c[ent] = ci
+    pq = paired_bootstrap(rows_m, rows_l)
+    cl = cluster_bootstrap(rows_m, rows_l, e2c)
+    assert cl["n_clusters"] == 40 and cl["n_queries"] == 800, cl
+    width_pq = pq["ci95_high"] - pq["ci95_low"]
+    width_cl = cl["ci95_high"] - cl["ci95_low"]
+    assert width_cl > width_pq * 2, (width_pq, width_cl)
+    print(f"PASS clustered CI is wider than per-query ({width_cl:.2f} vs {width_pq:.2f} pts) "
+          "— correlation within concepts respected")
+    assert pq["significant"] and not cl["significant"], (pq["significant"], cl["significant"])
+    print("PASS per-query would authorize, clustered does NOT (verdict follows clustered)")
+    # clustering key: head prediction must cluster by the TAIL entity
+    hr = {"h": 5, "r": 1, "t": 7, "direction": "head", "mentioned": False, "rr": 0.5}
+    assert _query_entity(hr) == 7 and _query_entity({**hr, "direction": "tail"}) == 5
+    print("PASS cluster key follows the description actually read (tail->head ent, head->tail ent)")
 
     # missing dumps -> INCONCLUSIVE, never PASS
     import tempfile, shutil
