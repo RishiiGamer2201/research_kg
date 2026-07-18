@@ -98,6 +98,23 @@ def build_fold(root, fold_dir, triples, seen, unseen_test, unseen_valid):
     tgt_test = targets(unseen_test)
     tgt_valid = targets(unseen_valid)
 
+    # ── inverse-clean ordered pools (P1.7) ──────────────────────────────────────
+    # Drop support edges whose endpoints form an eval-target pair (h<->t adjacency reveals the
+    # answer). Removal happens BEFORE prefixing, so the cleaned 0/1/3/5 prefixes stay nested and
+    # budget capacity stays valid. Targets and the complete filter are unchanged.
+    target_pairs = ({frozenset((h, t)) for (h, r, t) in tgt_test} |
+                    {frozenset((h, t)) for (h, r, t) in tgt_valid})
+    clean_pool = {e: [edge for edge in p if frozenset((edge[0], edge[2])) not in target_pairs]
+                  for e, p in pool.items()}
+    s5_union_clean = set()
+    per_budget_exposed_clean = {k: 0 for k in BUDGETS}
+    for e, p in clean_pool.items():
+        s5_union_clean.update(p)
+        for k in BUDGETS:
+            sk = p[:k]
+            assert len(sk) <= k and sk == p[:k]        # cap + prefix nesting by construction
+            per_budget_exposed_clean[k] += len(sk)
+
     # ── invariants ────────────────────────────────────────────────────────────
     per_budget_exposed = {}
     for k in BUDGETS:
@@ -126,6 +143,13 @@ def build_fold(root, fold_dir, triples, seen, unseen_test, unseen_valid):
                                     sorted([list(x) for x in s5_union]))
     hashes["eval_targets_test.json"] = _dump(os.path.join(fold_dir, "eval_targets_test.json"), tgt_test)
     hashes["eval_targets_valid.json"] = _dump(os.path.join(fold_dir, "eval_targets_valid.json"), tgt_valid)
+    # inverse-clean ordered pools + union (nested 0/1/3/5 prefixes valid on the cleaned pools)
+    hashes["support_pool_inverse_clean.json"] = _dump(
+        os.path.join(fold_dir, "support_pool_inverse_clean.json"),
+        {str(e): [list(x) for x in clean_pool[e]] for e in clean_pool})
+    hashes["s5_union_inverse_clean.json"] = _dump(
+        os.path.join(fold_dir, "s5_union_inverse_clean.json"),
+        sorted([list(x) for x in s5_union_clean]))
 
     # one complete known-true filter across all budgets = every graph fact
     filter_hash = hashlib.sha256(
@@ -139,6 +163,11 @@ def build_fold(root, fold_dir, triples, seen, unseen_test, unseen_valid):
         "eval_targets_valid": len(tgt_valid),
         "exposed_edges_per_budget": per_budget_exposed,
         "avg_support_pool_size": round(sum(len(p) for p in pool.values()) / max(len(pool), 1), 3),
+        "inverse_clean": {
+            "s5_union_size": len(s5_union_clean),
+            "exposed_edges_per_budget": per_budget_exposed_clean,
+            "note": "answer-adjacency edges removed BEFORE prefixing -> nested 0/1/3/5 valid",
+        },
         "invariants": {"nesting": "S^0⊂S^1⊂S^3⊂S^5 (prefix)", "caps": "|S^k|≤k",
                        "targets_fixed_across_budgets": True,
                        "target_intersect_s5_union": 0,

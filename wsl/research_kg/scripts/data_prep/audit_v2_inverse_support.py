@@ -53,10 +53,11 @@ def audit_fold(fold_budget_dir):
 
     rev_test, exact_test, sup_test = count(tgt_test)
     rev_valid, exact_valid, sup_valid = count(tgt_valid)
-    revealed = sup_test | sup_valid                      # support edges to drop
+    revealed = sup_test | sup_valid                      # support edges revealed as answers
 
-    s5_clean = [list(tri) for tri in s5 if tri not in revealed]
-    clean_hash = _dump(os.path.join(fold_budget_dir, "s5_union_inverse_clean.json"), sorted(s5_clean))
+    # Reporting only. The authoritative inverse-clean support (ORDERED pools + nested 0/1/3/5
+    # prefixes) is produced by build_v2_support_budgets.py (support_pool_inverse_clean.json,
+    # s5_union_inverse_clean.json); this audit just quantifies the reveal rate.
     audit = {
         "s5_union_size": len(s5),
         "test_targets": len(tgt_test),
@@ -66,9 +67,7 @@ def audit_fold(fold_budget_dir):
         "valid_targets": len(tgt_valid),
         "valid_answer_revealed_by_support": rev_valid,
         "valid_reveal_rate": round(rev_valid / max(len(tgt_valid), 1), 4),
-        "support_edges_dropped_for_inverse_clean": len(revealed),
-        "s5_union_inverse_clean_size": len(s5_clean),
-        "s5_union_inverse_clean_hash": clean_hash,
+        "support_edges_revealed": len(revealed),
     }
     _dump(os.path.join(fold_budget_dir, "inverse_support_audit.json"), audit)
     return audit
@@ -99,10 +98,8 @@ def _selfcheck():
         json.dump([], open(os.path.join(bd, "eval_targets_valid.json"), "w"))
         a = audit_fold(bd)
         assert a["test_answer_revealed_by_support"] == 1 and a["test_exact_reciprocal"] == 1, a
-        assert a["support_edges_dropped_for_inverse_clean"] == 1, a
-        clean = json.load(open(os.path.join(bd, "s5_union_inverse_clean.json")))
-        assert [2, 9, 1] not in clean and [3, 9, 4] in clean, clean
-        print("audit_v2_inverse_support self-check OK (reciprocal answer edge detected + dropped)")
+        assert a["support_edges_revealed"] == 1, a
+        print("audit_v2_inverse_support self-check OK (reciprocal answer edge detected)")
     finally:
         shutil.rmtree(d, ignore_errors=True)
 

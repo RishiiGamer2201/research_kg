@@ -1,11 +1,9 @@
 {
-  "built_utc": "2026-07-18T06:33:58Z",
+  "built_utc": "2026-07-18T06:45:26Z",
   "folds": {
     "fold0_seed13": {
-      "s5_union_inverse_clean_hash": "2efa3d16178df0fb054dad8e479584db38c38872b5661b3cf92ac86de1db98f4",
-      "s5_union_inverse_clean_size": 35078,
       "s5_union_size": 39152,
-      "support_edges_dropped_for_inverse_clean": 4074,
+      "support_edges_revealed": 4074,
       "test_answer_revealed_by_support": 2810,
       "test_exact_reciprocal": 23,
       "test_reveal_rate": 0.0761,
@@ -15,10 +13,8 @@
       "valid_targets": 18233
     },
     "fold1_seed42": {
-      "s5_union_inverse_clean_hash": "bca3726e519345211801bd895d60484aa14f5a0ab94a90a22db083e01a0ab6ab",
-      "s5_union_inverse_clean_size": 35059,
       "s5_union_size": 38957,
-      "support_edges_dropped_for_inverse_clean": 3898,
+      "support_edges_revealed": 3898,
       "test_answer_revealed_by_support": 2721,
       "test_exact_reciprocal": 26,
       "test_reveal_rate": 0.0723,
@@ -28,10 +24,8 @@
       "valid_targets": 17761
     },
     "fold2_seed79": {
-      "s5_union_inverse_clean_hash": "d089929823468e94c29abd26d74b3b5e54fdaf20392d278dc3383e823c8141fb",
-      "s5_union_inverse_clean_size": 34995,
       "s5_union_size": 39023,
-      "support_edges_dropped_for_inverse_clean": 4028,
+      "support_edges_revealed": 4028,
       "test_answer_revealed_by_support": 2728,
       "test_exact_reciprocal": 24,
       "test_reveal_rate": 0.0725,

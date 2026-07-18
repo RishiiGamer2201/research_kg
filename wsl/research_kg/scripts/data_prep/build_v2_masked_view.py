@@ -74,17 +74,21 @@ def build(root):
         neighbors[h].add(t); neighbors[t].add(h)
 
     masked, n_masked = {}, {}
+    total_orig_chars, total_removed_chars = 0, 0
     for g in sorted(ents):
         text = _norm(desc.get(g, ""))
+        total_orig_chars += len(text)
         aliases = set()
         for nb in neighbors.get(g, ()):
             aliases |= _alias_names(nb, ents, e2c, concepts)
         cnt = 0
-        # longest names first so a longer alias isn't partially eaten by a shorter one
+        # longest names first (Unicode-normalized) so a longer alias isn't partially eaten by a
+        # shorter one; single generic placeholder token for every masked span.
         for name in sorted(aliases, key=len, reverse=True):
             pat = r"\b" + re.escape(name) + r"\b"
             text, k = re.subn(pat, PLACEHOLDER, text)
             cnt += k
+            total_removed_chars += k * len(name)      # chars of original text masked out
         masked[g] = text
         n_masked[g] = cnt
 
@@ -100,6 +104,9 @@ def build(root):
         "n_entities": len(masked),
         "n_entities_with_masking": sum(1 for v in n_masked.values() if v > 0),
         "total_placeholders_inserted": total_masked,
+        "pct_text_removed": round(100 * total_removed_chars / max(total_orig_chars, 1), 3),
+        "total_original_chars": total_orig_chars,
+        "total_removed_chars": total_removed_chars,
         "placeholder": PLACEHOLDER,
         "min_name_len": MIN_NAME_LEN,
         "note": "diagnostic lower-bound track; masks all graph-neighbour names+aliases; "
