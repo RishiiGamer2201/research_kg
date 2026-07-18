@@ -563,6 +563,18 @@ def train(args):
             optimizer.load_state_dict(ck['optimizer_state_dict'])
             scheduler.load_state_dict(ck['scheduler_state_dict'])
             best_acc1 = ck.get('best_acc1', 0.0)
+            # Restore WHICH epoch was selected, not just its score. Without this a resumed run
+            # reports selection_epoch=None (or the first post-resume improvement) even though
+            # best_model.pt still holds the earlier, better checkpoint. Fall back to the epoch
+            # recorded inside best_model.pt for checkpoints written before this was saved.
+            best_epoch = ck.get('best_epoch')
+            if best_epoch is None and os.path.exists(f'{run_dir}/best_model.pt'):
+                try:
+                    best_epoch = torch.load(f'{run_dir}/best_model.pt',
+                                            map_location='cpu').get('epoch')
+                    logger.info(f'  Recovered selection epoch {best_epoch} from best_model.pt')
+                except Exception as e:
+                    logger.warning(f'  Could not recover selection epoch: {e}')
             results = ck.get('results', [])
             if ck.get('rng_python') is not None: random.setstate(ck['rng_python'])
             if ck.get('rng_torch') is not None:  torch.set_rng_state(ck['rng_torch'].cpu())
@@ -756,6 +768,7 @@ def train(args):
             'optimizer_state_dict': optimizer.state_dict(),
             'scheduler_state_dict': scheduler.state_dict(),
             'best_acc1': best_acc1,
+            'best_epoch': best_epoch,      # selection survives resume, not just the score
             'results': results,
             'args': vars(args),
             'rng_python': random.getstate(),
