@@ -107,5 +107,14 @@
       },
       "replaced_by": "B0-RUN-004 (from fixed code, new tag b0-baseline-v2)"
     }
+  ],
+  "milestones": [
+    {
+      "run_id": "B0-RUN-004",
+      "date_utc": "2026-07-19",
+      "milestone": "epoch-5 gate CLEARED on the real run",
+      "evidence": "HN cache built at epoch 5 (1.2min, shape (42450,1024), adapter a7461f7459e1) AND optimization resumed \u2014 now epoch 6/30 training normally. The exact point B0-RUN-002 and B0-RUN-003 OOMed.",
+      "status_note": "R-F003/R-F004 remain OPEN. The HN no_grad bug is fixed+verified, but the runs are marked resolved only when B0-RUN-004 completes all 30 epochs + writes its selection_record.json. Verification GPU overlap affected timing (~30min), not validity."
+    }
   ]
 }
