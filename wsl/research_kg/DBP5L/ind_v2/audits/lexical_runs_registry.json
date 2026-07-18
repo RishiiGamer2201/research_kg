@@ -1,0 +1,44 @@
+{
+  "note": "Run registry for the CPU lexical baselines (these do not go through run_manifest.py). Failed runs are retained, never overwritten, and their output directories are not reused.",
+  "runs": [
+    {
+      "run_id": "LEX-RUN-001",
+      "status": "failed",
+      "date_utc": "2026-07-18",
+      "purpose": "First full-target-set lexical baseline (name_match + bm25 x 3 folds x 3 views).",
+      "command": "bash ~/research_kg/run_lex_full.sh  ->  python3 scripts/baselines/run_lexical_baseline.py --max-targets 0 --out DBP5L/ind_v2/audits/lexical_baselines_full.json",
+      "log": "logs/lexical_baselines_full.log (subsequently truncated by the replacement run; the exit line LEXFULL_EXIT=143 and partial results were read before truncation)",
+      "termination": {
+        "exit_code": 143,
+        "signal": "SIGTERM (143 = 128 + 15)",
+        "cause": "Operator-issued `pkill -f run_lexical_baseline` while relaunching to pick up the exact/tolerant CSR hash change. The kill and the relaunch were issued in one compound command, so the replacement raced the kill and never started; the job was left dead with the log frozen at 07:38 UTC.",
+        "pid": "not captured (the launcher did not record the PID; only the process name was matched). Fixed for later runs by logging the PID at launch."
+      },
+      "progress_at_termination": "completed through fold1_seed42/bm25/missing; fold2_seed79 not run",
+      "outputs": {
+        "result_json_written": false,
+        "reason": "the script serializes results only after all combinations finish",
+        "output_directory_reused": false
+      },
+      "provenance_gap": "started before the sparse_matrix_exact_hash / sparse_matrix_tolerant_hash change, so its partial numbers lack publication-grade CSR provenance and are not citable.",
+      "replaced_by": "LEX-RUN-002"
+    },
+    {
+      "run_id": "LEX-RUN-002",
+      "status": "running",
+      "date_utc": "2026-07-18",
+      "purpose": "Clean restart: first citable lexical result (ledger R-042).",
+      "command": "bash ~/research_kg/run_lex_full.sh  ->  python3 scripts/baselines/run_lexical_baseline.py --max-targets 0",
+      "replaces": "LEX-RUN-001",
+      "includes": [
+        "full target set per fold (no sampling)",
+        "vectorized scipy.sparse scoring",
+        "exact + tolerant CSR hashes with recorded rounding precision",
+        "vocabulary/tokenization, candidate-order, view and targets hashes",
+        "averaged-tie policy recorded",
+        "direction x mentioned/unmentioned breakdown"
+      ],
+      "output_directory": "DBP5L/ind_v2/audits/lexical/LEX-RUN-002/ (fresh; LEX-RUN-001's path is not reused)"
+    }
+  ]
+}
