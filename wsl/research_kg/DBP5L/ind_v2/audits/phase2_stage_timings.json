@@ -1,0 +1,32 @@
+{
+  "eval_cycles": [
+    {
+      "combined_mrr": 3.5981,
+      "minutes": 3.8,
+      "seconds": 228.1,
+      "view": "natural"
+    },
+    {
+      "combined_mrr": 1.0028,
+      "minutes": 4.79,
+      "seconds": 287.6,
+      "view": "masked"
+    },
+    {
+      "combined_mrr": 0.9289,
+      "minutes": 4.18,
+      "seconds": 250.6,
+      "view": "missing"
+    }
+  ],
+  "eval_total_minutes": 12.77,
+  "fold": "fold0_seed13",
+  "hard_negative_refresh": {
+    "max_length": 160,
+    "minutes": 1.21,
+    "negative_universe": 42450,
+    "peak_vram_gb": 3.01,
+    "seconds": 72.7
+  },
+  "max_length": 160
+}

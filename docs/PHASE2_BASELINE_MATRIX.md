@@ -9,7 +9,7 @@ what changed and why; results computed under a different protocol are not compar
 |---|---|
 | **Cross-fold generality** | Every baseline runs on **all three folds** (`fold0_seed13`, `fold1_seed42`, `fold2_seed79`) with **one common training seed = 42**. |
 | **Seed variance** | **Three paired seeds {42, 123, 777}** on the **designated development/reporting fold = `fold0_seed13`**. |
-| **Full 3×3** | Only if compute permits after the two blocks above; not assumed. |
+| **Full 3×3** | **NOT adopted** (decision R-043, 2026-07-18): measured cost 333.1 GPU-h ≈ 16.7 days vs 185.2 h ≈ 9.3 days for the fallback — +148 h buys only fold×seed interaction estimates that no planned claim requires, with Phases 3–5 still ahead on one GPU. |
 | **Reporting** | Cross-fold = mean ± sd over folds (seed 42). Seed variance = mean ± sd over seeds (fold0). Never pool the two into one ± figure. |
 
 `fold0_seed13` is the development/reporting fold: all screening decisions are made there.

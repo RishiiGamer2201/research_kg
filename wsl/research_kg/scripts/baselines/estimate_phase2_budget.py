@@ -55,9 +55,10 @@ def per_run_hours(epoch_min, encode_min, valid_min, eval_min,
     hn_refreshes = max(epochs - hn_start + 1, 0)
     hn_h = hn_refreshes * encode_min * factor / 60.0
     valid_h = epochs * valid_min * factor / 60.0
-    # evaluation: each ENCODED view needs its own entity encode + head&tail ranking pass.
+    # evaluation: `eval_min` is the MEASURED full cycle per encoded view (entity encode +
+    # head&tail ranking), so the encode is NOT added again here.
     # mentioned/unmentioned adds nothing: it partitions the natural-view ranks.
-    eval_h = n_views * (encode_min + eval_min) * factor / 60.0
+    eval_h = n_views * eval_min * factor / 60.0
     return {"train_h": round(train_h, 2), "hn_refresh_h": round(hn_h, 2),
             "valid_h": round(valid_h, 2), "eval_h_encoded_views": round(eval_h, 2),
             "encoded_views": n_views, "mention_partition_extra_h": 0.0,
@@ -113,11 +114,12 @@ def _selfcheck():
     # HN refreshes: epochs 5..30 inclusive = 26 encodes * 6 min = 2.6h
     assert pr["hn_refreshes"] == 26 and abs(pr["hn_refresh_h"] - 2.6) < 1e-6, pr
     # validation 30 * 2 min = 1h ; eval 3 views * (6+3) = 27 min = 0.45h
-    assert abs(pr["valid_h"] - 1.0) < 1e-6 and abs(pr["eval_h_encoded_views"] - 0.45) < 1e-6, pr
-    assert abs(pr["total_h"] - (15.0 + 2.6 + 1.0 + 0.45)) < 1e-6, pr
+    # eval_min is the MEASURED full cycle per view (encode included): 3 * 3 min = 0.15h
+    assert abs(pr["valid_h"] - 1.0) < 1e-6 and abs(pr["eval_h_encoded_views"] - 0.15) < 1e-6, pr
+    assert abs(pr["total_h"] - (15.0 + 2.6 + 1.0 + 0.15)) < 1e-6, pr
     # three encoded views; mentioned/unmentioned adds nothing
     assert pr["encoded_views"] == 3 and pr["mention_partition_extra_h"] == 0.0, pr
-    assert abs(per_run_hours(30, 6, 2, 3, n_views=1)["eval_h_encoded_views"] - 0.15) < 1e-6
+    assert abs(per_run_hours(30, 6, 2, 3, n_views=1)["eval_h_encoded_views"] - 0.05) < 1e-6
 
     # per-encoder costs stay SEPARATE and scale by factor (encoders are not equal cost)
     facs = {"big": {"factor": 1.0, "basis": "measured"},
