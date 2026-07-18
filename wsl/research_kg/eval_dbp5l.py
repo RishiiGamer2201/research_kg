@@ -215,7 +215,17 @@ def _selfcheck():
     print('eval_dbp5l tie self-check OK (average-tied-ranks)')
 
 
-def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=False, dump_ranks=None):
+# Reciprocal direction marker for head prediction (?, r, t): query = tail [SEP] <RECIP> relation.
+# Must match the marker the trainer prepends for reciprocal training examples.
+RECIP_MARKER = 'reverse of'
+
+
+def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=False, dump_ranks=None,
+             directions=None):
+    # directions: subset of ['tail','head']; default tail-only (reproduces pre-reciprocal evals).
+    # When both are given, head uses the reciprocal query + the (r,t)->heads filter, and a
+    # 'combined' bucket pools per-query reciprocal ranks from both directions.
+    directions = list(directions) if directions else ['tail']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f'Device: {device}')
 
@@ -297,7 +307,8 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
 
     # Build filter map: (h, r) -> set of true tails (for filtered eval)
     logger.info('Building filter map...')
-    filter_map = defaultdict(set)
+    filter_map = defaultdict(set)      # (h, r) -> true tails  (tail prediction)
+    rev_filter_map = defaultdict(set)  # (r, t) -> true heads  (head prediction)
     for path in [f'{PROCESSED}/train.json', f'{PROCESSED}/valid.json', f'{PROCESSED}/test.json']:
         if not os.path.exists(path):
             continue
@@ -305,6 +316,7 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
             for line in f:
                 ex = json.loads(line)
                 filter_map[(ex['h'], ex['r'])].add(ex['t'])
+                rev_filter_map[(ex['r'], ex['t'])].add(ex['h'])
 
     # Also filter SUPPORT triples: they are known-true facts about the test entities
     # (held out as the inference/support graph, not in test.json). Standard filtered
@@ -330,6 +342,7 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                             continue
                         h = offset + int(p[0]); r = int(p[1]); t = offset + int(p[2])
                         filter_map[(h, r)].add(t)
+                        rev_filter_map[(r, t)].add(h)
                         n_support_filtered += 1
             offset += n_ent
         logger.info(f'  Added {n_support_filtered} support triples to filter map')
@@ -360,71 +373,91 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
         lang_eid_to_lidx[lang] = {eid: li for li, eid in enumerate(lang_entity_ids[lang])}
     logger.info(f'Per-language candidate counts: { {l: len(v) for l, v in lang_entity_ids.items()} }')
 
-    # Evaluate — both cross-lingual (all 56K) and within-language
-    logger.info(f'Evaluating {len(test_examples)} test triples...')
-    # Cross-lingual (all candidates)
-    results_by_lang = defaultdict(lambda: {'mrr': [], 'h1': [], 'h3': [], 'h10': []})
-    overall = {'mrr': [], 'h1': [], 'h3': [], 'h10': []}
-    # Within-language (same-language candidates only — standard multilingual KGC protocol)
-    wl_results_by_lang = defaultdict(lambda: {'mrr': [], 'h1': [], 'h3': [], 'h10': []})
-    wl_overall = {'mrr': [], 'h1': [], 'h3': [], 'h10': []}
-    rank_rows = [] if dump_ranks else None   # per-triple within-language RR for significance tests
+    # Evaluate — direction-aware (tail and/or head), cross-lingual (all) + within-language.
+    logger.info(f'Evaluating {len(test_examples)} test triples | directions={directions}...')
+
+    def _newbuckets():
+        return {'xl_overall': {'mrr': [], 'h1': [], 'h3': [], 'h10': []},
+                'xl_by_lang': defaultdict(lambda: {'mrr': [], 'h1': [], 'h3': [], 'h10': []}),
+                'wl_overall': {'mrr': [], 'h1': [], 'h3': [], 'h10': []},
+                'wl_by_lang': defaultdict(lambda: {'mrr': [], 'h1': [], 'h3': [], 'h10': []})}
+    # report each requested direction, plus a pooled 'combined' when both are present
+    report_dirs = list(directions) + (['combined'] if len(directions) > 1 else [])
+    acc = {d: _newbuckets() for d in report_dirs}
+    rank_rows = [] if dump_ranks else None   # per-triple within-language RR (tail) for significance
+
+    def _accum(d, kind, lang, m):
+        b = acc[d]
+        for k in ['mrr', 'h1', 'h3', 'h10']:
+            b[f'{kind}_overall'][k].append(m[k])
+            b[f'{kind}_by_lang'][lang][k].append(m[k])
 
     EVAL_BS = 512  # queries per batch
-
     model.eval()
     with torch.no_grad():
         for i in range(0, len(test_examples), EVAL_BS):
             batch = test_examples[i:i+EVAL_BS]
+            for direction in directions:
+                # Query text. tail: head [SEP] relation ; head: tail [SEP] <RECIP> relation.
+                qtexts = []
+                for ex in batch:
+                    r_text = relation_names.get(str(ex['r']), f"relation {ex['r']}")
+                    if direction == 'tail':
+                        a_text = entity_texts.get(ex['h'], f"entity_{ex['h']}")
+                        qtexts.append(f"{a_text} [SEP] {r_text}")
+                    else:  # head prediction via reciprocal query
+                        a_text = entity_texts.get(ex['t'], f"entity_{ex['t']}")
+                        qtexts.append(f"{a_text} [SEP] {RECIP_MARKER} {r_text}")
+                enc = tokenizer(qtexts, max_length=max_length, padding='max_length',
+                                truncation=True, return_tensors='pt').to(device)
+                q_embs = model.encode(enc['input_ids'], enc['attention_mask'])  # (B, D)
+                sim_all = torch.matmul(q_embs, all_embeddings.T)  # (B, N_all)
 
-            # Encode query: head [SEP] relation (SimKGC-style — relation anchors the search)
-            head_texts = []
-            for ex in batch:
-                h_text = entity_texts.get(ex['h'], f"entity_{ex['h']}")
-                r_text = relation_names.get(str(ex['r']), f"relation {ex['r']}")
-                head_texts.append(f"{h_text} [SEP] {r_text}")
-            enc = tokenizer(head_texts, max_length=max_length, padding='max_length',
-                            truncation=True, return_tensors='pt').to(device)
-            q_embs = model.encode(enc['input_ids'], enc['attention_mask'])  # (B, D)
+                for j, ex in enumerate(batch):
+                    r = ex['r']; lang = ex.get('lang', 'en')
+                    if direction == 'tail':
+                        true_eid = ex['t']; filt = filter_map.get((ex['h'], r), set())
+                    else:
+                        true_eid = ex['h']; filt = rev_filter_map.get((r, ex['t']), set())
+                    if true_eid not in eid_to_idx:
+                        continue
+                    true_idx = eid_to_idx[true_eid]
+                    filt_idx = [eid_to_idx[f] for f in filt if f in eid_to_idx and f != true_eid]
 
-            # Score against ALL entities (cross-lingual eval)
-            sim_all = torch.matmul(q_embs, all_embeddings.T)  # (B, N_all)
+                    # cross-lingual (all candidates)
+                    m = compute_filtered_metrics(sim_all[j].cpu(), true_idx, filt_idx + [true_idx])
+                    _accum(direction, 'xl', lang, m)
+                    if 'combined' in acc:
+                        _accum('combined', 'xl', lang, m)
 
-            for j, ex in enumerate(batch):
-                h, r, t = ex['h'], ex['r'], ex['t']
-                lang = ex.get('lang', 'en')
-
-                if t not in eid_to_idx:
-                    continue
-                true_idx = eid_to_idx[t]
-                filter_tails = [eid_to_idx[ft] for ft in filter_map.get((h, r), set())
-                                if ft in eid_to_idx and ft != t]
-
-                # ── Cross-lingual eval (all 56K candidates) ──
-                metrics = compute_filtered_metrics(sim_all[j].cpu(), true_idx, filter_tails + [true_idx])
-                for k in ['mrr', 'h1', 'h3', 'h10']:
-                    overall[k].append(metrics[k])
-                    results_by_lang[lang][k].append(metrics[k])
-
-                # ── Within-language eval (same-language candidates only) ──
-                if lang in lang_embeddings and t in lang_eid_to_lidx.get(lang, {}):
-                    l_embs = lang_embeddings[lang]  # (N_lang, D)
-                    sim_lang = torch.matmul(q_embs[j].unsqueeze(0), l_embs.T).squeeze(0)  # (N_lang,)
-                    true_lidx = lang_eid_to_lidx[lang][t]
-                    wl_filter = [lang_eid_to_lidx[lang][ft] for ft in filter_map.get((h, r), set())
-                                 if ft in lang_eid_to_lidx.get(lang, {}) and ft != t]
-                    wl_metrics = compute_filtered_metrics(sim_lang.cpu(), true_lidx, wl_filter + [true_lidx])
-                    for k in ['mrr', 'h1', 'h3', 'h10']:
-                        wl_overall[k].append(wl_metrics[k])
-                        wl_results_by_lang[lang][k].append(wl_metrics[k])
-                    if rank_rows is not None:
-                        rank_rows.append({'h': h, 'r': r, 't': t, 'lang': lang,
-                                          'rank': wl_metrics['rank'], 'rr': wl_metrics['mrr']})
+                    # within-language (same-language candidates only)
+                    if lang in lang_embeddings and true_eid in lang_eid_to_lidx.get(lang, {}):
+                        l_embs = lang_embeddings[lang]
+                        sim_lang = torch.matmul(q_embs[j].unsqueeze(0), l_embs.T).squeeze(0)
+                        true_lidx = lang_eid_to_lidx[lang][true_eid]
+                        wl_filt = [lang_eid_to_lidx[lang][f] for f in filt
+                                   if f in lang_eid_to_lidx.get(lang, {}) and f != true_eid]
+                        wm = compute_filtered_metrics(sim_lang.cpu(), true_lidx, wl_filt + [true_lidx])
+                        _accum(direction, 'wl', lang, wm)
+                        if 'combined' in acc:
+                            _accum('combined', 'wl', lang, wm)
+                        if rank_rows is not None and direction == 'tail':
+                            rank_rows.append({'h': ex['h'], 'r': r, 't': ex['t'], 'lang': lang,
+                                              'rank': wm['rank'], 'rr': wm['mrr']})
 
             if (i // EVAL_BS + 1) % 5 == 0:
                 n_done = min(i + EVAL_BS, len(test_examples))
-                curr_mrr = sum(overall['mrr']) / len(overall['mrr'])
-                logger.info(f'  Evaluated {n_done}/{len(test_examples)} | running MRR: {curr_mrr:.4f}')
+                d0 = directions[0]
+                cur = acc[d0]['xl_overall']['mrr']
+                logger.info(f'  Evaluated {n_done}/{len(test_examples)} | {d0} running MRR: '
+                            f'{sum(cur)/max(len(cur),1):.4f}')
+
+    # Primary view for the legacy report/save shape = combined if both directions else the one.
+    primary = 'combined' if 'combined' in acc else directions[0]
+    overall = acc[primary]['xl_overall']
+    results_by_lang = acc[primary]['xl_by_lang']
+    wl_overall = acc[primary]['wl_overall']
+    wl_results_by_lang = acc[primary]['wl_by_lang']
 
     # Print results
     def fmt(d):
@@ -446,12 +479,18 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
             print(f'  {lang.upper():3s}: {fmt(results_by_lang[lang])}')
 
     print('\n[WITHIN-LANGUAGE EVAL] Rank against same-language entities only (standard ML-KGC):')
-    print(f'  OVERALL: {fmt(wl_overall)}')
+    print(f'  OVERALL ({primary}): {fmt(wl_overall)}')
     if per_language:
         for lang in ['en', 'fr', 'es', 'ja', 'el']:
             d = wl_results_by_lang[lang]
             n_cands = len(lang_entity_ids.get(lang, []))
             print(f'  {lang.upper():3s} ({n_cands:,} cands): {fmt(d)}')
+
+    # Per-direction breakdown (head / tail / combined reported separately).
+    if len(report_dirs) > 1:
+        print('\n[BY DIRECTION] within-language overall:')
+        for d in report_dirs:
+            print(f'  {d.upper():8s}: {fmt(acc[d]["wl_overall"])}')
 
     # Save results to JSON alongside checkpoint (or to a dedicated dir for zero-shot)
     if checkpoint_path is not None:
@@ -475,7 +514,18 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                 lang: {k: sum(v)/len(v)*100 if v else 0 for k, v in d.items()}
                 for lang, d in wl_results_by_lang.items()
             }
-        }
+        },
+        'directions': directions,
+        'primary_view': primary,
+        # head / tail / combined reported separately (within-language + all-language overall)
+        'by_direction': {
+            d: {
+                'within_language_overall': {k: sum(v)/len(v)*100 if v else 0
+                                            for k, v in acc[d]['wl_overall'].items()},
+                'cross_lingual_overall': {k: sum(v)/len(v)*100 if v else 0
+                                          for k, v in acc[d]['xl_overall'].items()},
+            } for d in report_dirs
+        },
     }
 
     with open(results_path, 'w') as f:
@@ -510,6 +560,7 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                 inputs[f'support_{lang}'] = sp
         rm.start_run(eval_run_dir, kind='eval', inputs=inputs, model_name=model_name,
                      extra={'max_length': max_length, 'results_path': results_path,
+                            'directions': directions, 'primary_view': primary,
                             'candidate_mode': 'cross-lingual(all) + within-language; sorted(entity_texts.keys())',
                             'filter_policy': 'known-facts: train+valid+test+support; filtered; average-tied-ranks'})
         rm.finish_run(eval_run_dir, 'complete',
@@ -547,6 +598,9 @@ if __name__ == '__main__':
                         'e.g. the no-LLM-backfill variant).')
     p.add_argument('--selftest', action='store_true',
                    help='Run the tie-handling self-check and exit (no checkpoint needed).')
+    p.add_argument('--directions', default='tail',
+                   help="Comma-separated: 'tail', 'head', or 'tail,head'. Default tail "
+                        "(reproduces pre-reciprocal evals). 'tail,head' also reports combined.")
     args = p.parse_args()
     if args.selftest:
         _selfcheck()
@@ -568,4 +622,5 @@ if __name__ == '__main__':
         checkpoint = args.checkpoint
 
     evaluate(checkpoint, per_language=args.per_language,
-             max_length=args.max_length, zero_shot=args.zero_shot, dump_ranks=args.dump_ranks)
+             max_length=args.max_length, zero_shot=args.zero_shot, dump_ranks=args.dump_ranks,
+             directions=[d.strip() for d in args.directions.split(',') if d.strip()])
