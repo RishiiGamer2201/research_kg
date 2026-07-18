@@ -1,0 +1,10 @@
+{
+  "built_utc": "2026-07-18T06:36:51Z",
+  "hash": "09ffbe4ef78ca8e299e2e2bb8eb3c3ff483f371fe79fe35a42b0f5c305846959",
+  "min_name_len": 3,
+  "n_entities": 56589,
+  "n_entities_with_masking": 37392,
+  "note": "diagnostic lower-bound track; masks all graph-neighbour names+aliases; natural text is a separate track and not pure relational generalization",
+  "placeholder": "[ENT]",
+  "total_placeholders_inserted": 156251
+}

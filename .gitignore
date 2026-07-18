@@ -60,6 +60,7 @@ wsl/**/ind_v2/concepts/union_provenance.jsonl
 wsl/**/ind_v2/descriptions/descriptions_v2.json
 wsl/**/ind_v2/descriptions/descriptions_v2_provenance.json
 wsl/**/ind_v2/tracks/descriptions_v2_primary.json
+wsl/**/ind_v2/tracks/descriptions_v2_masked.json
 
 # OS files
 Thumbs.db
