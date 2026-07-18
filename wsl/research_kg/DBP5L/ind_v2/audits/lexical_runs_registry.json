@@ -44,6 +44,26 @@
       "pid": 16282,
       "cells_completed": 18,
       "ledger_row": "R-042"
+    },
+    {
+      "run_id": "B0-RUN-001",
+      "status": "failed",
+      "date_utc": "2026-07-18",
+      "purpose": "B0 anchor baseline, DBP5L-Ind v2 fold0_seed13, training seed 42.",
+      "command": "bash scripts/baselines/launch_run.sh B0-RUN-001 .../audits/training bash run_b0_fold0_seed42.sh",
+      "pid": 19478,
+      "termination": {
+        "exit_code": 1,
+        "elapsed": "~1s",
+        "cause": "Bug in launch_run.sh: $LOG was referenced inside the detached shell but never exported (only RUN_ID/RUN_DIR/HEARTBEAT_SECONDS were), so `\"$@\" >> \"$LOG\"` redirected to an empty filename and the shell exited 1 before the job started. No run.log was produced. The lock+heartbeat launcher rewrite had never been exercised (only check_run.sh was tested)."
+      },
+      "detected_by": "check_run.sh reported FINISHED exit_code=1 at the pre-unattended health check",
+      "outputs": {
+        "result_written": false,
+        "output_directory_reused": false
+      },
+      "fix": "export LOG into the detached shell + `set -u` so an unset variable fails loudly; added scripts/baselines/test_launch_run.sh (10 checks incl. log capture, exit/signal recording, lock, heartbeat, reuse refusal, checker agreement).",
+      "replaced_by": "B0-RUN-002"
     }
   ]
 }

@@ -28,8 +28,9 @@ LOG="$RUN_DIR/run.log"
   echo "command=$*"
 } > "$RUN_DIR/run_start.txt"
 
-RUN_ID="$RUN_ID" RUN_DIR="$RUN_DIR" HEARTBEAT_SECONDS="$HEARTBEAT_SECONDS" \
+RUN_ID="$RUN_ID" RUN_DIR="$RUN_DIR" LOG="$LOG" HEARTBEAT_SECONDS="$HEARTBEAT_SECONDS" \
 setsid nohup bash -c '
+  set -u                      # an unset var (e.g. LOG) must fail loudly, not redirect to ""
   echo "pid=$$" >> "$RUN_DIR/run_start.txt"
   # run lock: binds this run directory to this PID/owner, for ownership verification
   cat > "$RUN_DIR/run.lock" <<LOCK
