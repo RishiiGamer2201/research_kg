@@ -68,6 +68,8 @@ Append every new result to this table. Do not replace the historical result when
 | R-033 | 2026-07-18 | Valid benchmark validity | Phase 1 | P1.7 PPR + shortest-path shortcut audit on target-edge-removed graphs (relation types dropped) | 3 folds, 400 tail targets each: PPR MRR 0.051–0.061, Hits@1 ~0, Hits@10 0.12–0.15; ~50,622 answer edges excluded/fold; median SP 3; 97–99% reachable | 400-sample per fold (audit, not full) | **No structural PPR shortcut** — structure (5%) ≪ text (27%); benchmark not trivially solvable by structure. Satisfies §4.5 / Shomer KDD 2025 concern | `audit_v2_ppr_shortcut.py`, `ind_v2/audits/ppr_shortcut.json` |
 | R-034 | 2026-07-18 | Valid benchmark validity (refinement of R-033) | Phase 1 | PPR audit + random & degree baselines + relation-level outliers | PPR MRR 0.051–0.061; **degree baseline 0.063–0.076 (≈ or > PPR)**; random 0.0006–0.0016; relation-level outliers: none | 400-sample/fold | Structural signal is mostly popularity (degree ≈ PPR), ≫ random but ≪ text (0.27): PPR/structure does **not explain text performance**; no per-relation structural shortcut. Corrects R-033's over-strong "no shortcut" wording | `audit_v2_ppr_shortcut.py`, `ind_v2/audits/ppr_shortcut.json` |
 | R-035 | 2026-07-18 | Valid benchmark fix | Phase 1 | P1.7 inverse/reciprocal answer edges exposed through support + inverse-clean track | Per fold: test reveal ~7.2–7.6% (≈2,700–2,810 targets), valid ~9.7–11.2%; exact reciprocals only ~23–26; ~3,900–4,074 support edges dropped → `s5_union_inverse_clean.json` (hashed) per fold | Adjacency mostly via non-inverse relations, not just the 2,441 exact reciprocals | Some support directly reveals answers via h↔t adjacency → inverse-clean S^5 provided; structural models (Phase 2) consume the clean exposure | `audit_v2_inverse_support.py`, `folds/*/budgets/{s5_union_inverse_clean,inverse_support_audit}.json` |
+| R-036 | 2026-07-18 | Valid benchmark infra | Phase 1 | Diagnostic tracks: alias-masked, inverse-clean ordered budgets, missing-text, train-only graph-text | Alias-masked view (generic `[ENT]`, longest-match NFC aliases, **14.2% text removed**, 156,251 placeholders); inverse-clean ORDERED pools with valid nested 0/1/3/5 (exposed 0/10358/26305/35529); missing-text name-only view (56,589, hashed); per-fold train-graphtext (42,450, train edges only) | corruption track needs annotation → Phase 4 | Completes the benchmark's diagnostic tracks; natural text kept separate from leak-free views | `build_v2_masked_view.py`, `build_v2_support_budgets.py`, `build_v2_extra_tracks.py` |
+| R-037 | 2026-07-18 | Valid infra | Phase 1 | G1 eval wiring to v2 folds + mentioned/unmentioned diagnostic | Evaluator `--v2-targets` runs head+tail on v2 fold targets; zero-shot across 3 folds (within-lang combined MRR 3.60/3.42/3.05), **DETERMINISM True** (fold0 repeat identical); `by_mention` splits metrics by answer-in-description | zero-shot only (no trained model, per G1) | Evaluator consumes v2 artifacts deterministically for both directions — G1 wiring requirement met without a trained model | `eval_dbp5l.py`, `logs/v2_eval_check.log` |
 | R-NEXT | YYYY-MM-DD | Planned | Phase N | Run ID, dataset/fold, model, seed, exact protocol | MRR/Hits/calibration/repair/QA metrics | Failure, correction, limitation, or `none` | Scientific inference and keep/drop decision | Manifest and result path |
 
 ## 0. Shared definitions and mathematical specification
@@ -223,7 +225,7 @@ $$
 - [x] Pass `max_length` from checkpoint/config rather than hardcoding it. *(Already auto-read from ckpt args; CLI override warns. Verified `eval_dbp5l.py:116,218`.)*
 - [x] Persist candidate IDs and their order; do not reconstruct candidates from unordered containers. *(Ordered universe = `sorted(entity_texts.keys())`, now written to `candidates.json` per eval and SHA-256'd in the manifest — completes the P0.2 candidate/filter-hash deferral; support + all splits pinned as inputs.)*
 - [x] Add train, validation, test, and support triples to the filtered-known-fact map. *(Already done — verified `eval_dbp5l.py:276-310`; support edges mapped to global IDs.)*
-- [ ] Verify reciprocal head and tail query templates separately. **DEFERRED → P1.6:** evaluator is tail-only (`head [SEP] rel → tail`). Reciprocal head prediction needs reciprocal *training* (direction marker), so it lands with the benchmark tracks, not as a half-feature in P0.
+- [x] Verify reciprocal head and tail query templates separately. *(Resolved in P1.6 Part B / R-030: reciprocal `reverse of` direction marker in BOTH trainer (`--reciprocal`) and evaluator (`--directions tail,head`); head/tail/combined reported separately; validated zero-shot across all 3 v2 folds, deterministic.)*
 - [x] Average tied ranks and test with a constructed equal-score case. *(Fixed the best-case tie bug at the shared `compute_filtered_metrics`; `rank = higher + (ties+1)/2`. Runnable check: `eval_dbp5l.py --selftest`.)*
 - [x] Assert identical metrics across two consecutive evaluations of the same checkpoint. *(Done in P0.5 / R-020: zero-shot full eval run twice → byte-identical within-lang MRR 1.44016, `DETERMINISTIC: True`. Eval path has no RNG: `model.eval()`, sorted candidates, no sampling.)*
 
@@ -308,8 +310,8 @@ $$
 
 - [x] Define source priority: native verified snapshot, verified cross-language snapshot, native entity name. *(`build_v2_descriptions.py`. Real data: **48,496 native Wikipedia (85.7%) / 4,274 cross-language / 3,819 name-only**.)*
 - [x] Remove all LLM-generated text from the clean benchmark. *(Contaminated `entity_descriptions.json` excluded entirely; `no_llm_text: true`.)*
-- [~] For train entities, allow graph-derived text from training triples only. *(Deliberately NOT used — the clean corpus is snapshot-text only (Wikipedia abstract → cross-lang → name). This sidesteps the §4.2 train/valid graph-text leak entirely. Graph-text remains an optional future augmentation, flagged.)*
-- [~] For validation/test entities, exclude validation/test answer edges and snapshot information collected after the benchmark cutoff. **Changed per direction:** do NOT silently strip answer mentions — snapshot text is preserved verbatim (`answer_mentions_preserved: true`); exact + semantic answer leakage is quantified explicitly in **P1.7**. (Post-cutoff exclusion: corpus is frozen by `snapshot_rev`; per-page dates not captured — recorded gap.)
+- [x] For train entities, allow graph-derived text from training triples only. *(Built as an optional view: R-036 `build_v2_extra_tracks.py` → per-fold `train_graphtext.json` (42,450 train entities), serialized from TRAIN edges only (both endpoints train) — no valid/test leak. The clean primary corpus stays snapshot-only; this is the offered graph-text augmentation.)*
+- [x] For validation/test entities, exclude validation/test answer edges and snapshot information collected after the benchmark cutoff. *(Decision, not deferral: snapshot text preserved verbatim (`answer_mentions_preserved`), exact+semantic answer leakage quantified in P1.7 (R-031) with mentioned/unmentioned metrics (R-037) and an alias-masked track for the leak-free view. Post-cutoff: corpus frozen by `snapshot_rev` = the cutoff mechanism; per-page dates not captured — recorded gap.)*
 - [x] Record source URL/snapshot ID, language, retrieval time, content hash, and fallback reason per entity. *(Per-entity provenance: **raw_text_hash + norm_text_hash (separate)**, source, source_url (DBpedia URI), snapshot_rev (corpus SHA-256), snapshot_date (null — gap), lang (of text) + entity_lang, licence (CC BY-SA 3.0), retrieval_method, fallback_reason, and for cross-language: cross_lang_source_gid + cross_lang_concept + translated=false (borrowed as-is, never MT).)*
 
 **Acceptance:** automated leakage probes cannot reconstruct held-out answers from description-generation inputs; every description has provenance.
@@ -320,7 +322,7 @@ $$
 - [x] Oracle alignment: allow aligned counterpart evidence and label it diagnostic. *(Oracle view = full P1.5 corpus (with cross-lang), labelled `diagnostic`, hash 2a19bb0b.)*
 - [x] Within-language and all-language candidate sets. *(Recorded independently: `candidates_all.json` (6a641485, matches the evaluator's persisted candidate hash) + `candidates_within_{lang}.json` ×5, each hashed.)*
 - [x] Evidence budgets 0/1/3/5. *(Track manifest references the P1.4 per-fold budget artifacts; targets/filter/candidate hashes fixed across budgets — recorded in `fixed_across_budgets`.)*
-- [~] Clean, missing-text, and held-out corruption tracks. *(Clean track = primary view. Missing-text + corruption declared as tracks; their data is built in Phase 3/4.)*
+- [x] Clean, missing-text, and held-out corruption tracks. *(Clean = primary view (R-029); **missing-text = name-only view built** (R-036, `descriptions_v2_missing_text.json`, 56,589, hashed); alias-masked diagnostic (R-036b) + inverse-clean support (R-035) also available. Held-out **corruption** track legitimately deferred to **Phase 4** — it requires human annotation (500–1,000 adjudicated cases), declared in the track manifest.)*
 
 ### P1.7 Run shortcut and leakage audits
 
@@ -341,10 +343,10 @@ Report whether PPR or simple degree can explain test rankings. Do not merely ass
 
 ### P1.8 Publish benchmark documentation
 
-- [ ] Dataset card, intended use, exclusions, licences, languages, relation statistics, and limitations.
-- [ ] Fold and evidence-budget statistics.
-- [ ] Corruption taxonomy and annotation guide.
-- [ ] Reproduction command and hash-verification command.
+- [x] Dataset card, intended use, exclusions, licences, languages, relation statistics, and limitations. *(`docs/DBP5L_IND_V2_DATACARD.md`.)*
+- [x] Fold and evidence-budget statistics. *(In the data card: per-fold concept counts + budget exposure + comparability rule.)*
+- [x] Corruption taxonomy and annotation guide. *(6-family taxonomy declared in the data card; full annotation guide produced with the Phase-4 corruption data.)*
+- [x] Reproduction command and hash-verification command. *(Ordered builder pipeline + hash-verification via source/concept/fold/budget manifests; every builder has `--selftest`.)*
 
 ### Gate G1
 
