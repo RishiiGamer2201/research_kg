@@ -94,6 +94,28 @@ DBpedia-derived → **CC BY-SA 3.0**: attribute DBpedia + KEnS/DBP-5L, share-ali
   (trainer/evaluator fold-wiring). G1 validates the eval harness zero-shot only.
 - Corruption track (self-healing) is Phase 4.
 
+## Ledger, key hashes & policies
+Benchmark-construction ledger rows (see `FINAL_IMPLEMENTATION_PLAN`): R-024 (concept clusters +
+v1 leakage), R-025 (folds), R-026 (source freeze), R-027 (budgets), R-028 (descriptions),
+R-029 (tracks), R-030 (reciprocal head/tail), R-031 (answer leakage), R-032 (structure),
+**R-033/R-034 (PPR + random/degree baselines + reframe)**, **R-035 (inverse-support +
+inverse-clean)**, **R-036 (masked / missing-text / train-graphtext / inverse-clean ordered)**,
+**R-037 (v2 eval wiring + mentioned/unmentioned)**.
+
+Key content hashes (anchors):
+- source snapshot `top_sha256 = 0eca75a5…` (31 files)
+- description snapshot `snapshot_rev = 7ba0dd5f…`
+- primary view `d1afcf20…` · oracle view `2a19bb0b…` · masked view `09ffbe4e…`
+  (**14.2% of characters removed**) · missing-text `347ccf02…`
+- all-language candidate universe `6a641485…` (matches the evaluator's persisted hash)
+- per-fold `fold_manifest.json`, `budget_manifest.json`, `train_graphtext.json` carry their own hashes.
+
+**Inverse-clean primary-track policy:** for each target (h,r,t), any support edge whose endpoints
+are {h,t} (exact reciprocal, inverse-relation, or any h↔t link) is removed from each unseen
+entity's ORDERED support pool **before** the 0/1/3/5 prefixes are taken, so nested budgets and
+capacity stay valid. Eval targets, candidate universes, and the single complete filter are
+UNCHANGED — only exposed evidence shrinks (exposed/budget 0/10358/26305/35529 vs 0/10399/26977/39621).
+
 ## Reproduction (deterministic; run in order, from `~/research_kg`)
 ```
 python3 scripts/data_prep/hash_source_data.py            # source_manifest.json (top 0eca75a5)
