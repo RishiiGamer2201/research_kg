@@ -21,11 +21,15 @@ fi
 mkdir -p "$RUN_DIR"
 LOG="$RUN_DIR/run.log"
 
+REPO_DIR="${REPO_DIR:-/mnt/c/developer/research_ai/research_kg/mkgc-multilingual-inductive}"
 {
   echo "run_id=$RUN_ID"
   echo "started_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "host=$(hostname)"
   echo "command=$*"
+  # launch commit is recorded so resume_guard.sh can refuse resuming under different code
+  echo "launch_commit=$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
+  echo "launch_tree_dirty=$(git -C "$REPO_DIR" status --porcelain 2>/dev/null | wc -l)"
 } > "$RUN_DIR/run_start.txt"
 
 RUN_ID="$RUN_ID" RUN_DIR="$RUN_DIR" LOG="$LOG" HEARTBEAT_SECONDS="$HEARTBEAT_SECONDS" \
