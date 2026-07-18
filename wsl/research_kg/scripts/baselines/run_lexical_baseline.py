@@ -27,6 +27,7 @@ from collections import defaultdict, Counter
 
 LANGS = ["en", "fr", "es", "ja", "el"]
 K1, B = 1.5, 0.75
+SAMPLE_SEED = 20260718     # deterministic target sampling
 
 
 def _norm(s):
@@ -72,8 +73,11 @@ def run(root, fold, view_path, method, max_targets=None):
     name = {g: _norm(e.get("name") or "") for g, e in ents.items()}
     fdir = os.path.join(root, "DBP5L/ind_v2/folds", fold)
     targets = [tuple(x) for x in json.load(open(os.path.join(fdir, "budgets/eval_targets_test.json")))]
-    if max_targets:
-        targets = targets[:max_targets]
+    if max_targets and len(targets) > max_targets:
+        # deterministic RANDOM sample. Taking the first N would follow sorted entity-id order,
+        # which is language-biased (low ids are EN) and skews the mention-rate breakdown.
+        import random as _r
+        targets = _r.Random(SAMPLE_SEED).sample(targets, max_targets)
 
     # complete known-fact filter (identical to the neural protocol)
     fwd, rev = defaultdict(set), defaultdict(set)

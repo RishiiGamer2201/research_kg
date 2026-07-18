@@ -36,7 +36,7 @@ Cheap first (CPU), then GPU:
 
 | # | Baseline | Cost | Purpose |
 |---|---|---|---|
-| B-lex | BM25 / exact-name match | CPU | lexical floor; also exposes the answer-mention effect |
+| B-lex | BM25 / exact-name match | CPU | lexical floor; exposes the answer-mention effect; **retained as lexical experts** (below) |
 | B-str | degree + PPR (relation-free) | CPU | structural floor (already measured in R-034) |
 | B-mbert | mBERT bi-encoder | GPU | encoder control |
 | B-xlmr | XLM-R bi-encoder | GPU | encoder control |
@@ -54,6 +54,23 @@ Every model reports **all four**, per direction (head / tail / combined):
 4. **Missing-text** (`descriptions_v2_missing_text.json`, name-only) — no-description floor.
 
 Plus: per-language, per-evidence-budget (0/1/3/5), macro-language and worst-language.
+
+**Lexical results are reported by direction × mention bucket, never as aggregate MRR alone**
+(answer exposure is strongly directional: tail ≈63% mentioned vs head ≈25%; see R-041).
+
+## 4b. Lexical baselines are retained as EXPERTS, not just floors
+`name_match` and `bm25` are kept as first-class lexical experts for later work:
+- **P2.3** calibrated BGE-M3 dense / learned-sparse / multi-vector fusion — the lexical scorers
+  are the sparse-side reference and fusion candidates.
+- **P3.1/P3.4 TrustRouter** — per-query lexical scores (and their agreement/disagreement with the
+  dense expert) are router features and a fallback expert when text is missing or quarantined.
+Evidence for the split roles (R-041): `name_match` has essentially no non-mention signal
+(unmentioned MRR 0.22–0.41) — a mention detector; `bm25` retains genuine non-mention signal
+(1.10–1.30) — a usable retrieval expert.
+
+**Sufficiency rule:** beating these baselines on natural aggregate MRR is NOT sufficient. A
+neural model must also beat them on (a) the unmentioned bucket, (b) both directions separately,
+and (c) at matched evidence budgets — otherwise it has only learned the mention shortcut.
 
 ## 5. Claim discipline (mandatory)
 Natural-text MRR **must not** be described as relational generalization: on v2, unmentioned MRR
