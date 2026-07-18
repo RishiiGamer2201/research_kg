@@ -23,12 +23,61 @@ import argparse
 import unicodedata
 from collections import defaultdict
 
+import hashlib
+
 import numpy as np
 import scipy.sparse as sp
 
 LANGS = ["en", "fr", "es", "ja", "el"]
 K1, B = 1.5, 0.75
 SAMPLE_SEED = 20260718
+QUERY_BATCH = 1                      # queries scored per sparse matmul (see provenance)
+TIE_POLICY = "average-tied-ranks: rank = n_> + (n_= + 1)/2, gold included in n_="
+TOKENIZER = "NFC-normalize -> lowercase -> whitespace split"
+
+
+TOLERANT_DECIMALS = 9        # rounding used for the tolerance-friendly hash
+
+
+def _canonical_csr(M):
+    """CSR in canonical form so equivalent matrices hash identically."""
+    M = M.tocsr().copy()
+    M.sum_duplicates()      # merge duplicate entries
+    M.sort_indices()        # deterministic column order within each row
+    M.eliminate_zeros()     # explicit zeros must not change the hash
+    return M
+
+
+def _hash_sparse(M, decimals=None):
+    """Content hash of a CSR matrix over its EXACT canonical bytes.
+
+    Pins shape, dtypes, byte order, indptr, indices and data. `decimals=None` hashes the raw
+    data bytes (exact, detects any scoring drift); passing an int hashes rounded values
+    instead (tolerant of cross-platform floating-point noise) and the precision is recorded
+    alongside the digest by the caller.
+    """
+    M = _canonical_csr(M)
+    data = M.data if decimals is None else np.round(M.data, decimals)
+    # normalize endianness so the digest is comparable across platforms
+    def _b(a):
+        a = np.ascontiguousarray(a)
+        if a.dtype.byteorder == ">" or (a.dtype.byteorder == "=" and sys.byteorder == "big"):
+            a = a.astype(a.dtype.newbyteorder("<"))
+        return a
+    h = hashlib.sha256()
+    h.update(json.dumps({
+        "shape": list(M.shape), "nnz": int(M.nnz),
+        "dtype_data": str(_b(data).dtype), "dtype_indices": str(_b(M.indices).dtype),
+        "dtype_indptr": str(_b(M.indptr).dtype), "byteorder": "little",
+        "rounded_decimals": decimals,
+    }, sort_keys=True).encode())
+    for arr in (M.indptr, M.indices, data):
+        h.update(_b(arr).tobytes())
+    return h.hexdigest()[:16]
+
+
+def _hash_list(xs):
+    return hashlib.sha256(json.dumps(list(xs), sort_keys=True).encode()).hexdigest()[:16]
 
 
 def _norm(s):
@@ -134,19 +183,33 @@ def run(root, fold, view_path, method, max_targets=None):
     for l in by_lang:
         by_lang[l].sort()
 
-    # per-language candidate side
+    # per-language candidate side (+ provenance so batching/vocab changes are detectable)
     state = {}
+    prov_lang = {}
     for l, ids in by_lang.items():
         idx = {g: i for i, g in enumerate(ids)}
         if method == "name_match":
             texts = [name.get(g, "") for g in ids]
             M, vocab, lens = _build_matrices(texts)
-            state[l] = (ids, idx, M.T.tocsr(), vocab, lens)      # binary V x C
+            CT = M.T.tocsr()
+            state[l] = (ids, idx, CT, vocab, lens)               # binary V x C
         else:
             texts = [desc.get(g, "") for g in ids]
             _, vocab, _ = _build_matrices(texts)
             W = _bm25_weights(texts, vocab)
-            state[l] = (ids, idx, W.T.tocsr(), vocab, None)      # weights V x C
+            CT = W.T.tocsr()
+            state[l] = (ids, idx, CT, vocab, None)               # weights V x C
+        prov_lang[l] = {
+            "n_candidates": len(ids),
+            "candidate_order_hash": _hash_list(ids),
+            "vocab_size": len(vocab),
+            "vocab_hash": _hash_list(sorted(vocab)),
+            # exact = raw canonical bytes (catches any scoring drift);
+            # tolerant = rounded, for cross-platform float noise. Precision recorded.
+            "sparse_matrix_exact_hash": _hash_sparse(CT),
+            "sparse_matrix_tolerant_hash": _hash_sparse(CT, decimals=TOLERANT_DECIMALS),
+            "sparse_matrix_tolerant_decimals": TOLERANT_DECIMALS,
+        }
 
     out = {d: [] for d in ("tail", "head")}
     mention = {d: {"mentioned": [], "unmentioned": []} for d in ("tail", "head")}
@@ -189,6 +252,20 @@ def run(root, fold, view_path, method, max_targets=None):
                          for d in ("tail", "head")}
     res["sampled"] = sampled
     res["n_targets"] = len(targets)
+    # Reproducibility provenance: batching, matrix/vocab/candidate-order hashes and the tie
+    # policy, so a change in batching or tokenization cannot silently alter rankings.
+    res["provenance"] = {
+        "query_batch_size": QUERY_BATCH,
+        "scoring": "scipy.sparse CSR matmul (query binary vector x candidate matrix)",
+        "tokenizer": TOKENIZER,
+        "tie_policy": TIE_POLICY,
+        "bm25_k1": K1, "bm25_b": B,
+        "filter": "complete known-fact filter (train+valid+test), direction-specific",
+        "view_hash": hashlib.sha256(open(view_path, "rb").read()).hexdigest()[:16],
+        "targets_hash": _hash_list(sorted(map(list, targets))),
+        "sample_seed": (SAMPLE_SEED if sampled else None),
+        "per_language": prov_lang,
+    }
     return res
 
 
@@ -219,7 +296,37 @@ def _selfcheck():
         assert _ranks(np.array([0.9, 0.5, 0.1]), 1, np.array([True, False, False])) == 1.0
         rb = run(d, "f0", vp, "bm25")
         assert rb["tail"]["n"] == 1
-        print("run_lexical_baseline self-check OK (vectorized; rank identity verified)")
+        # provenance present and sensitive to a view/vocabulary change
+        pv = r["provenance"]
+        for k in ("query_batch_size", "tokenizer", "tie_policy", "view_hash",
+                  "targets_hash", "per_language"):
+            assert k in pv, k
+        assert pv["per_language"]["en"]["candidate_order_hash"] and \
+               pv["per_language"]["en"]["sparse_matrix_exact_hash"] and \
+               pv["per_language"]["en"]["sparse_matrix_tolerant_hash"] and \
+               pv["per_language"]["en"]["vocab_hash"]
+        # EXACT hash must catch drift far below the tolerant rounding precision;
+        # the tolerant hash is allowed to absorb it.
+        A = sp.csr_matrix(np.array([[1.0, 0.0], [0.0, 2.0]]))
+        Bm = A.copy(); Bm.data = Bm.data + 1e-12
+        assert _hash_sparse(A) != _hash_sparse(Bm), "exact hash missed sub-epsilon drift"
+        assert _hash_sparse(A, TOLERANT_DECIMALS) == _hash_sparse(Bm, TOLERANT_DECIMALS)
+        # canonicalization: explicit zeros / duplicate entries must not change the digest
+        C = sp.csr_matrix((np.array([1.0, 0.0, 2.0]),
+                           (np.array([0, 0, 1]), np.array([0, 1, 1]))), shape=(2, 2))
+        assert _hash_sparse(C) == _hash_sparse(A), "canonical form not stable"
+        # a real value change must move BOTH hashes
+        D = A.copy(); D.data = D.data * 2
+        assert _hash_sparse(D) != _hash_sparse(A)
+        assert _hash_sparse(D, TOLERANT_DECIMALS) != _hash_sparse(A, TOLERANT_DECIMALS)
+        json.dump({"0": "studied at oxford", "1": "a city", "2": "an animal"}, open(vp, "w"))
+        pv2 = run(d, "f0", vp, "name_match")["provenance"]
+        assert pv2["view_hash"] != pv["view_hash"], "view change must change view_hash"
+        # bm25 matrix is built from descriptions -> its hash must move with the view
+        pvb = run(d, "f0", vp, "bm25")["provenance"]["per_language"]["en"]
+        assert pvb["vocab_hash"] != rb["provenance"]["per_language"]["en"]["vocab_hash"], \
+            "vocabulary hash must change when the description view changes"
+        print("run_lexical_baseline self-check OK (vectorized; rank identity + provenance verified)")
     finally:
         shutil.rmtree(d, ignore_errors=True)
 

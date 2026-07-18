@@ -55,6 +55,13 @@ Every model reports **all four**, per direction (head / tail / combined):
 
 Plus: per-language, per-evidence-budget (0/1/3/5), macro-language and worst-language.
 
+**Lexical run provenance (recorded per result cell, R-042):** query batch size, scoring mode,
+tokenizer, tie policy, BM25 k1/b, filter policy, view hash, targets hash, and per language the
+candidate-order hash, vocabulary hash and BOTH `sparse_matrix_exact_hash` (raw canonical CSR
+bytes: shape, dtypes, little-endian normalized indptr/indices/data) and
+`sparse_matrix_tolerant_hash` with `sparse_matrix_tolerant_decimals` recorded. The exact hash
+detects sub-epsilon scoring drift; the tolerant hash absorbs cross-platform float noise.
+
 **Lexical results are reported by direction × mention bucket, never as aggregate MRR alone**
 (answer exposure is strongly directional). Lexical baselines run on the **full** target set —
 they are cheap once vectorized — so no sampling CI is needed; if any run is sub-sampled, its
