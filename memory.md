@@ -114,3 +114,10 @@ Running log. Newest entries at top of each section. Absolute dates.
 - Run script frozen immutable: `~/research_kg/run_b0_fold0_seed42.FROZEN.sh` (chmod -w), launched via that copy so source edits can't corrupt the running job.
 - **B0-RUN-003**: pid 28845, launch_commit 165c7aa, started 11:07:51Z, cache_key ed7a1292 (model_revision now in parent key), 42450 neg universe. Fresh from HEAD (all fixes: selection-epoch persistence, complete cache key, HN provenance). ETA ~14h. Run dir `DBP5L/ind_v2/audits/training/B0-RUN-003`.
 - Recovery if it dies again: last_checkpoint.pt resumable BUT resume guard refuses same-identity unless HEAD==165c7aa clean → use continue_run.sh (B0-RUN-004) recording delta, or pin worktree at 165c7aa.
+
+### 2026-07-18 — REAL BUG FOUND: HN cache OOM (killed B0-RUN-002 AND 003), fixed
+- Both B0-RUN-002/003 died at epoch 5 (HN onset). NOT environmental (my R-F003 diagnosis was WRONG). Root cause: `build_entity_cache` (train_dbp5l_lora.py:185) called model.encode WITHOUT `torch.no_grad()` → 568M-param autograd graph accumulated across 83 encode batches → OOM on top of ~9GB train baseline. WSL masked it as "cudaErrorUnknown" in run 002; run 003 showed clear "CUDA out of memory". Ledger R-F004.
+- Reciprocal training raised baseline enough to expose a latent bug the non-reciprocal Run E (2026-07-17) tolerated.
+- **FIX:** wrap encode loop in `torch.no_grad()` + `empty_cache()`. Verified: grad-ON OOMs at 4000 entities fresh (`test_hn_oom.py`); fixed builds full 42450 at 3.01GB (`test_hn_fix.py`). Commit e6875a6, **tag `b0-baseline-v2`** (b0-baseline-v1/165c7aa is BROKEN — do not use).
+- **B0-RUN-004**: pid 32093, launch_commit e6875a6, started 17:05:28Z, fixed code. CRITICAL milestone = clearing epoch 5 (~19:30Z). ETA ~14h. Run dir `DBP5L/ind_v2/audits/training/B0-RUN-004`.
+- **Lesson compounded:** don't over-trust a first "environmental" diagnosis; a second identical failure at the same point = deterministic bug. Also: eval path had no_grad but trainer's copy didn't — inconsistency between two encode paths.
