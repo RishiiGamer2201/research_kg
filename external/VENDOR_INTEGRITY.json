@@ -7,37 +7,144 @@
   "commits_touching_external_since_snapshot": 0,
   "why_status_showed_modified": "The working tree had CRLF (Windows checkout) while git stored LF via .gitattributes `*.sh text eol=lf`. `git status` therefore reported the files as modified until the working tree was normalized; `git add` then produced no change.",
   "upstream": {
-    "external/grail": {"project": "GraIL - Inductive relation prediction by subgraph reasoning (ICML 2020)", "paper": "https://arxiv.org/abs/1911.06962", "upstream_commit": "NOT CAPTURED at vendoring time"},
-    "external/SDN":   {"project": "S2DN - Semantic Structure-aware Denoising Network", "paper": "https://arxiv.org/abs/2412.15822", "upstream_commit": "NOT CAPTURED at vendoring time"}
+    "external/grail": {
+      "project": "GraIL - Inductive relation prediction by subgraph reasoning (ICML 2020)",
+      "paper": "https://arxiv.org/abs/1911.06962",
+      "upstream_commit": "NOT CAPTURED at vendoring time"
+    },
+    "external/SDN": {
+      "project": "S2DN - Semantic Structure-aware Denoising Network",
+      "paper": "https://arxiv.org/abs/2412.15822",
+      "upstream_commit": "NOT CAPTURED at vendoring time"
+    }
   },
   "evidence_shell_scripts": [
-    {"path": "external/SDN/ensembling/get_ensemble_predictions.sh", "blob_at_snapshot": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612", "blob_at_head": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612", "blob_identical": true, "content_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107", "worktree_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107", "worktree_matches_git": true}
-    ,
-    {"path": "external/SDN/ensembling/get_kge_ensemble.sh", "blob_at_snapshot": "aef10344717e40b4f4863f3c33d137ade38e4fc2", "blob_at_head": "aef10344717e40b4f4863f3c33d137ade38e4fc2", "blob_identical": true, "content_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83", "worktree_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83", "worktree_matches_git": true}
-    ,
-    {"path": "external/SDN/kge/run.sh", "blob_at_snapshot": "d00ef2ad5039c508b0ac7938e155218f1f4ea134", "blob_at_head": "d00ef2ad5039c508b0ac7938e155218f1f4ea134", "blob_identical": true, "content_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe", "worktree_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe", "worktree_matches_git": true}
-    ,
-    {"path": "external/SDN/ruleN/auc_apply_rules.sh", "blob_at_snapshot": "9d49f5c9317a4efb0706c662d55d995bc213e6df", "blob_at_head": "9d49f5c9317a4efb0706c662d55d995bc213e6df", "blob_identical": true, "content_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787", "worktree_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787", "worktree_matches_git": true}
-    ,
-    {"path": "external/SDN/ruleN/learn_rules.sh", "blob_at_snapshot": "110da7d8f696dcf8c0157926d72fa9ef72c227b3", "blob_at_head": "110da7d8f696dcf8c0157926d72fa9ef72c227b3", "blob_identical": true, "content_sha256": "7ead85af10130686782c362dfc2f238e795cb2741036b977d51a298934c48cd6", "worktree_sha256": "7ead85af10130686782c362dfc2f238e795cb2741036b977d51a298934c48cd6", "worktree_matches_git": true}
-    ,
-    {"path": "external/SDN/ruleN/ranking_apply_rules.sh", "blob_at_snapshot": "f727e3872ac7f13118e2486c9c06c92e2b013faa", "blob_at_head": "f727e3872ac7f13118e2486c9c06c92e2b013faa", "blob_identical": true, "content_sha256": "4429a4b704215f0b32140557211f3a336bc9222521c12c872e77085e00ad8b38", "worktree_sha256": "4429a4b704215f0b32140557211f3a336bc9222521c12c872e77085e00ad8b38", "worktree_matches_git": true}
-    ,
-    {"path": "external/grail/ensembling/get_ensemble_predictions.sh", "blob_at_snapshot": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612", "blob_at_head": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612", "blob_identical": true, "content_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107", "worktree_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107", "worktree_matches_git": true}
-    ,
-    {"path": "external/grail/ensembling/get_kge_ensemble.sh", "blob_at_snapshot": "aef10344717e40b4f4863f3c33d137ade38e4fc2", "blob_at_head": "aef10344717e40b4f4863f3c33d137ade38e4fc2", "blob_identical": true, "content_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83", "worktree_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83", "worktree_matches_git": true}
-    ,
-    {"path": "external/grail/kge/run.sh", "blob_at_snapshot": "d00ef2ad5039c508b0ac7938e155218f1f4ea134", "blob_at_head": "d00ef2ad5039c508b0ac7938e155218f1f4ea134", "blob_identical": true, "content_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe", "worktree_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe", "worktree_matches_git": true}
-    ,
-    {"path": "external/grail/ruleN/auc_apply_rules.sh", "blob_at_snapshot": "9d49f5c9317a4efb0706c662d55d995bc213e6df", "blob_at_head": "9d49f5c9317a4efb0706c662d55d995bc213e6df", "blob_identical": true, "content_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787", "worktree_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787", "worktree_matches_git": true}
-    ,
-    {"path": "external/grail/ruleN/learn_rules.sh", "blob_at_snapshot": "e8a9ff4569255f7a09bf19b98bc238e91892a27f", "blob_at_head": "e8a9ff4569255f7a09bf19b98bc238e91892a27f", "blob_identical": true, "content_sha256": "ad4d7a209f61d73e76636769584f4ce24cd27f3d04aa4f0909e7ac03fe3c252c", "worktree_sha256": "ad4d7a209f61d73e76636769584f4ce24cd27f3d04aa4f0909e7ac03fe3c252c", "worktree_matches_git": true}
-    ,
-    {"path": "external/grail/ruleN/ranking_apply_rules.sh", "blob_at_snapshot": "4f8f50cabb1c71176a215766df541905248de3c0", "blob_at_head": "4f8f50cabb1c71176a215766df541905248de3c0", "blob_identical": true, "content_sha256": "5f8f7c27e28e0c55961830bfcf592676897884ada88a2f7133055c06b6dc65e2", "worktree_sha256": "5f8f7c27e28e0c55961830bfcf592676897884ada88a2f7133055c06b6dc65e2", "worktree_matches_git": true}
+    {
+      "path": "external/SDN/ensembling/get_ensemble_predictions.sh",
+      "blob_at_snapshot": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612",
+      "blob_at_head": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612",
+      "blob_identical": true,
+      "content_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107",
+      "worktree_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/SDN/ensembling/get_kge_ensemble.sh",
+      "blob_at_snapshot": "aef10344717e40b4f4863f3c33d137ade38e4fc2",
+      "blob_at_head": "aef10344717e40b4f4863f3c33d137ade38e4fc2",
+      "blob_identical": true,
+      "content_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83",
+      "worktree_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/SDN/kge/run.sh",
+      "blob_at_snapshot": "d00ef2ad5039c508b0ac7938e155218f1f4ea134",
+      "blob_at_head": "d00ef2ad5039c508b0ac7938e155218f1f4ea134",
+      "blob_identical": true,
+      "content_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe",
+      "worktree_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/SDN/ruleN/auc_apply_rules.sh",
+      "blob_at_snapshot": "9d49f5c9317a4efb0706c662d55d995bc213e6df",
+      "blob_at_head": "9d49f5c9317a4efb0706c662d55d995bc213e6df",
+      "blob_identical": true,
+      "content_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787",
+      "worktree_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/SDN/ruleN/learn_rules.sh",
+      "blob_at_snapshot": "110da7d8f696dcf8c0157926d72fa9ef72c227b3",
+      "blob_at_head": "110da7d8f696dcf8c0157926d72fa9ef72c227b3",
+      "blob_identical": true,
+      "content_sha256": "7ead85af10130686782c362dfc2f238e795cb2741036b977d51a298934c48cd6",
+      "worktree_sha256": "7ead85af10130686782c362dfc2f238e795cb2741036b977d51a298934c48cd6",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/SDN/ruleN/ranking_apply_rules.sh",
+      "blob_at_snapshot": "f727e3872ac7f13118e2486c9c06c92e2b013faa",
+      "blob_at_head": "f727e3872ac7f13118e2486c9c06c92e2b013faa",
+      "blob_identical": true,
+      "content_sha256": "4429a4b704215f0b32140557211f3a336bc9222521c12c872e77085e00ad8b38",
+      "worktree_sha256": "4429a4b704215f0b32140557211f3a336bc9222521c12c872e77085e00ad8b38",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/grail/ensembling/get_ensemble_predictions.sh",
+      "blob_at_snapshot": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612",
+      "blob_at_head": "f8a67c7a9038e16cb2eeaa8a8d3eea786d277612",
+      "blob_identical": true,
+      "content_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107",
+      "worktree_sha256": "873e72d000d22688c0a9caa780ddd2d78514173e9b1ccdbb07424a9ebae77107",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/grail/ensembling/get_kge_ensemble.sh",
+      "blob_at_snapshot": "aef10344717e40b4f4863f3c33d137ade38e4fc2",
+      "blob_at_head": "aef10344717e40b4f4863f3c33d137ade38e4fc2",
+      "blob_identical": true,
+      "content_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83",
+      "worktree_sha256": "09381e739efa244ce001d6acb13d08c7d782254f761fc5c622044247af877a83",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/grail/kge/run.sh",
+      "blob_at_snapshot": "d00ef2ad5039c508b0ac7938e155218f1f4ea134",
+      "blob_at_head": "d00ef2ad5039c508b0ac7938e155218f1f4ea134",
+      "blob_identical": true,
+      "content_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe",
+      "worktree_sha256": "f97abf646c1dff73c3794f035aaf67d44dca65c7e0db46386d7a1f688c908dfe",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/grail/ruleN/auc_apply_rules.sh",
+      "blob_at_snapshot": "9d49f5c9317a4efb0706c662d55d995bc213e6df",
+      "blob_at_head": "9d49f5c9317a4efb0706c662d55d995bc213e6df",
+      "blob_identical": true,
+      "content_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787",
+      "worktree_sha256": "a93eea52fc06cb05d47bd9f856c07ab1c75e13622bf152f3c101fed35a2f4787",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/grail/ruleN/learn_rules.sh",
+      "blob_at_snapshot": "e8a9ff4569255f7a09bf19b98bc238e91892a27f",
+      "blob_at_head": "e8a9ff4569255f7a09bf19b98bc238e91892a27f",
+      "blob_identical": true,
+      "content_sha256": "ad4d7a209f61d73e76636769584f4ce24cd27f3d04aa4f0909e7ac03fe3c252c",
+      "worktree_sha256": "ad4d7a209f61d73e76636769584f4ce24cd27f3d04aa4f0909e7ac03fe3c252c",
+      "worktree_matches_git": true
+    },
+    {
+      "path": "external/grail/ruleN/ranking_apply_rules.sh",
+      "blob_at_snapshot": "4f8f50cabb1c71176a215766df541905248de3c0",
+      "blob_at_head": "4f8f50cabb1c71176a215766df541905248de3c0",
+      "blob_identical": true,
+      "content_sha256": "5f8f7c27e28e0c55961830bfcf592676897884ada88a2f7133055c06b6dc65e2",
+      "worktree_sha256": "5f8f7c27e28e0c55961830bfcf592676897884ada88a2f7133055c06b6dc65e2",
+      "worktree_matches_git": true
+    }
   ],
   "n_vendored_shell_scripts": 12,
   "full_tree_hash_external": "0237a213cc8b32e978a87ba1410a1ffdf1b7c3db",
   "full_tree_hash_external_at_snapshot": "0237a213cc8b32e978a87ba1410a1ffdf1b7c3db",
   "external_tree_unchanged": true,
-  "recorded_utc": "2026-07-18T09:04:43Z"
+  "recorded_utc": "2026-07-18T09:04:43Z",
+  "vendored_subtrees": {
+    "external/grail": {
+      "tree_hash_at_snapshot": "8a97e19577084a2a401e98d1a8bd7f378689c097",
+      "tree_hash_at_head": "8a97e19577084a2a401e98d1a8bd7f378689c097",
+      "unchanged": true
+    },
+    "external/SDN": {
+      "tree_hash_at_snapshot": "4e61d40f39324c07c54dca55882591286f186e68",
+      "tree_hash_at_head": "4e61d40f39324c07c54dca55882591286f186e68",
+      "unchanged": true
+    }
+  },
+  "guard_scope": "preflight compares the VENDORED SUBTREES (external/grail, external/SDN), not external/ itself, because our own VENDOR_INTEGRITY.json lives alongside them and would otherwise change the parent tree hash.",
+  "full_tree_hash_external_note": "parent external/ tree hash changes when our metadata file is added/updated; it is NOT the integrity reference."
 }

@@ -51,13 +51,19 @@ if [ -f "$G" ]; then
   rm -rf "$TMP"
 else bad "resume_guard.sh not found"; fi
 
-echo "[4/5] vendored external/ tree unchanged since the vendoring snapshot"
+echo "[4/5] vendored subtrees unchanged since the vendoring snapshot"
+# Compare the VENDORED SUBTREES (external/grail, external/SDN), not external/ itself: our own
+# metadata (VENDOR_INTEGRITY.json) lives alongside them and would otherwise trip the guard.
 VI="$REPO/external/VENDOR_INTEGRITY.json"
 if [ -f "$VI" ]; then
-  SNAP_TREE=$(grep -o '"full_tree_hash_external_at_snapshot": *"[^"]*"' "$VI" | sed 's/.*"\([^"]*\)"$/\1/')
-  NOW_TREE=$(git -C "$REPO" rev-parse HEAD:external 2>/dev/null)
-  if [ "$SNAP_TREE" = "$NOW_TREE" ]; then ok "external/ tree hash matches snapshot ($NOW_TREE)"
-  else bad "external/ tree changed: snapshot $SNAP_TREE -> $NOW_TREE (vendored code must not be edited; record it if intentional)"; fi
+  SNAP_COMMIT=$(grep -o '"vendoring_snapshot_commit": *"[^"]*"' "$VI" | sed 's/.*"\([^"]*\)"$/\1/')
+  vend_ok=1
+  for d in grail SDN; do
+    a=$(git -C "$REPO" rev-parse "$SNAP_COMMIT:external/$d" 2>/dev/null)
+    b=$(git -C "$REPO" rev-parse "HEAD:external/$d" 2>/dev/null)
+    if [ -n "$a" ] && [ "$a" = "$b" ]; then ok "external/$d unchanged ($b)"
+    else bad "external/$d CHANGED: $a -> $b (vendored code must not be edited; record it if intentional)"; vend_ok=0; fi
+  done
 else bad "external/VENDOR_INTEGRITY.json missing"; fi
 
 echo "[5/5] bash -n on scripts/baselines/*.sh"
