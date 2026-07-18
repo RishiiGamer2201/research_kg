@@ -75,7 +75,8 @@
       "progress": "5/30 epochs completed; best_model.pt + last_checkpoint.pt saved (epoch 5)",
       "termination": {
         "primary": "torch.AcceleratorError: CUDA error: unknown error (cudaErrorUnknown) on the first hard-negative matmul at epoch-5 HN onset (HN cache built fine, 1.2min/174MB immediately before). ENVIRONMENTAL, not code: the same code ran 5 epochs + the cache build successfully, and a post-mortem CUDA matmul on the same GPU succeeds (15.5GB free). Most likely a WSL2 CUDA-context disturbance during the session login/reconnect churn around 11:00Z.",
-        "secondary": "bash then emitted syntax errors on run_b0_fold0_seed42.sh lines 21-22 because the script had been EDITED (rewritten to the explicit-resume version) WHILE bash was executing it -> bash resumed at a stale byte offset. Cosmetic; did NOT cause the CUDA abort (python is an independent child)."
+        "secondary": "bash then emitted syntax errors on run_b0_fold0_seed42.sh lines 21-22 because the script had been EDITED (rewritten to the explicit-resume version) WHILE bash was executing it -> bash resumed at a stale byte offset. Cosmetic; did NOT cause the CUDA abort (python is an independent child).",
+        "CORRECTION": "Earlier 'environmental cudaErrorUnknown' diagnosis was WRONG. B0-RUN-003 died identically at epoch 5 with a clear 'CUDA out of memory' in build_entity_cache; WSL had masked the same OOM as 'unknown error' here. Root cause: build_entity_cache called model.encode WITHOUT torch.no_grad(), accumulating a 568M-param autograd graph across all 83 batches. Deterministic, not transient."
       },
       "process_lesson": "Do not edit files a running job executes. Training code will be frozen (git tag) for the duration of the B0 matrix; the run script is copied immutably at launch.",
       "recovery": "Fresh B0-RUN-003 from current HEAD (single immutable commit with all fixes: selection-epoch persistence, complete cache key, HN provenance). ~2.3h lost.",
@@ -84,6 +85,27 @@
         "output_directory_reused": false
       },
       "replaced_by": "B0-RUN-003"
+    },
+    {
+      "run_id": "B0-RUN-003",
+      "status": "failed",
+      "date_utc": "2026-07-18",
+      "pid": 28845,
+      "launch_commit": "165c7aa (tag b0-baseline-v1 \u2014 BROKEN, OOMs at epoch 5)",
+      "purpose": "B0 anchor baseline retry from tagged code.",
+      "progress": "5/30 epochs; died at epoch-5 HN cache build",
+      "termination": {
+        "exit_code": 134,
+        "signal": 6,
+        "cause": "CUDA out of memory in build_entity_cache (train_dbp5l_lora.py:185). ROOT CAUSE: model.encode ran without torch.no_grad() -> a 568M-param autograd graph accumulated across all 83 encode batches (emb.cpu() keeps the GPU graph alive), OOMing on top of the ~9GB training baseline. Reciprocal training raised the baseline enough to expose a latent bug the older non-reciprocal Run E tolerated.",
+        "reproduced": "test_hn_oom.py OOMs on the grad-ON path with only 4,000 entities in a fresh process; fixed no_grad path builds the full 42,450 universe at 3.01GB peak."
+      },
+      "fix": "wrap the encode loop in torch.no_grad() + torch.cuda.empty_cache() before build. Verified: test_hn_fix.py builds 42,450 entities at 3.01GB.",
+      "outputs": {
+        "result_written": false,
+        "output_directory_reused": false
+      },
+      "replaced_by": "B0-RUN-004 (from fixed code, new tag b0-baseline-v2)"
     }
   ]
 }

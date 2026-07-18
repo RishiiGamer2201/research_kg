@@ -175,15 +175,24 @@ def build_entity_cache(model, tokenizer, entity_texts, all_entity_ids,
     logger.info(f'  [HN] Building entity cache for {len(all_entity_ids)} entities...')
     t0 = time.time()
     model.eval()
+    # Release cached blocks left fragmented by the just-finished training epoch, so the
+    # encode buffers can find contiguous space.
+    if device.type == 'cuda':
+        torch.cuda.empty_cache()
     texts = [entity_texts.get(eid, f'entity_{eid}') for eid in all_entity_ids]
     embeddings = []
-    for i in range(0, len(texts), batch_size):
-        enc = tokenizer(texts[i:i+batch_size], max_length=max_length,
-                        padding='max_length', truncation=True, return_tensors='pt')
-        ids  = enc['input_ids'].to(device)
-        mask = enc['attention_mask'].to(device)
-        emb  = model.encode(ids, mask)     # (b, D) float32 normalised
-        embeddings.append(emb.cpu())
+    # CRITICAL: no_grad. eval() does NOT disable autograd; without this each batch builds a
+    # 568M-param graph that emb.cpu() keeps alive, so activation memory grows across all
+    # batches and OOMs mid-training (killed B0-RUN-002/003 at the epoch-5 HN onset). Inference
+    # only — no gradients are needed to build the negative-embedding cache.
+    with torch.no_grad():
+        for i in range(0, len(texts), batch_size):
+            enc = tokenizer(texts[i:i+batch_size], max_length=max_length,
+                            padding='max_length', truncation=True, return_tensors='pt')
+            ids  = enc['input_ids'].to(device)
+            mask = enc['attention_mask'].to(device)
+            emb  = model.encode(ids, mask)     # (b, D) float32 normalised
+            embeddings.append(emb.cpu())
     entity_cache = torch.cat(embeddings, dim=0)  # (N, D)
     eid_to_idx   = {eid: i for i, eid in enumerate(all_entity_ids)}
     meta = {'epoch': epoch, 'lora_hash': lora_state_hash(model),
