@@ -420,7 +420,11 @@ def train(args):
     # back-filled text).
     model_tag = args.model_name.replace('/', '_')
     desc_tag = os.path.splitext(os.path.basename(desc_path))[0]
-    cache_tag = f'{model_tag}_{desc_tag}'
+    # P2.1 check 2: key the token cache by the description-view CONTENT hash, not just its
+    # filename — otherwise a rebuilt/edited view silently reuses stale token ids.
+    desc_hash = rm.sha256_file(desc_path)
+    desc_hash_tag = (desc_hash[:12] if desc_hash else 'nohash')
+    cache_tag = f'{model_tag}_{desc_tag}_{desc_hash_tag}'
     recip = bool(args.reciprocal)
     rc_tag = '_recip' if recip else ''   # reciprocal doubles examples -> distinct cache
 
@@ -466,8 +470,18 @@ def train(args):
     entity_cache     = None   # (N, D) CPU tensor — populated after ep hard_neg_start_epoch
     entity_cache_gpu = None   # same but on GPU for fast matmul
     eid_to_idx       = None
-    # Sorted entity IDs needed for cache building
-    all_entity_ids = sorted(entity_texts.keys())
+    # Negative-candidate universe for hard negatives / global negatives.
+    # P2.1 INDUCTIVE SAFETY: with --v2-fold this MUST be the fold's TRAIN entities only.
+    # Using every entity (the old default) would expose held-out valid/test concept
+    # descriptions to the model as negatives, i.e. transductive leakage in an inductive
+    # benchmark. Without --v2-fold the legacy behaviour (all entities) is kept.
+    if args.v2_fold:
+        _train_ents = set(json.load(open(os.path.join(args.v2_fold, 'train_entities.json'))))
+        all_entity_ids = sorted(e for e in entity_texts.keys() if e in _train_ents)
+        logger.info(f'  [HN] negative universe restricted to fold train entities: '
+                    f'{len(all_entity_ids)} (of {len(entity_texts)})')
+    else:
+        all_entity_ids = sorted(entity_texts.keys())
 
     # ── Resume: restore model / optimizer / scheduler / RNG / progress ───────────
     start_epoch = 0
@@ -493,6 +507,11 @@ def train(args):
         else:
             logger.warning('Resume checkpoint has no optimizer state (old best_model.pt format); '
                            'loaded weights only, restarting epoch count at 0.')
+
+    # P2.1 check 5: profile wall time, encoding (HN cache) time and validation time separately.
+    _prof = {'wall_start': time.time(), 'encode_s': 0.0, 'valid_s': 0.0}
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
 
     for epoch in range(start_epoch, args.epochs):
         model.train()
@@ -612,7 +631,8 @@ def train(args):
                     f'{rate:.2f} steps/s | ETA {eta_h:.1f}h | VRAM {vram_used:.1f}GB'
                 )
 
-        # Validation
+        # Validation (inductive: v2 fold valid targets; used ONLY for checkpoint selection)
+        _tv = time.time()
         model.eval()
         vl, vc1, vc3, vn = 0.0, 0, 0, 0
         with torch.no_grad():
@@ -630,6 +650,7 @@ def train(args):
                 vc3 += sum(labels[i].item() in p3[i] for i in range(len(labels)))
                 vn  += labels.size(0)
 
+        _prof['valid_s'] += time.time() - _tv
         va1 = vc1 / max(vn, 1) * 100
         va3 = vc3 / max(vn, 1) * 100
         ep_min = (time.time() - t0) / 60
@@ -666,18 +687,36 @@ def train(args):
 
         # ── Build / refresh entity cache for next epoch’s hard negatives ──────
         if args.hard_neg_k > 0 and (epoch + 1) >= args.hard_neg_start_epoch:
+            _te = time.time()
             entity_cache, eid_to_idx = build_entity_cache(
                 model, tokenizer, entity_texts, all_entity_ids,
                 args.max_length, device, batch_size=512)
+            _prof['encode_s'] += time.time() - _te
             entity_cache_gpu = entity_cache.to(device)
             logger.info(f'  [HN] Cache on GPU ({entity_cache_gpu.element_size()*entity_cache_gpu.nelement()/1e6:.0f} MB)')
 
     logger.info(f'Done. Best valid acc@1: {best_acc1:.2f}%  Checkpoints: {run_dir}')
 
     # ── P0.2: finalize manifest (status=complete) with headline metric + ckpt hash ──
+    # P2.1 check 5: separate profile numbers for the compute budget decision.
+    _wall_s = time.time() - _prof['wall_start']
+    _peak_vram_gb = (torch.cuda.max_memory_allocated() / 1e9) if torch.cuda.is_available() else 0.0
+    _profile = {
+        'wall_seconds': round(_wall_s, 1),
+        'wall_hours': round(_wall_s / 3600, 3),
+        'gpu_hours': round(_wall_s / 3600, 3),          # single-GPU run => wall == GPU hours
+        'encode_seconds': round(_prof['encode_s'], 1),   # HN entity-cache encoding
+        'validation_seconds': round(_prof['valid_s'], 1),
+        'train_seconds': round(_wall_s - _prof['encode_s'] - _prof['valid_s'], 1),
+        'peak_vram_gb': round(_peak_vram_gb, 2),
+        'epochs_run': len(results),
+        'seconds_per_epoch': round(_wall_s / max(len(results), 1), 1),
+    }
+    logger.info(f'PROFILE {json.dumps(_profile)}')
     if rm.load_manifest(run_dir) is not None:
         rm.finish_run(run_dir, status='complete',
-                      metrics={'best_valid_acc1': best_acc1, 'epochs_run': len(results)},
+                      metrics={'best_valid_acc1': best_acc1, 'epochs_run': len(results),
+                               'profile': _profile},
                       checkpoint_path=f'{run_dir}/best_model.pt')
 
 

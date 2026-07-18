@@ -212,7 +212,24 @@ def _selfcheck():
     # averaged rank = 0 + (3+1)/2 = 2.0
     m = compute_filtered_metrics(s, 2, [0, 2])
     assert abs(m['rank'] - 2.0) < 1e-9, m['rank']
-    print('eval_dbp5l tie self-check OK (average-tied-ranks)')
+    # P2.1 check 4: the implemented rank equals 1 + n_> + (n_= - 1)/2 with the gold item
+    # INCLUDED in n_= (algebraically identical to n_> + (n_= + 1)/2).
+    for scores, gold, filt in [
+        (_t.tensor([0.1, 0.9, 0.5, 0.2, 0.3]), 2, [2]),
+        (_t.tensor([0.9, 0.5, 0.5, 0.2, 0.5]), 2, [2]),
+        (_t.tensor([0.5, 0.5, 0.5, 0.5, 0.5]), 0, [0]),
+        (_t.tensor([0.9, 0.5, 0.5, 0.2, 0.5]), 2, [0, 2]),
+    ]:
+        sf = scores.clone()
+        for i in filt:
+            if i != gold:
+                sf[i] = -float('inf')
+        gs = sf[gold]
+        n_gt = int((sf > gs).sum()); n_eq = int((sf == gs).sum())   # n_eq includes gold
+        expected = 1 + n_gt + (n_eq - 1) / 2
+        got = compute_filtered_metrics(scores, gold, filt)['rank']
+        assert abs(got - expected) < 1e-9, (got, expected, n_gt, n_eq)
+    print('eval_dbp5l tie self-check OK (average-tied-ranks; rank == 1 + n_> + (n_= - 1)/2)')
 
 
 # Reciprocal direction marker for head prediction (?, r, t): query = tail [SEP] <RECIP> relation.
