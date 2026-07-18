@@ -246,7 +246,7 @@ $$
 - [x] All P0 acceptance criteria pass. *(P0.1–P0.5 pass; two items deliberately deferred with notes: head-prediction eval → P1.6, target-edge removal at rule scoring → P2.6.)*
 - [x] Results/errors/inferences are appended to the top ledger. *(R-016 … R-023.)*
 - [x] Phase 0 commit is pushed to `main`.
-- [x] Record pushed SHA: `<filled after push>` and date: `2026-07-18`.
+- [x] Record pushed SHA: `8a1a685` and date: `2026-07-18`.
 
 ## 3. Phase 1 - DBP5L-Ind v2 benchmark
 
