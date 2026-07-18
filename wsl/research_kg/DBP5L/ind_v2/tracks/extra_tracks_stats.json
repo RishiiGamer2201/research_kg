@@ -1,0 +1,21 @@
+{
+  "built_utc": "2026-07-18T06:48:49Z",
+  "missing_text": {
+    "hash": "347ccf0216abcc003dbbcdffccac82dd94b9c76d060b3d201d98e5c12fa223b9",
+    "n_entities": 56589
+  },
+  "train_graphtext_per_fold": {
+    "fold0_seed13": {
+      "hash": "72ad03c63390f69c0d011771e4e86ef738bd96a1d77d2363464ef37c117f29d2",
+      "n_train_entities": 42450
+    },
+    "fold1_seed42": {
+      "hash": "5a2a556d7ea90b88b32673febef4d0f2a20c1582669fa7890a955ac77a915ff9",
+      "n_train_entities": 42450
+    },
+    "fold2_seed79": {
+      "hash": "a3e0394617c3e8430d955bc378d59702afc5c1f0ae6090477daf4acf9f24b5c1",
+      "n_train_entities": 42450
+    }
+  }
+}

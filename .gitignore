@@ -61,6 +61,8 @@ wsl/**/ind_v2/descriptions/descriptions_v2.json
 wsl/**/ind_v2/descriptions/descriptions_v2_provenance.json
 wsl/**/ind_v2/tracks/descriptions_v2_primary.json
 wsl/**/ind_v2/tracks/descriptions_v2_masked.json
+wsl/**/ind_v2/tracks/descriptions_v2_missing_text.json
+wsl/**/ind_v2/folds/*/train_graphtext.json
 
 # OS files
 Thumbs.db

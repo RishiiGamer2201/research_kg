@@ -221,7 +221,7 @@ RECIP_MARKER = 'reverse of'
 
 
 def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=False, dump_ranks=None,
-             directions=None):
+             directions=None, v2_targets_path=None):
     # directions: subset of ['tail','head']; default tail-only (reproduces pre-reciprocal evals).
     # When both are given, head uses the reciprocal query + the (r,t)->heads filter, and a
     # 'combined' bucket pools per-query reciprocal ranks from both directions.
@@ -280,8 +280,13 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                      else v.get('name', ''))
             for k, v in raw_ents.items()
         }
-    entity_lang = {int(k): v.get('lang', 'en') for k, v in
-                   json.load(open(f'{PROCESSED}/entities.json')).items()}
+    _ents_raw = json.load(open(f'{PROCESSED}/entities.json'))
+    entity_lang = {int(k): v.get('lang', 'en') for k, v in _ents_raw.items()}
+    # entity names (normalized) for the answer-mention (mentioned/unmentioned) diagnostic
+    import unicodedata as _ud
+    def _mnorm(s):
+        return " ".join(_ud.normalize('NFC', (s or '')).lower().split())
+    entity_name = {int(k): _mnorm(v.get('name', '')) for k, v in _ents_raw.items()}
 
     # Load relation names
     rel_names_path = f'{PROCESSED}/relation_names.json'
@@ -293,13 +298,21 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
         logger.info('WARNING: relation_names.json missing — queries will lack relation context')
         relation_names = {}
 
-    # Load test triples
+    # Load test triples. v2 mode: read a DBP5L-Ind v2 fold's eval targets ([h,r,t] lists) and
+    # attach lang from entities (DBP-5L triples are monolingual, so lang(h)==lang(t)).
     logger.info('Loading test triples...')
     test_examples = []
-    with open(f'{PROCESSED}/test.json') as f:
-        for line in f:
-            test_examples.append(json.loads(line))
-    logger.info(f'  {len(test_examples)} test triples')
+    if v2_targets_path:
+        _elang = {int(g): e.get('lang', 'en') for g, e in
+                  json.load(open(f'{PROCESSED}/entities.json')).items()}
+        for h, r, t in json.load(open(v2_targets_path)):
+            test_examples.append({'h': h, 'r': r, 't': t, 'lang': _elang.get(h, 'en')})
+        logger.info(f'  v2 targets: {len(test_examples)} triples from {v2_targets_path}')
+    else:
+        with open(f'{PROCESSED}/test.json') as f:
+            for line in f:
+                test_examples.append(json.loads(line))
+        logger.info(f'  {len(test_examples)} test triples')
 
     # Build candidate entity list (ALL entities — inductive eval)
     all_entity_ids = sorted(entity_texts.keys())
@@ -384,6 +397,10 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
     # report each requested direction, plus a pooled 'combined' when both are present
     report_dirs = list(directions) + (['combined'] if len(directions) > 1 else [])
     acc = {d: _newbuckets() for d in report_dirs}
+    # answer-mention diagnostic: bucket within-language metrics by whether the answer's name
+    # appears verbatim in the query description (leakage crutch present vs absent).
+    mention_acc = {d: {b: {'mrr': [], 'h1': [], 'h3': [], 'h10': []}
+                       for b in ('mentioned', 'unmentioned')} for d in report_dirs}
     rank_rows = [] if dump_ranks else None   # per-triple within-language RR (tail) for significance
 
     def _accum(d, kind, lang, m):
@@ -441,6 +458,15 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                         _accum(direction, 'wl', lang, wm)
                         if 'combined' in acc:
                             _accum('combined', 'wl', lang, wm)
+                        # mentioned vs unmentioned: is the answer name in the query's description?
+                        q_entity = ex['h'] if direction == 'tail' else ex['t']
+                        ans_name = entity_name.get(true_eid, '')
+                        mentioned = len(ans_name) >= 3 and ans_name in _mnorm(entity_texts.get(q_entity, ''))
+                        mb = 'mentioned' if mentioned else 'unmentioned'
+                        for _k in ('mrr', 'h1', 'h3', 'h10'):
+                            mention_acc[direction][mb][_k].append(wm[_k])
+                            if 'combined' in acc:
+                                mention_acc['combined'][mb][_k].append(wm[_k])
                         if rank_rows is not None and direction == 'tail':
                             rank_rows.append({'h': ex['h'], 'r': r, 't': ex['t'], 'lang': lang,
                                               'rank': wm['rank'], 'rr': wm['mrr']})
@@ -492,6 +518,12 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
         for d in report_dirs:
             print(f'  {d.upper():8s}: {fmt(acc[d]["wl_overall"])}')
 
+    # Answer-mention diagnostic: mentioned vs unmentioned within-language (natural text).
+    print('\n[BY MENTION] within-language (answer name present in query description?):')
+    for d in report_dirs:
+        for b in ('mentioned', 'unmentioned'):
+            print(f'  {d.upper():8s} {b:11s}: {fmt(mention_acc[d][b])}')
+
     # Save results to JSON alongside checkpoint (or to a dedicated dir for zero-shot)
     if checkpoint_path is not None:
         results_path = os.path.join(os.path.dirname(checkpoint_path), 'eval_results.json')
@@ -525,6 +557,15 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
                 'cross_lingual_overall': {k: sum(v)/len(v)*100 if v else 0
                                           for k, v in acc[d]['xl_overall'].items()},
             } for d in report_dirs
+        },
+        # answer-mention diagnostic (within-language): metrics split by whether the answer name
+        # is present in the query description. Natural text only — do NOT read the mentioned
+        # bucket as relational generalization (use the alias-masked track for that).
+        'by_mention': {
+            d: {b: {'n': len(mention_acc[d][b]['mrr']),
+                    **{k: (sum(v)/len(v)*100 if v else 0) for k, v in mention_acc[d][b].items()}}
+                for b in ('mentioned', 'unmentioned')}
+            for d in report_dirs
         },
     }
 
@@ -561,6 +602,7 @@ def evaluate(checkpoint_path, per_language=True, max_length=None, zero_shot=Fals
         rm.start_run(eval_run_dir, kind='eval', inputs=inputs, model_name=model_name,
                      extra={'max_length': max_length, 'results_path': results_path,
                             'directions': directions, 'primary_view': primary,
+                            'v2_targets_path': v2_targets_path,
                             'candidate_mode': 'cross-lingual(all) + within-language; sorted(entity_texts.keys())',
                             'filter_policy': 'known-facts: train+valid+test+support; filtered; average-tied-ranks'})
         rm.finish_run(eval_run_dir, 'complete',
@@ -601,6 +643,10 @@ if __name__ == '__main__':
     p.add_argument('--directions', default='tail',
                    help="Comma-separated: 'tail', 'head', or 'tail,head'. Default tail "
                         "(reproduces pre-reciprocal evals). 'tail,head' also reports combined.")
+    p.add_argument('--v2-targets', default=None,
+                   help='Path to a DBP5L-Ind v2 fold eval_targets_*.json ([h,r,t] list) to '
+                        'evaluate instead of processed/test.json (candidate universe + complete '
+                        'filter are budget-invariant, so this is fixed across budgets).')
     args = p.parse_args()
     if args.selftest:
         _selfcheck()
@@ -623,4 +669,5 @@ if __name__ == '__main__':
 
     evaluate(checkpoint, per_language=args.per_language,
              max_length=args.max_length, zero_shot=args.zero_shot, dump_ranks=args.dump_ranks,
-             directions=[d.strip() for d in args.directions.split(',') if d.strip()])
+             directions=[d.strip() for d in args.directions.split(',') if d.strip()],
+             v2_targets_path=args.v2_targets)
