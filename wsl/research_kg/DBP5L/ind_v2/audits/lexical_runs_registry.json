@@ -177,9 +177,10 @@
       "ended_utc": "2026-07-19T08:19:16Z",
       "epochs_run": 30,
       "selection_epoch": 27,
-      "selection_value": 27.724455657324633,
+      "selection_value": 27.72,
       "selected_checkpoint_sha256": "c99a7b6ce90e0b143a47492cc773b3923c725af2050715a84feaead4dd9fe8f4",
-      "ledger_row": "R-046"
+      "ledger_row": "R-046",
+      "result": "PASS \u2014 all 12 concept-clustered tests significant vs R-042 lexical (min lo95 +0.79)"
     }
   ],
   "milestones": [
