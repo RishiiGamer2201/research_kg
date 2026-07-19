@@ -131,7 +131,7 @@
     },
     {
       "run_id": "B0-RUN-005",
-      "status": "running",
+      "status": "failed",
       "date_utc": "2026-07-19",
       "pid": 47894,
       "type": "continuation",
@@ -146,6 +146,33 @@
       "code_delta": "training code (train_dbp5l_lora.py/eval_dbp5l.py/run_manifest.py/run script) BYTE-IDENTICAL to launch: git diff b0-baseline-v2..HEAD = empty; only docs/test commits since. Epochs 27-30 scientifically continuous.",
       "parent_manifest_modified": false,
       "note": "Continues in the SAME checkpoint dir as B0-RUN-004; resume restored weights/optimizer/scheduler/RNG/best_epoch. ~4 epochs (~2h) remaining."
+    },
+    {
+      "run_id": "B0-RUN-005-outcome",
+      "status": "failed",
+      "date_utc": "2026-07-19",
+      "pid": 47894,
+      "termination": {
+        "exit_code": 134,
+        "signal": 6,
+        "cause": "External OOM AGAIN 2min after resume \u2014 the other GPU LLM was still running. Died during epoch 26 (before any epoch completed), so last_checkpoint.pt unchanged (still epoch 26, sha 5997fcf4ea116e90...). No progress lost or corrupted."
+      },
+      "resumable": true,
+      "resume_checkpoint_epoch": 26,
+      "continued_by": "B0-RUN-006"
+    },
+    {
+      "run_id": "B0-RUN-006",
+      "status": "running",
+      "date_utc": "2026-07-19",
+      "pid": 48597,
+      "type": "continuation",
+      "resumes_run_id": "B0-RUN-004 (via B0-RUN-005)",
+      "parent_checkpoint_sha256": "5997fcf4ea116e9098cc7ab6ca4e39c24cd1d88e80dd2036827b17c77c991b16",
+      "resumed_at_epoch": 26,
+      "best_acc1_so_far": 27.42,
+      "best_epoch": 23,
+      "note": "Second resume of the same intact epoch-26 checkpoint (sha unchanged across both prior external OOMs). ~4 epochs remaining. GPU must stay clear of other jobs."
     }
   ],
   "milestones": [
