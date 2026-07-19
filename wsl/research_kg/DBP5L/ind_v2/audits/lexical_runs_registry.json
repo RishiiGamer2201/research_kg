@@ -163,7 +163,7 @@
     },
     {
       "run_id": "B0-RUN-006",
-      "status": "running",
+      "status": "complete",
       "date_utc": "2026-07-19",
       "pid": 48597,
       "type": "continuation",
@@ -172,7 +172,14 @@
       "resumed_at_epoch": 26,
       "best_acc1_so_far": 27.42,
       "best_epoch": 23,
-      "note": "Second resume of the same intact epoch-26 checkpoint (sha unchanged across both prior external OOMs). ~4 epochs remaining. GPU must stay clear of other jobs."
+      "note": "Second resume of the same intact epoch-26 checkpoint (sha unchanged across both prior external OOMs). ~4 epochs remaining. GPU must stay clear of other jobs.",
+      "exit_code": 0,
+      "ended_utc": "2026-07-19T08:19:16Z",
+      "epochs_run": 30,
+      "selection_epoch": 27,
+      "selection_value": 27.724455657324633,
+      "selected_checkpoint_sha256": "c99a7b6ce90e0b143a47492cc773b3923c725af2050715a84feaead4dd9fe8f4",
+      "ledger_row": "R-046"
     }
   ],
   "milestones": [
@@ -182,6 +189,22 @@
       "milestone": "epoch-5 gate CLEARED on the real run",
       "evidence": "HN cache built at epoch 5 (1.2min, shape (42450,1024), adapter a7461f7459e1) AND optimization resumed \u2014 now epoch 6/30 training normally. The exact point B0-RUN-002 and B0-RUN-003 OOMed.",
       "status_note": "R-F003/R-F004 remain OPEN. The HN no_grad bug is fixed+verified, but the runs are marked resolved only when B0-RUN-004 completes all 30 epochs + writes its selection_record.json. Verification GPU overlap affected timing (~30min), not validity."
+    }
+  ],
+  "incidents": [
+    {
+      "incident": "HN entity-cache OOM (missing torch.no_grad)",
+      "ledger_row": "R-045",
+      "status": "RESOLVED",
+      "date_utc": "2026-07-19",
+      "linked_runs": [
+        "B0-RUN-002",
+        "B0-RUN-003",
+        "B0-RUN-004",
+        "B0-RUN-005",
+        "B0-RUN-006"
+      ],
+      "note": "Run statuses are NOT modified by this resolution \u2014 failed runs stay failed (append-only)."
     }
   ]
 }
