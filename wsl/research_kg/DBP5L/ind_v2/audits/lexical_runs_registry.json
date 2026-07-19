@@ -181,6 +181,17 @@
       "selected_checkpoint_sha256": "c99a7b6ce90e0b143a47492cc773b3923c725af2050715a84feaead4dd9fe8f4",
       "ledger_row": "R-046",
       "result": "PASS \u2014 all 12 concept-clustered tests significant vs R-042 lexical (min lo95 +0.79)"
+    },
+    {
+      "run_id": "B0-RUN-007",
+      "status": "running",
+      "date_utc": "2026-07-19",
+      "pid": 52726,
+      "purpose": "Fallback matrix: fold1_seed42, seed 42 (cross-fold generality).",
+      "launch_commit": "b5291e0 (train code == b0-baseline-v2/e6875a6, fixed HN)",
+      "fold": "fold1_seed42",
+      "cache_key": "634a48c7ba169b0c",
+      "note": "Fold path only differs from fold0 script; ETA ~13h."
     }
   ],
   "milestones": [
