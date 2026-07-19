@@ -204,7 +204,7 @@
     },
     {
       "run_id": "B0-RUN-008",
-      "status": "running",
+      "status": "failed",
       "date_utc": "2026-07-19",
       "pid": 56847,
       "type": "continuation",
@@ -213,7 +213,27 @@
       "parent_checkpoint_sha256": "545bfbe776a35b01",
       "resumed_at_epoch": 6,
       "best_acc1_so_far": 29.94,
-      "note": "Resumed after operator manual stop. Train code == b0-baseline-v2. ~11h left."
+      "note": "Resumed after operator manual stop. Train code == b0-baseline-v2. ~11h left.",
+      "termination": {
+        "exit_code": 132,
+        "signal": 4,
+        "cause": "Operator stopped manually (SIGILL) at epoch 12. Not code."
+      },
+      "resumable": true,
+      "resume_checkpoint_epoch": 12,
+      "last_checkpoint_sha256": "f67cc71c6fea98b827c582b9466adbd1255d7485602b7a578253a3faa4739c76",
+      "continued_by": "B0-RUN-009"
+    },
+    {
+      "run_id": "B0-RUN-009",
+      "status": "running",
+      "date_utc": "2026-07-20",
+      "pid": 60487,
+      "type": "continuation",
+      "resumes_run_id": "B0-RUN-008",
+      "fold": "fold1_seed42",
+      "parent_checkpoint_sha256": "f67cc71c6fea98b8",
+      "resumed_at_epoch": 12
     }
   ],
   "milestones": [
