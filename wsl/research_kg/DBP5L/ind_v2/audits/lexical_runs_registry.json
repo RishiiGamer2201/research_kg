@@ -106,6 +106,46 @@
         "output_directory_reused": false
       },
       "replaced_by": "B0-RUN-004 (from fixed code, new tag b0-baseline-v2)"
+    },
+    {
+      "run_id": "B0-RUN-004",
+      "status": "failed",
+      "date_utc": "2026-07-19",
+      "pid": 32093,
+      "launch_commit": "e6875a6 (tag b0-baseline-v2, fixed code)",
+      "purpose": "B0 anchor baseline, fixed HN code.",
+      "progress": "26/30 epochs completed (best_epoch 23, best_acc1 27.42); last_checkpoint.pt at epoch 26",
+      "termination": {
+        "exit_code": 134,
+        "signal": 6,
+        "cause": "EXTERNAL: another GPU LLM was launched by the operator and its memory collided with training -> CUDA OOM at epoch 26. NOT our code (the HN no_grad fix held for 21 clean refreshes, epochs 5-26). GPU free again post-mortem."
+      },
+      "resumable": true,
+      "resume_checkpoint_epoch": 26,
+      "last_checkpoint_sha256": "5997fcf4ea116e9098cc7ab6ca4e39c24cd1d88e80dd2036827b17c77c991b16",
+      "outputs": {
+        "result_written": false,
+        "output_directory_reused": false
+      },
+      "continued_by": "B0-RUN-005"
+    },
+    {
+      "run_id": "B0-RUN-005",
+      "status": "running",
+      "date_utc": "2026-07-19",
+      "pid": 47894,
+      "type": "continuation",
+      "resumes_run_id": "B0-RUN-004",
+      "parent_checkpoint": "DBP5L/checkpoints/bgem3_lora_dbp5l_20260718_1705_crr_hn7_r16/last_checkpoint.pt",
+      "parent_checkpoint_sha256": "5997fcf4ea116e9098cc7ab6ca4e39c24cd1d88e80dd2036827b17c77c991b16",
+      "resumed_at_epoch": 26,
+      "best_acc1_so_far": 27.42,
+      "best_epoch": 23,
+      "launch_commit_old": "e6875a6 (b0-baseline-v2)",
+      "launch_commit_new": "7a09e13",
+      "code_delta": "training code (train_dbp5l_lora.py/eval_dbp5l.py/run_manifest.py/run script) BYTE-IDENTICAL to launch: git diff b0-baseline-v2..HEAD = empty; only docs/test commits since. Epochs 27-30 scientifically continuous.",
+      "parent_manifest_modified": false,
+      "note": "Continues in the SAME checkpoint dir as B0-RUN-004; resume restored weights/optimizer/scheduler/RNG/best_epoch. ~4 epochs (~2h) remaining."
     }
   ],
   "milestones": [
