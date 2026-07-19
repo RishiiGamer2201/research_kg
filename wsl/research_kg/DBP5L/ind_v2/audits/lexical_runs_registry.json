@@ -184,14 +184,36 @@
     },
     {
       "run_id": "B0-RUN-007",
-      "status": "running",
+      "status": "failed",
       "date_utc": "2026-07-19",
       "pid": 52726,
       "purpose": "Fallback matrix: fold1_seed42, seed 42 (cross-fold generality).",
       "launch_commit": "b5291e0 (train code == b0-baseline-v2/e6875a6, fixed HN)",
       "fold": "fold1_seed42",
       "cache_key": "634a48c7ba169b0c",
-      "note": "Fold path only differs from fold0 script; ETA ~13h."
+      "note": "Fold path only differs from fold0 script; ETA ~13h.",
+      "termination": {
+        "exit_code": 132,
+        "signal": 4,
+        "cause": "Operator stopped it manually (SIGILL) at epoch 6. Not a code fault."
+      },
+      "resumable": true,
+      "resume_checkpoint_epoch": 6,
+      "last_checkpoint_sha256": "545bfbe776a35b016f40549ce1e36d4d31d1bee96a11bfbd73072f189366df57",
+      "continued_by": "B0-RUN-008"
+    },
+    {
+      "run_id": "B0-RUN-008",
+      "status": "running",
+      "date_utc": "2026-07-19",
+      "pid": 56847,
+      "type": "continuation",
+      "resumes_run_id": "B0-RUN-007",
+      "fold": "fold1_seed42",
+      "parent_checkpoint_sha256": "545bfbe776a35b01",
+      "resumed_at_epoch": 6,
+      "best_acc1_so_far": 29.94,
+      "note": "Resumed after operator manual stop. Train code == b0-baseline-v2. ~11h left."
     }
   ],
   "milestones": [
