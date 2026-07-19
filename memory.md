@@ -133,3 +133,12 @@ Running log. Newest entries at top of each section. Absolute dates.
 - Fallback matrix (sequential, EXCLUSIVE GPU — the two mid-run OOMs were operator's other LLM colliding): B0-RUN-007 fold1_seed42 RUNNING (pid 52726). Remaining: fold2_seed79 @ seed42, then fold0_seed13 @ seeds 123 & 777. Same frozen code b0-baseline-v2/e6875a6.
 - Per-fold run script = copy of run_b0_fold0_seed42.FROZEN.sh with FOLD path swapped (chmod -w). Launch via launch_run.sh. NEVER edit train code until matrix done.
 - Each completion: eval_three_views + compare_vs_lexical, append registry + ledger.
+
+### 2026-07-19 — Matrix order REVISED (user)
+Revised sequencing (matches frozen rule: 1-seed screening first, multi-seed only for headline claims):
+1. B0-RUN-007 fold1_seed42 (running) THEN fold2_seed79 @ seed42 -> establishes cross-fold generality. Each after full eval+compare+ledger.
+2. DEFER fold0 seeds 123/777 (no longer next).
+3. Screen planned Phase-2 experiments on fold0/seed42, ONE change at a time, vs B0-RUN-006 anchor. Concept-clustered sufficiency test each.
+4. Drop weak variants early.
+5. Seeds 123/777 (paired) ONLY for B0 + surviving candidate models — multi-seed confirmation for headline claims only.
+Do NOT stop RUN-007. Exclusive GPU, sequential.
