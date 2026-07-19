@@ -126,3 +126,10 @@ Running log. Newest entries at top of each section. Absolute dates.
 - **On B0-RUN-004 SUCCESSFUL completion:** add a NEW ledger row R-XXX "incident resolved" for the HN no_grad OOM root cause, LINKING all three runs (B0-RUN-002 failed, B0-RUN-003 failed, B0-RUN-004 success). 
 - **DO NOT** change R-F003/R-F004 statuses — failed runs stay `failed` permanently (append-only ledger). The incident resolution is separate from the run outcomes.
 - B0-RUN-004 cleared epoch-5 gate 19:27Z (HN build + resumed to epoch 6). ETA ~10.9h from 19:30. Report order at completion: selection record → 3-view eval → clustered verdict (primary) + concept-macro → continuation decision.
+
+### 2026-07-19 — B0 PASS, fallback matrix underway
+- B0 fold0_seed13 COMPLETE: PASS (R-045), natural-label corrected R-047 (missing-view mention numbers were mislabeled as natural; verdict itself read natural ranks correctly). R-045 preserved.
+- **Canonical data card = `docs/B0_EVAL_DATACARD.html` in repo** (committed). Artifact URL e86aa25b is private preview only, NOT canonical.
+- Fallback matrix (sequential, EXCLUSIVE GPU — the two mid-run OOMs were operator's other LLM colliding): B0-RUN-007 fold1_seed42 RUNNING (pid 52726). Remaining: fold2_seed79 @ seed42, then fold0_seed13 @ seeds 123 & 777. Same frozen code b0-baseline-v2/e6875a6.
+- Per-fold run script = copy of run_b0_fold0_seed42.FROZEN.sh with FOLD path swapped (chmod -w). Launch via launch_run.sh. NEVER edit train code until matrix done.
+- Each completion: eval_three_views + compare_vs_lexical, append registry + ledger.
