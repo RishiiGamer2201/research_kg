@@ -1,0 +1,184 @@
+<title>B0 Eval Data Card · DBP5L-Ind v2 fold0_seed13</title>
+<style>
+  :root{
+    --bg:#f5f7f8; --panel:#ffffff; --ink:#151b1e; --muted:#5b6b70; --faint:#8a999e;
+    --line:#dde5e7; --line-strong:#c4d0d3; --accent:#0e8b8b; --accent-soft:#d3ecec;
+    --pass:#1a7f4b; --pass-soft:#d8efe1; --warn:#a86a10; --warn-soft:#f2e6cf;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e1416; --panel:#161e21; --ink:#e7eef0; --muted:#9db0b5; --faint:#6d7f84;
+      --line:#26343a; --line-strong:#38494f; --accent:#39c0bf; --accent-soft:#123234;
+      --pass:#4cc98a; --pass-soft:#12321f; --warn:#e0aa4e; --warn-soft:#33260f;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f7f8; --panel:#ffffff; --ink:#151b1e; --muted:#5b6b70; --faint:#8a999e;
+    --line:#dde5e7; --line-strong:#c4d0d3; --accent:#0e8b8b; --accent-soft:#d3ecec;
+    --pass:#1a7f4b; --pass-soft:#d8efe1; --warn:#a86a10; --warn-soft:#f2e6cf;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1416; --panel:#161e21; --ink:#e7eef0; --muted:#9db0b5; --faint:#6d7f84;
+    --line:#26343a; --line-strong:#38494f; --accent:#39c0bf; --accent-soft:#123234;
+    --pass:#4cc98a; --pass-soft:#12321f; --warn:#e0aa4e; --warn-soft:#33260f;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;
+    margin:0;padding:2.4rem 1.4rem 4rem;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 .5rem}
+  h1{font-size:1.8rem;line-height:1.15;margin:0 0 .3rem;text-wrap:balance;letter-spacing:-.01em}
+  h1 .sub{color:var(--muted);font-weight:500}
+  .lede{color:var(--muted);max-width:62ch;margin:.6rem 0 0;font-size:.98rem}
+
+  .masthead{border:1px solid var(--line);background:var(--panel);border-radius:10px;
+    margin:1.8rem 0;overflow:hidden}
+  .verdict-strip{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+    padding:.9rem 1.1rem;background:var(--pass-soft);border-bottom:1px solid var(--line)}
+  .badge{font-family:var(--mono);font-weight:700;font-size:.9rem;letter-spacing:.08em;
+    color:var(--pass);border:1.5px solid var(--pass);border-radius:6px;padding:.2rem .6rem}
+  .verdict-strip .txt{font-size:.9rem;color:var(--ink)}
+  .verdict-strip .txt b{font-variant-numeric:tabular-nums}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+    background:var(--line)}
+  .meta div{background:var(--panel);padding:.7rem 1.1rem}
+  .meta dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);margin:0 0 .2rem}
+  .meta dd{margin:0;font-family:var(--mono);font-size:.86rem;color:var(--ink);
+    word-break:break-all;font-variant-numeric:tabular-nums}
+
+  section{margin:2.4rem 0}
+  h2{font-size:1.05rem;margin:0 0 .2rem;letter-spacing:-.005em}
+  h2 .n{font-family:var(--mono);color:var(--accent);font-size:.8rem;margin-right:.5rem}
+  .note{color:var(--muted);font-size:.9rem;max-width:64ch;margin:.3rem 0 1rem}
+
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:.7rem;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:.7rem 1rem .1rem}
+  th,td{padding:.5rem .8rem;text-align:right;font-size:.88rem;white-space:nowrap;
+    border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;font-family:var(--mono);color:var(--ink)}
+  thead th{font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;border-bottom:1.5px solid var(--line-strong)}
+  tbody td{font-family:var(--mono)}
+  tr.total td{border-top:1.5px solid var(--line-strong);border-bottom:none;font-weight:700;
+    background:var(--accent-soft)}
+  .unm{color:var(--accent);font-weight:700}
+  .ci{color:var(--faint);font-size:.82rem}
+  .low{color:var(--warn)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .cards .c{background:var(--panel);padding:1rem 1.1rem}
+  .cards .c .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--faint);margin:0 0 .35rem}
+  .cards .c .v{font-family:var(--mono);font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .cards .c .v small{font-size:.8rem;color:var(--muted);font-weight:500}
+  .cards .c .cip{font-family:var(--mono);font-size:.78rem;color:var(--faint);margin-top:.2rem}
+
+  ul.read{list-style:none;padding:0;margin:0;display:grid;gap:.7rem}
+  ul.read li{padding-left:1.1rem;position:relative;color:var(--ink);font-size:.93rem;max-width:74ch}
+  ul.read li::before{content:"";position:absolute;left:0;top:.55em;width:.42rem;height:.42rem;
+    background:var(--accent);border-radius:1px}
+  ul.read li b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .cav{border-left:2px solid var(--warn);background:var(--warn-soft);padding:.7rem 1rem;
+    border-radius:0 8px 8px 0;font-size:.9rem;margin:1rem 0;max-width:74ch}
+
+  footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;
+    font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Baseline register · B0 anchor</p>
+  <h1>B0 evaluation data card<br><span class="sub">DBP5L-Ind v2 · fold0_seed13 · natural / masked / missing</span></h1>
+  <p class="lede">BGE-M3 + LoRA anchor, evaluated on the concept-disjoint v2 fold under the frozen
+  Phase-2 protocol. All figures are within-language MRR (%), regenerated from rank-dump files under
+  checkpoint-SHA and view-hash assertions.</p>
+
+  <div class="masthead">
+    <div class="verdict-strip">
+      <span class="badge">PASS</span>
+      <span class="txt">All <b>12</b> concept-clustered sufficiency tests clear margin 0 —
+        min lower bound <b>+0.79</b> vs both lexical experts. Remaining fallback matrix authorized.</span>
+    </div>
+    <dl class="meta">
+      <div><dt>Checkpoint SHA-256</dt><dd>c99a7b6ce90e0b14…ead4dd9fe8f4</dd></div>
+      <div><dt>Selection</dt><dd>valid acc@1 27.72% · epoch 27/30</dd></div>
+      <div><dt>Natural view hash</dt><dd>d1afcf20821e034b</dd></div>
+      <div><dt>Targets / directions</dt><dd>73,880 · head+tail</dd></div>
+      <div><dt>Negative policy</dt><dd>negpol-v2-train-only</dd></div>
+      <div><dt>Card version</dt><dd>v1 · 2026-07-19</dd></div>
+    </dl>
+  </div>
+
+  <section>
+    <h2><span class="n">01</span>Per-language — natural view</h2>
+    <p class="note">Head / tail / combined and the mentioned vs unmentioned split. The
+    <span class="unm">unmentioned</span> column is the primary leakage-reduced relational-generalization
+    indicator, with its concept-cluster bootstrap 95% CI. Masked and missing combined MRR are carried
+    alongside for comparison.</p>
+    <div class="scroll">
+      <table>
+        <caption>within-language MRR (%) · natural, with masked/missing reference</caption>
+        <thead>
+          <tr><th>Lang</th><th>Comb</th><th>Tail</th><th>Head</th><th>Ment</th>
+            <th>Unm</th><th>Unm 95% CI</th><th>nQ</th><th>nConc</th><th>Masked</th><th>Missing</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>EN</td><td>25.80</td><td>35.20</td><td>16.40</td><td>44.96</td><td class="unm">9.17</td><td class="ci">[6.46, 12.32]</td><td>27,160</td><td>2,992</td><td>3.45</td><td>6.30</td></tr>
+          <tr><td>FR</td><td>28.04</td><td>44.75</td><td>11.33</td><td>51.26</td><td class="unm">14.20</td><td class="ci">[8.43, 23.46]</td><td>16,934</td><td>2,380</td><td>12.72</td><td>2.50</td></tr>
+          <tr><td>ES</td><td>23.73</td><td>34.47</td><td>12.99</td><td>50.52</td><td class="unm">12.81</td><td class="ci">[8.46, 18.24]</td><td>19,092</td><td>3,416</td><td>7.83</td><td>2.38</td></tr>
+          <tr><td>JA</td><td class="low">9.63</td><td>13.24</td><td>6.02</td><td>19.37</td><td class="unm low">3.57</td><td class="ci">[2.01, 5.98]</td><td>7,652</td><td>1,283</td><td>3.61</td><td>2.30</td></tr>
+          <tr><td>EL</td><td>25.14</td><td>33.72</td><td>16.56</td><td>45.21</td><td class="unm">9.84</td><td class="ci">[6.36, 15.85]</td><td>3,042</td><td>467</td><td>3.82</td><td>3.40</td></tr>
+          <tr class="total"><td>ALL</td><td>24.08</td><td>34.87</td><td>13.29</td><td>44.82</td><td>10.89</td><td class="ci">[7.05, 15.92]</td><td>73,880</td><td>6,222</td><td>6.74</td><td>3.88</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span>Direction split — natural, all languages</h2>
+    <p class="note">Answer exposure is strongly directional. Tail prediction retains real relational
+    signal without the mention crutch; head prediction is far harder and its CI far wider.</p>
+    <div class="cards">
+      <div class="c"><p class="k">Tail · unmentioned</p><p class="v">18.84<small> MRR</small></p><p class="cip">CI [18.27, 19.41] · n 13,717 · 5,205 concepts</p></div>
+      <div class="c"><p class="k">Head · unmentioned</p><p class="v">7.42<small> MRR</small></p><p class="cip">CI [4.27, 13.32] · n 31,443 · 2,404 concepts</p></div>
+      <div class="c"><p class="k">Tail · mentioned</p><p class="v">44.33<small> MRR</small></p><p class="cip">n 23,223 — inflated by answer-name reading</p></div>
+      <div class="c"><p class="k">Head · mentioned</p><p class="v">46.86<small> MRR</small></p><p class="cip">n 5,497 — inflated by answer-name reading</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span>Reading the card</h2>
+    <ul class="read">
+      <li><b>Unmentioned</b> is the primary leakage-reduced relational-generalization indicator — it
+        keeps the description intact and selects queries whose text does not name the answer. It is
+        <em>not</em> "true" generalization: semantic or paraphrased answer evidence may remain; only
+        exact-name mention is excluded.</li>
+      <li>Natural aggregate MRR (<b>24.08</b>) must not be cited as relational generalization — it
+        substantially reflects answer-mention reading (mentioned <b>44.82</b> vs unmentioned <b>10.89</b>).</li>
+      <li><b>JA</b> is the generalization bottleneck: lowest on every view (unmentioned <b>3.57</b>),
+        the clearest target for later multilingual work.</li>
+      <li><b>FR</b> and <b>ES</b> carry the strongest relational signal (unmentioned <b>14.20</b> /
+        <b>12.81</b>).</li>
+      <li>Masked below missing for EN (<b>3.45</b> vs <b>6.30</b>): alias-masking deletes legitimate
+        context along with names, dropping below the name-only floor. It is a stress diagnostic, not a
+        clean generalization measure.</li>
+    </ul>
+    <div class="cav">Provenance correction (v1): ledger R-045's original prose quoted the
+      <b>missing</b>-view mention split (tail 39.83 / head 41.66) mislabeled as natural. The 12-test
+      PASS verdict itself read natural ranks correctly (view hash d1afcf20). The mislabel is preserved
+      and corrected in an appended ledger row; the natural split above (tail 44.33 / head 46.86) is
+      authoritative.</div>
+  </section>
+
+  <footer>
+    <span>B0-RUN-006 · commit b0-baseline-v2 (e6875a6)</span>
+    <span>regenerated from ranks_{natural,masked,missing}.json · assertions passed</span>
+  </footer>
+</div>
