@@ -281,14 +281,19 @@
     },
     {
       "run_id": "B0-RUN-012",
-      "status": "running",
+      "status": "complete",
       "date_utc": "2026-07-20",
       "pid": 1891,
       "type": "continuation",
       "resumes_run_id": "B0-RUN-011",
       "fold": "fold1_seed42",
       "resumed_at_epoch": 27,
-      "note": "ChatGPT desktop closed -> passed the ep28 crash point (step 200+). 3 epochs left."
+      "note": "ChatGPT desktop closed -> passed the ep28 crash point (step 200+). 3 epochs left.",
+      "exit_code": 0,
+      "selection_epoch": 28,
+      "selection_value": 30.08,
+      "selected_checkpoint_sha256": "d89890dabacf838b45b9d49b9f5994b096f491a6c56d9c2ef050bffffa8cfaec",
+      "result": "PASS \u2014 all 12 concept-clustered tests significant (min lo95 +0.75)"
     }
   ],
   "milestones": [
