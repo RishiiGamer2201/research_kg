@@ -294,6 +294,15 @@
       "selection_value": 30.08,
       "selected_checkpoint_sha256": "d89890dabacf838b45b9d49b9f5994b096f491a6c56d9c2ef050bffffa8cfaec",
       "result": "PASS \u2014 all 12 concept-clustered tests significant (min lo95 +0.75)"
+    },
+    {
+      "run_id": "B0-RUN-013",
+      "status": "running",
+      "date_utc": "2026-07-20",
+      "pid": 5915,
+      "fold": "fold2_seed79",
+      "purpose": "Fallback matrix fold2, seed 42 \u2014 completes cross-fold generality.",
+      "note": "Keep ChatGPT desktop CLOSED."
     }
   ],
   "milestones": [
