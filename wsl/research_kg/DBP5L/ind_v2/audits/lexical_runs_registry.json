@@ -246,14 +246,34 @@
     },
     {
       "run_id": "B0-RUN-010",
-      "status": "running",
+      "status": "failed",
       "date_utc": "2026-07-20",
       "pid": 67346,
       "type": "continuation",
       "resumes_run_id": "B0-RUN-009",
       "fold": "fold1_seed42",
       "resumed_at_epoch": 27,
-      "note": "3 epochs left"
+      "note": "3 epochs left",
+      "termination": {
+        "exit_code": 134,
+        "signal": 6,
+        "cause": "cudaErrorUnknown at train loop epoch 28 \u2014 third such crash near ep27-28. Diagnosis: a Windows-side GPU process (python PID 532 ~12GB and/or ChatGPT.exe) holds ~2GB persistently (survived wsl --shutdown) and likely spikes, colliding with training. NOT our code/GPU-hardware (42C, no throttle, CUDA sanity passes)."
+      },
+      "resumable": true,
+      "resume_checkpoint_epoch": 27,
+      "last_checkpoint_sha256": "f18d41f41e979c0ff4a5cd580b8947b59f2f72dbdfeb0cceb7b79789184fe628",
+      "continued_by": "B0-RUN-011"
+    },
+    {
+      "run_id": "B0-RUN-011",
+      "status": "running",
+      "date_utc": "2026-07-20",
+      "pid": 1102,
+      "type": "continuation",
+      "resumes_run_id": "B0-RUN-010",
+      "fold": "fold1_seed42",
+      "resumed_at_epoch": 27,
+      "note": "3 epochs left; WSL restarted, GPU cleared to 15GB free"
     }
   ],
   "milestones": [
