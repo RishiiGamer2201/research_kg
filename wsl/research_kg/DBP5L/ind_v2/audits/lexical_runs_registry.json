@@ -266,14 +266,29 @@
     },
     {
       "run_id": "B0-RUN-011",
-      "status": "running",
+      "status": "failed",
       "date_utc": "2026-07-20",
       "pid": 1102,
       "type": "continuation",
       "resumes_run_id": "B0-RUN-010",
       "fold": "fold1_seed42",
       "resumed_at_epoch": 27,
-      "note": "3 epochs left; WSL restarted, GPU cleared to 15GB free"
+      "note": "3 epochs left; WSL restarted, GPU cleared to 15GB free",
+      "continued_by": "B0-RUN-012",
+      "termination": {
+        "cause": "4th cudaErrorUnknown ep28 \u2014 OpenAI Codex/ChatGPT.exe GPU collision (confirmed: closing it let RUN-012 pass ep28)"
+      }
+    },
+    {
+      "run_id": "B0-RUN-012",
+      "status": "running",
+      "date_utc": "2026-07-20",
+      "pid": 1891,
+      "type": "continuation",
+      "resumes_run_id": "B0-RUN-011",
+      "fold": "fold1_seed42",
+      "resumed_at_epoch": 27,
+      "note": "ChatGPT desktop closed -> passed the ep28 crash point (step 200+). 3 epochs left."
     }
   ],
   "milestones": [
