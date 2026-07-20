@@ -297,12 +297,29 @@
     },
     {
       "run_id": "B0-RUN-013",
-      "status": "running",
+      "status": "failed",
       "date_utc": "2026-07-20",
       "pid": 5915,
       "fold": "fold2_seed79",
       "purpose": "Fallback matrix fold2, seed 42 \u2014 completes cross-fold generality.",
-      "note": "Keep ChatGPT desktop CLOSED."
+      "note": "Keep ChatGPT desktop CLOSED.",
+      "continued_by": "B0-RUN-014",
+      "termination": {
+        "exit_code": 134,
+        "cause": "cudaErrorUnknown epoch 8 after ~4h clean. GPU pristine post-mortem (20MiB), ChatGPT not running \u2014 genuine intermittent WSL2 CUDA transient, not the desktop app this time."
+      },
+      "resume_checkpoint_epoch": 8
+    },
+    {
+      "run_id": "B0-RUN-015",
+      "status": "running",
+      "date_utc": "2026-07-20",
+      "pid": 10843,
+      "type": "auto-resume",
+      "resumes_run_id": "B0-RUN-013",
+      "fold": "fold2_seed79",
+      "resumed_at_epoch": 8,
+      "note": "Auto-resume wrapper (self-heals WSL cudaErrorUnknown transients, max 12, stops if checkpoint stalls). 22 epochs left."
     }
   ],
   "milestones": [
