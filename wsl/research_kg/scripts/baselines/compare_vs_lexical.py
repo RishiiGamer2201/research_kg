@@ -357,16 +357,23 @@ def _selftest():
 
 
 if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        _selftest(); sys.exit(0)
     ap = argparse.ArgumentParser()
-    ap.add_argument("--eval-dir", default="DBP5L/ind_v2/audits/eval/B0-FOLD0-SEED42")
-    ap.add_argument("--fold", default="fold0_seed13")
+    ap.add_argument("--eval-dir", required=True, help="eval output dir with rank dumps + evaluated_checkpoint.json")
+    ap.add_argument("--fold", required=True, help="fold basename, e.g. fold2_seed79")
     ap.add_argument("--margin", type=float, default=PRACTICAL_MARGIN,
                     help="predeclared practical margin in MRR points that the lower CI bound "
                          "must exceed (default 0.0 = strictly greater than zero)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
-    if a.selftest:
-        _selftest(); sys.exit(0)
+    # refuse if --fold disagrees with what the eval-dir was actually evaluated on
+    _evck = os.path.join(a.eval_dir if os.path.isabs(a.eval_dir) else os.path.join(ROOT, a.eval_dir),
+                         "evaluated_checkpoint.json")
+    if os.path.exists(_evck):
+        _f = json.load(open(_evck)).get("fold")
+        if _f and _f != a.fold:
+            sys.exit(f"REFUSE: {a.eval_dir} was evaluated on fold '{_f}', but --fold is '{a.fold}'. Fix --fold/--eval-dir.")
     r = compare(a.eval_dir, a.fold, a.margin)
     out = os.path.join(a.eval_dir if os.path.isabs(a.eval_dir) else os.path.join(ROOT, a.eval_dir),
                        "lexical_comparison.json")

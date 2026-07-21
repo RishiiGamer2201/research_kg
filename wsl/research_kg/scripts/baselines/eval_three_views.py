@@ -89,6 +89,13 @@ def main(a):
     sel, ckpt, ckpt_sha = load_selection(a.train_run_dir)
     out_dir = a.out_dir if os.path.isabs(a.out_dir) else os.path.join(ROOT, a.out_dir)
     os.makedirs(out_dir, exist_ok=True)
+    this_fold = os.path.basename(a.fold.rstrip("/"))
+    prior = os.path.join(out_dir, "evaluated_checkpoint.json")
+    if os.path.exists(prior):
+        prev_fold = json.load(open(prior)).get("fold")
+        if prev_fold and prev_fold != this_fold:
+            sys.exit(f"REFUSE: {out_dir} already holds fold '{prev_fold}'; "
+                     f"this run is fold '{this_fold}'. Pick a different --out-dir (prevents cross-fold clobber).")
     idx_path = os.path.join(out_dir, "completion_index.json")
     index = json.load(open(idx_path)) if (a.resume and os.path.exists(idx_path)) else {"views": {}}
 
@@ -159,15 +166,15 @@ def _selftest():
 
 
 if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        _selftest(); sys.exit(0)
     ap = argparse.ArgumentParser()
     ap.add_argument("--train-run-dir", help="checkpoint dir containing selection_record.json")
-    ap.add_argument("--fold", default=os.path.join(ROOT, "DBP5L/ind_v2/folds/fold0_seed13"))
-    ap.add_argument("--out-dir", default="DBP5L/ind_v2/audits/eval/B0-FOLD0-SEED42")
+    ap.add_argument("--fold", required=True, help="full path to fold dir, e.g. .../folds/fold2_seed79")
+    ap.add_argument("--out-dir", required=True, help="eval output dir, e.g. .../audits/eval/B0-FOLD2-SEED42")
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
-    if a.selftest:
-        _selftest(); sys.exit(0)
     if not a.train_run_dir:
         ap.error("--train-run-dir is required")
     main(a)
