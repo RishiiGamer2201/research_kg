@@ -1,2 +1,5 @@
 # Shell scripts must stay LF or bash breaks on CRLF ('\r' command not found) after a WSL clone.
 *.sh text eol=lf
+# Python must stay LF too: prevents autocrlf flicker that showed committed .py as "modified"
+# and let the guarded-resume tracked-clean check false-refuse (see R-F006 / gate-G2 notes).
+*.py text eol=lf
